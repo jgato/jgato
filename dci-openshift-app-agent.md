@@ -7,7 +7,7 @@ Where to run it? In you usual provisioner, bastion, or supporting host to manage
 Requirements for the provisioner:
 
 * Be running the latest stable RHEL release (**8.4 or higher**) and registered via RHSM
-
+  
   * I have tested with CentOS and it works ok
 
 * Ansible 2.9 (See section Newer Ansible Versions for newer Ansible versions)
@@ -15,7 +15,7 @@ Requirements for the provisioner:
 * Access to the Internet, it could be through a proxy. Check our lab config to configure the proxy.
 
 * Access to the following repositories:
-
+  
   - epel
   - dci-release
   - baseos-rpms
@@ -25,7 +25,7 @@ Requirements for the provisioner:
 
 * kubernetes python module
 
-If you created your provisioner with a kcli plan, mostly all of these requirement are already ok. Even the proxy configuration. So you only have to install:
+If you created your provisioner with a kcli plan, mostly all of these requirement are already ok. Even the proxy configuration. So you only have to install the following in your provisioner (or lab-installer) host:
 
 ```bash
 dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
@@ -38,7 +38,13 @@ dnf -y install dci-openshift-app-agent
 
 [Visit the DCI Console](https://www.distributed-ci.io/) to create your new remote CIS that will be used by the agent.
 
-Once it is created take your credentials information
+![](./assets/2021-11-26-13-47-49-image.png)
+
+Once it is created take your credentials information.
+
+
+
+
 
 ## Configure Agent credentials
 
@@ -54,7 +60,7 @@ export DCI_API_SECRET
 export DCI_CS_URL
 ```
 
-The file '**/etc/dci-openshift-app-agent/settings.yml**' configure different variables to be used by the agent.
+
 
 ## Running tests
 
@@ -131,7 +137,7 @@ But you can create your own hooks directory.
 
 ## Running your own tests
 
-The installation comes with some example jobs in `var/lib/dci-openshift-app-agent/samples/`.
+The installation comes with some example jobs in `/var/lib/dci-openshift-app-agent/samples/`.
 
 You can edit `/etc/dci-openshift-app-agent/settings.ym` to point to the configuration directory of some of these example.
 
@@ -157,10 +163,10 @@ This example it just create a webserver, test it works and delete it.
 
 * dci_config_dir: the directory with the hooks for the tests
 
-dci_topic and component should be the one in your OCP deployment.
-
 ```bash
 dci-openshift-app-agent-ctl -s
+# or
+dci-openshift-app-agent-ctl -s -c NEW_CONFIG_FILE
 ```
 
 When everything is finished you can see the resoults in the output and in the web console:
@@ -204,6 +210,8 @@ This is how you see it from the web console
 
 # DCI Openshift Agent
 
+**Notice: DCI Openshift Agent is related to install/test/update OCP4 installation, and it is not covered in this tutorial**
+
 DCI agent for OCP4 will be in charge of automatic CI process over your cluster. DCI, aims to automatically deploy and test RedHat Products (like new versions of OCP). The DCI Openshift Agent is in charge of deploying OCP4.
 
 What?: Using this agent you can deploy and test new updates of OCP4.
@@ -222,5 +230,3 @@ Other advantes:
    proven ansible tech
 5. You have access to all your jobs logs and metrics through distributed-ci.io
    where you can also set notifications for errors/exceptions
-
-**Notice: by the moment I dont cover in this tutorial how to use it to deploy OCP4. I have not tested this yet**
