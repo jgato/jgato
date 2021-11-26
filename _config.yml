@@ -6,8 +6,6 @@ plugins:
 relative_links:
   enabled: true
   collections: true
-nav:
-  - About: index.md
 include:
   - random_docs/DCI-Openshift-App-Agent.md
 
