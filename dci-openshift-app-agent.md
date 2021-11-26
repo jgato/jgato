@@ -4,10 +4,10 @@ This DCI Agents helps you to run any kind of test or application in a Openshift 
 
 Where to run it? In you usual provisioner, bastion, or supporting host to manage your Openshift Cluster. *During the ramp-up, usually we can use the lab-installer from our plan deployment*.
 
-Requirements for the provisioner: 
+Requirements for the provisioner:
 
 * Be running the latest stable RHEL release (**8.4 or higher**) and registered via RHSM
-  
+
   * I have tested with CentOS and it works ok
 
 * Ansible 2.9 (See section Newer Ansible Versions for newer Ansible versions)
@@ -15,7 +15,7 @@ Requirements for the provisioner:
 * Access to the Internet, it could be through a proxy. Check our lab config to configure the proxy.
 
 * Access to the following repositories:
-  
+
   - epel
   - dci-release
   - baseos-rpms
@@ -23,7 +23,7 @@ Requirements for the provisioner:
 
 * Podman 3.0
 
-* kubernetes python module 
+* kubernetes python module
 
 If you created your provisioner with a kcli plan, mostly all of these requirement are already ok. Even the proxy configuration. So you only have to install:
 
@@ -36,7 +36,7 @@ dnf -y install dci-openshift-app-agent
 
 ## DCI Console and remote CIS
 
-[Visit the DCI Console](https://www.distributed-ci.io/) to create your new remote CIS that will be used by the agent. 
+[Visit the DCI Console](https://www.distributed-ci.io/) to create your new remote CIS that will be used by the agent.
 
 Once it is created take your credentials information
 
@@ -54,7 +54,7 @@ export DCI_API_SECRET
 export DCI_CS_URL
 ```
 
-The file '**/etc/dci-openshift-app-agent/settings.yml**' configure different variables to be used by the agent. 
+The file '**/etc/dci-openshift-app-agent/settings.yml**' configure different variables to be used by the agent.
 
 ## Running tests
 
@@ -64,7 +64,7 @@ You will need access to the KUBECONFIG from the user 'dci-openshift-app-agent'. 
 # mkdir /var/lib/dci-openshift-app-agent/.kube
 # cp /root/ocp/auth/kubeconfig /var/lib/dci-openshift-app-agent/.kube/config
 # chown -R dci-openshift-app-agent: /var/lib/dci-openshift-app-agent/.kube
-# su - dci-openshift-app-agent 
+# su - dci-openshift-app-agent
 ```
 
 And run the agent manually:
@@ -131,7 +131,7 @@ But you can create your own hooks directory.
 
 ## Running your own tests
 
-The installation comes with some example jobs in `var/lib/dci-openshift-app-agent/samples/`. 
+The installation comes with some example jobs in `var/lib/dci-openshift-app-agent/samples/`.
 
 You can edit `/etc/dci-openshift-app-agent/settings.ym` to point to the configuration directory of some of these example.
 
@@ -198,7 +198,9 @@ PLAY RECAP *********************************************************************
 jumphost                   : ok=70   changed=20   unreachable=0    failed=0    skipped=30   rescued=0    ignored=1
 ```
 
-![](/home/jgato/Projects-src/my_github/kubernetes/Openshift/assets/2021-11-26-11-51-17-image.png)
+This is how you see it from the web console
+
+![](./assets/2021-11-26-11-51-17-image.png)
 
 # DCI Openshift Agent
 
