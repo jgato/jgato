@@ -191,7 +191,7 @@ for i in `seq 0 2`
 
 But it would depend on your installation.
 
-
+The output:
 
 ```bash
 PLAY RECAP *******************************************************************************************************************
