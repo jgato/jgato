@@ -1,7 +1,5 @@
 # DCI Openshift App Agent
 
-
-
 This DCI Agents helps you to run any kind of test or application in a Openshift existing deployment.
 
 Where to run it? In you usual provisioner, bastion, or supporting host to manage your Openshift Cluster. *During the ramp-up, usually we can use the lab-installer from our plan deployment*.
@@ -141,7 +139,7 @@ Or you can create whatever other settings file and run the agent with -c FILE_WI
 
 ```yaml
 dci_topic: OCP-4.9
-#dci_components_by_query: ['4.9.7']
+dci_components_by_query: ['name:4.9.7']
 dci_comment: "Test webserver"
 dci_openshift_app_ns: testns
 dci_config_dir: /var/lib/dci-openshift-app-agent/samples/basic_example
@@ -151,7 +149,7 @@ This example it just create a webserver, test it works and delete it.
 
 * dci_topic: where are testing OCP 4.9
 
-* dci_components_by_query: the component is what you are testing. Ex: it could just be an specific version of K8S, or other apps that you have deployed. If you set this, it has to exists, so check the console to see the components under the topic.
+* dci_components_by_query:  A component is an artifact (file, package, url, etc.) attached to a topic. An agent take components in its workflow. Those components are immutable and regularly updated with newer versions of the artifact through a feeder.
 
 * dci_comment: just a message that can be used to know what the test did.
 
@@ -167,22 +165,33 @@ dci-openshift-app-agent-ctl -s
 
 When everything is finished you can see the resoults in the output and in the web console:
 
-
-
 ## Running CNF tests
 
 Some special tests we will have to manage are about CNF testes. The settings.yaml
 
 ```yaml
 dci_topic: OCP-4.8
-#dci_components_by_query: ['4.8.13']
+dci_components_by_query: ['name:4.8.13']
 dci_comment: "Test CNF suite"
 dci_openshift_app_ns: testns
 dci_config_dir: /var/lib/dci-openshift-app-agent/samples/tnf_test_example
 dci_openshift_app_image: quay.io/testnetworkfunction/cnf-test-partner:latest
 tnf_suites: "diagnostic access-control networking lifecycle observability platform-alteration"
-tnf_targetpodlabels: [test-network-function/environment=testing]
+tnf_targetpodlabels: [test-network-function/environment=testing]s
 ```
+
+This test will use a discovery mechanisms based on tags. So you have to tag properly your nodes, something like:
+
+```bash
+for i in `seq 0 2`
+> do
+> oc label node lab-master-$i role=partner
+> done
+```
+
+But it would depend on your installation.
+
+
 
 ```bash
 PLAY RECAP *******************************************************************************************************************
@@ -190,8 +199,6 @@ jumphost                   : ok=70   changed=20   unreachable=0    failed=0    s
 ```
 
 ![](/home/jgato/Projects-src/my_github/kubernetes/Openshift/assets/2021-11-26-11-51-17-image.png)
-
-
 
 # DCI Openshift Agent
 
