@@ -1,0 +1,11 @@
+title: Jose Gato - Github pages home page
+description: Bookmark this to keep an eye on my project updates!
+theme: jekyll-theme-midnight
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: true
+include:
+  - random_docs/DCI-Openshift-App-Agent.md
+
