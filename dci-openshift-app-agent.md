@@ -42,10 +42,6 @@ dnf -y install dci-openshift-app-agent
 
 Once it is created take your credentials information.
 
-
-
-
-
 ## Configure Agent credentials
 
 Edit the file '/etc/dci-openshift-app-agent/dcirc.sh' with your new credentials
@@ -59,8 +55,6 @@ export DCI_CLIENT_ID
 export DCI_API_SECRET
 export DCI_CS_URL
 ```
-
-
 
 ## Running tests
 
