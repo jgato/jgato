@@ -26,13 +26,15 @@ Go to the assisted installer to create the image to boot our SNO virtual machine
 
 It is very simple, you just create a cluster given a name and a domain. 
 
-Jump to [Step 1](#step-1---prepare-and-configure-the-sno-node)
+![](/home/jgato/Projects-src/my_github/jgato/random_docs/assets/2021-12-02-11-28-32-image.png)
+
+Jump to [Step 1](#step-1---prepare-and-configure-the-sno-node) and choose the method
+
+
 
 ### Option b) Create the Cluster using AI command line tool
 
 [ToDo]
-
-
 
 ## Step 1 - Prepare and configure the SNO node
 
