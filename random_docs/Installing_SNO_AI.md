@@ -1,4 +1,4 @@
-# Installation an SNO node
+# Installing an SNO node with the Assisted Installer
 
 In this tutorial we will follow how to install an SNO node.
 
