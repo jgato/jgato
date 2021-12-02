@@ -26,9 +26,13 @@ Go to the assisted installer to create the image to boot our SNO virtual machine
 
 It is very simple, you just create a cluster given a name and a domain. 
 
-Jump to [Step 1](Step_1)
+Jump to [Step 1](#step-1---prepare-and-configure-the-sno-node)
 
 ### Option b) Create the Cluster using AI command line tool
+
+[ToDo]
+
+
 
 ## Step 1 - Prepare and configure the SNO node
 
@@ -256,7 +260,7 @@ uploading file 99_workload_partitioning.yaml
 
 *This step is need it if dont have DHCP server*
 
-If you have a DHCP Server, Jump to [Download the SNO image](Download_the_SNO_image)
+If you have a DHCP Server, Jump to [Download the SNO image](#download-the-sno-image)
 
 This is just an example, you will have to custom it according to your infrastructure (IP, Gateway, DNS, etc).
 
@@ -322,7 +326,7 @@ We can check that image contains our custom configuration
 aicli info cluster --full -f image_info <your_cluster_name>
 ```
 
-You can step next section, because you already have the image. Jump to [Boot the Server](Boot_the_server)
+You can step next section, because you already have the image. Jump to [Boot the Server](#boot-the-server-with-bmcvirtualmedia)
 
 #### Download the SNO image
 
