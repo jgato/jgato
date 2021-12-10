@@ -353,8 +353,6 @@ Connect the virtual media and assign the ISO to the CD/DVD
 
 ![](./assets/2021-12-10-10-33-55-image.png)
 
-
-
 Select to boot from a virtual ISO CD/DVD
 
 ![](./assets/2021-12-10-10-34-26-image.png)
