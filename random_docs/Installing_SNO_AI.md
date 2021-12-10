@@ -351,19 +351,21 @@ cnfdf07.iso                                     0%   96KB  91.0KB/s   19:28 ETA
 
 Connect the virtual media and assign the ISO to the CD/DVD
 
-![](./assets/2021-11-30-11-39-00-image.png)
+![](./assets/2021-12-10-10-33-55-image.png)
 
-Check the that the iso has been assigned to CD/DVD
 
-![](./assets/2021-11-30-11-42-20-image.png)
 
 Select to boot from a virtual ISO CD/DVD
 
-![](./assets/2021-11-30-11-45-21-image.png)
+![](./assets/2021-12-10-10-34-26-image.png)
 
 and confirm. 
 
-The host should reboot now, If not, send ctrl+alt+del .
+Check the iso is assigned and it will boot with virtual cd.
+
+![](./assets/2021-12-10-10-35-06-image.png)
+
+Send ctrl+alt+del .
 
 ![](./assets/2021-11-30-11-50-11-image.png)
 
