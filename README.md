@@ -1,5 +1,5 @@
 ### Hi there 👋
-#### I'm a Software Engineer and Opensource Enthusiast
+#### I'm a Software Engineer at Red Hat and Opensource Enthusiast
 
 - 🔭 I’m currently working on Red Hat as Software Engineer about CNF Certifications
 - Appasionated about all the awesome technologies discovering every day
