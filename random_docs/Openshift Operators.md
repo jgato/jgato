@@ -47,8 +47,6 @@ spec:
         path: /etc/testinfra
 ```
 
-
-
 * The Machine Config Pool is the main object to resolve the 
   situation. The Machine Config Pool operates similarly to the Rolebinding
    object, which associates roles with users. The Machine Config Pool 
@@ -87,8 +85,6 @@ Other options:
 * More than one CustomRole: not allowed neither
 
 [This piece of code](https://github.com/openshift/machine-config-operator/blob/release-4.9/pkg/controller/node/node_controller.go#L578-L609) summarizes everything really well.
-
-
 
 ## CNF Operators
 
@@ -206,7 +202,7 @@ spec:
       node-role.kubernetes.io/worker-rt: ""  
 ```
 
-In this case, the nodes labeled as worker-rt will have MachineConfigurations created for worker and worker-rt. And it will be applied only on the nodes with the Role worker-rt. Check the section [Machine Configs - Roles and Pools](#Roles-and-pools] to better understand how roles are applied.
+In this case, the nodes labeled as worker-rt will have MachineConfigurations created for worker and worker-rt. And it will be applied only on the nodes with the Role worker-rt. Check the section [Machine Configs - Roles and Pools](#Roles-and-pools) to better understand how roles are applied.
 
 And now create the Performance Profile for worker-rt:
 
@@ -250,26 +246,21 @@ worker-rt   rendered-worker-rt-27770033b92ef89681dcf17ca680a27a   False     True
 
 Here, the MachineConfigPool worker-rt points to a rendered CONFIG, that includes all the MachineConfig from worker and the new one created for worker-rt. Here is still upgrading, but a machine has been selected. 
 
-
-
 Look the kernel how it has RT enabled: 4.18.0-305.28.1.**rt**7.100.el8_4.x86_64
 
 ```bash
 $ oc get nodes -o wide
 NAME                     STATUS   ROLES           AGE   VERSION           INTERNAL-IP      EXTERNAL-IP   OS-IMAGE                                                       KERNEL-VERSION                         CONTAINER-RUNTIME
 cnfdf07.ran.dfwt5g.lab   Ready    master,worker   44h   v1.22.3+4dd1b5a   192.168.207.10   <none>        Red Hat Enterprise Linux CoreOS 49.84.202111231504-0 (Ootpa)   4.18.0-305.28.1.rt7.100.el8_4.x86_64   cri-o://1.22.1-4.rhaos4.9.gite3dfe61.el8
-
 ```
 
 ##### SNO
 
-Here it is important to notice that an SNO node already has Master+Worker Roles. Please, take a look to the section [Machine Config - Roles and Pools](#Roles_and_pools). 
+Here it is important to notice that an SNO node already has Master+Worker Roles. Please, take a look to the section [Machine Config - Roles and Pools](#Roles-and-pools). 
 
 Master+Worker node is allowed but you cannot add more Roles.  How to apply specific configuration for a new Role worker-rt. You cannot do it. You cannot add other role to the SNO node. The solution is:
 
 * Create the PerformanceProfile to apply to Master. So the new PerformanceProfile is deployed as another config of the Master Role. You cannot base the PerformanceProfile on Worker configs, because in this case, only the Master configs are applied
-
-
 
 ```yaml
 apiVersion: performance.openshift.io/v2
@@ -295,8 +286,6 @@ spec:
 You dont need to create a MCP, because you are using the MCP for Master nodes. The existing MCP for master will use this PerformanceProfile, well... the MachineConfig that will be created with this PerformanceProfile.
 
 Once the profile is crated, this is added to the MCP of master:
-
-
 
 ```yaml
 piVersion: machineconfiguration.openshift.io/v1
@@ -348,12 +337,9 @@ spec:
     - apiVersion: machineconfiguration.openshift.io/v1
       kind: MachineConfig
       name: 99-master-ssh
-
 ```
 
 Notice that the Master MCP now it also includes a config 50-performance-master, created by the PerformanceProfile Operator.
-
-
 
 #### Optimizations
 
