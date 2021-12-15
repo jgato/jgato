@@ -268,7 +268,7 @@ This is just an example, you will have to custom it according to your infrastruc
 cat <<EOF > ${HOME}/.aicli/aicli-parameters-jgato.yaml
 static_network_config:
 - interfaces:
-    - name: ens3
+    - name: eno1
       type: ethernet
       state: up
       ethernet:
@@ -290,7 +290,7 @@ static_network_config:
     config:
     - destination: 0.0.0.0/0
       next-hop-address: 192.168.207.1
-      next-hop-interface: ens3
+      next-hop-interface: eno1
       table-id: 254
 EOF
 ```
@@ -298,7 +298,7 @@ EOF
 (Optional) Due to we will download the iso image from command line and not from the Web UI. We have to set here the proxy (in case the SNO will need to access internet with a Proxy):
 
 ```bash
-aicli update cluster <cluster_name> -P http_proxy=<proxy> -P https_proxy=<proxy>
+aicli update cluster <cluster_name> -P http_proxy=<proxy:port> -P https_proxy=<proxy:port>
 ```
 
 And we create the ISO image with these params:
@@ -453,4 +453,20 @@ export NO_PROXY=api.test-sno-local-jgato.jgato-test.com,192.168.122.196
 oc get nodes --kubeconfig ./kube-test
 NAME   STATUS   ROLES           AGE   VERSION
 sno    Ready    master,worker   17h   v1.22.0-rc.0+ef241fd
+```
+
+## Cluster down after reboot Node
+
+It seems to haven if you used OVN for the CNI during installation. And because the server have different network interfaces. Even if you configured the eno1 interface static, OVN will make a bridge with that interface (that appears with no ip), so the system puts the eno2 as the default. This will make the etcd not working because ips mismatches with its ddbb.
+
+So we will disable all interfaces but eno1 and the bridge
+
+Edit '/etc/NetworkManager/conf.d/99-disable.conf'
+
+```yaml
+[main]
+plugins=keyfile
+
+[keyfile]
+unmanaged-devices=interface-name:eno2;ens5f0;ens5f1
 ```
