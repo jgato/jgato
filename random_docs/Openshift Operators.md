@@ -90,7 +90,7 @@ Other options:
 
 ### Performance Addon Operator
 
-This operator sets special performance configurations for CPU. Very related to each hardware.
+This operator sets special performance configurations for CPU. Very related to each hardware. It is an operator very related to lowlatency and RT needs, like in RAN. Mainly is used by RAN providers.
 
 Fine-tunning your CPU Hardware based on profiles. The same cluster, different nodes with different hardware. Configure certain nodes for low latency, real-time or DPDK purposes without having to understand all the interactions of kernel, RHCOS and OCP components.
 
@@ -114,12 +114,25 @@ What can be configured:
 
 Specify two groups of CPUs in the `spec` section:
 
-- `isolated` - Has the lowest latency. Processes in this group have no interruptions and so can, for example,
-  reach much higher DPDK zero packet loss bandwidth.
+- `isolated` - Has the lowest latency. Processes in this group have no interruptions and so can, for example, reach much higher DPDK zero packet loss bandwidth.
+  
+  Isolated because it means that works isolated and not interrupted (by default). 
 
-- `reserved` - The housekeeping CPUs. Threads in the 
-  reserved group tend to be very busy, so latency-sensitive applications 
-  should be run in the isolated group
+- `reserved` - or housekeeping CPUs. Threads in the reserved group tend to be very busy, so latency-sensitive applications should be run in the isolated group. It runs all the usual process in the cluster, but also some not low latency workloads.
+
+Some confusions:
+
+* Reserved as mostly used for the OS processes.
+
+* Regular pods run on isolated pool
+
+* LowLatency, RT, DPDK Pods will run in isolated cpus. But, once this cpu is assigned to these... it will not be used by regular pods. This is because a pod has done CPU pinning, and the assiganted isolated cpu will work exclusively for it. 
+
+* IRQS works differently, it depends on if you have configured to not have IRQS in isolated. globalirqloadbalance by default is false, so by default, you will have IRQS in isolated.
+
+* if you have IRQS enabled on isolated, when you make CPU Pining you can specify to not have IRQs in that CPU.
+
+* Actually, regular pods could also run in Reserved ones.
 
 #### How to know the available cpus in the system:
 
@@ -154,6 +167,12 @@ Specify two groups of CPUs in the `spec` section:
 ```
 
 In a system with the 'GloballyDisableIrqLoadBalancing' set to true, Isolated CPUs will not be pointed by any irq.
+
+More commands about IRQs and CPUS 
+
+```bash
+
+```
 
 #### How to use it
 
@@ -254,7 +273,7 @@ NAME                     STATUS   ROLES           AGE   VERSION           INTERN
 cnfdf07.ran.dfwt5g.lab   Ready    master,worker   44h   v1.22.3+4dd1b5a   192.168.207.10   <none>        Red Hat Enterprise Linux CoreOS 49.84.202111231504-0 (Ootpa)   4.18.0-305.28.1.rt7.100.el8_4.x86_64   cri-o://1.22.1-4.rhaos4.9.gite3dfe61.el8
 ```
 
-##### SNO
+##### Example with an SNO
 
 Here it is important to notice that an SNO node already has Master+Worker Roles. Please, take a look to the section [Machine Config - Roles and Pools](#Roles-and-pools). 
 
@@ -410,6 +429,47 @@ In the performance profile this is manged 'GloballyDisableIrqLoadBalancing'. Glo
 * set to "false" allows the IRQs to be balanced across all CPUs, however the IRQs load balancing can be disabled per pod CPUs when using irq-load-balancing.crio.io/cpu-quota.crio.io annotations.
 
 * Defaults to "false"
+
+##### Hugepages
+
+Allows to configure Linux Kernel to use Memory pages of bigger memory which actually are never swapped. The PAO allows to configure HugePages at NUMA node level. Something you cannot do just with the kernel commands. 
+
+Then you can deploy your pods, and instead of requiring memory, it can require these hugepages. It is important to notice that hugepages availability would be very limited. 
+
+PAO to create 16 pages of 1GB. Usually memory pages are about 4KB
+
+```json
+  hugepages:
+    defaultHugepagesSize: "1G"
+    pages:
+    - size: "1G"
+      count: 16
+      node: 0
+```
+
+We set te total ammount of memory we need from hugepages. Here an example using pages of 2Megas.
+
+```json
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example
+spec:
+  containers:
+# use the image you like
+    volumeMounts:
+    - mountPath: /hugepages
+      name: hugepage
+    resources:
+      requests:
+        hugepages-2Mi: 1Gi
+      limits:
+        hugepages-2Mi: 1Gi
+  volumes:
+  - name: hugepage
+    emptyDir:
+      medium: HugePages
+```
 
 ### SRI-OV Operator
 
