@@ -24,8 +24,6 @@ This virtual environment should give us enough background to later interact with
 
 First of all we create a VM without an OS installed. This VM will act as the Server.
 
-
-
 ```bash
 kcli create vm -P uefi_legacy=true -P start=false -P nets=[default] -P memory=8192 -P numcpus=2 agent1
 ```
@@ -103,8 +101,6 @@ $> /usr/local/bin/sushy-emulator --config ${PWD}/sushy.conf
 
 The sushy-emulator will create a local REST interface as a bridge with the available Redfish BMC interface. The backend is implemented by Libvirt (as it was configured in SUSHY_EMULATOR_LIBVIRT_URI). Therefore, the systems to be managed will depend on the number of VMs you have in your host. 
 
-
-
 ```bash
 $> export bmc=admin:admin@localhost:8000
 $> curl ${bmc}/redfish/v1/Managers
@@ -160,12 +156,9 @@ $> kcli list vms
 | minikube-m03 |  down  |     |                                                        |       |         |
 |   support    |  down  |     | CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2 | kvirt | centos8 |
 +--------------+--------+-----+--------------------------------------------------------+-------+---------+
-
 ```
 
 In my case, I have 7 VMs. So it returns 7 Managers (BMCs) or 7 Systems (Servers)
-
-
 
 ```bash
 {
@@ -224,7 +217,6 @@ In order to interact with the VM we created in the previous step, we have to fin
 ```bash
 $> sudo virsh domuuid  agent1
 184ca2d3-5fec-413f-a8b4-6823773add6d
-
 ```
 
 So, lets interact with our VM with the Redfish interface:
@@ -371,12 +363,16 @@ Some BMC info for this Server:
 To power on the server, look at the system "Actions.#ComputerSystem.Reset.target" to get the url and the list of actions supported: on, off, GracefulShutdown, etc
 
 ```bash
+# rest the server
 $> curl -s -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "On"}'
+# check current status
 $>  curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .PowerState
 "On"
-
+# switch off
 $> curl -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOff"}'
-$> 
+# reboot
+$> curl -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceRestart"}'
+
 ```
 
 ## Virtual media management and booting with an ISO
@@ -387,22 +383,47 @@ Now it is booting from HDD:
 
 ```bash
 $> curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot.BootSourceOverrideTarget
-"Hdd"
-$> 
+{
+  "BootSourceOverrideEnabled": "Continuous",
+  "BootSourceOverrideTarget": "Hdd",
+  "BootSourceOverrideTarget@Redfish.AllowableValues": [
+    "Pxe",
+    "Cd",
+    "Hdd"
+  ],
+  "BootSourceOverrideMode": "UEFI",
+  "UefiTargetBootSourceOverride": "/0x31/0x33/0x01/0x01"
+}
+
 ```
 
-We change that to use Cd
+We change that to use first Cd ( to make this having effect, in your sushy conf you have to have SUSHY_EMULATOR_IGNORE_BOOT_DEVICE=false).
 
 ```bash
-curl -s -X PATCH -H 'Content-Type: application/json'     -d '{
+$> curl -s -X PATCH -H 'Content-Type: application/json'     -d '{
       "Boot": {
           "BootSourceOverrideTarget": "Cd",
           "BootSourceOverrideEnabled": "Continuous"
       }
     }'   "${bmc}/redfish/v1/Systems/${bmc_server}" 
+$> curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot
+{
+  "BootSourceOverrideEnabled": "Continuous",
+  "BootSourceOverrideTarget": "Cd",
+  "BootSourceOverrideTarget@Redfish.AllowableValues": [
+    "Pxe",
+    "Cd",
+    "Hdd"
+  ],
+  "BootSourceOverrideMode": "UEFI",
+  "UefiTargetBootSourceOverride": "/0x31/0x33/0x01/0x01"
+}
+
 ```
 
-Next it will boot from CD. Now we use Virtual Media to attach it to the CD with an ISO.
+Next it will boot from CD (only once).
+
+Now we use Virtual Media to attach it to the CD with an ISO.
 
 There is no iso linked to the virtual media
 
@@ -413,7 +434,6 @@ $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{is
     "iso_connected": false
   }
 ]
-
 ```
 
 We create that connection
@@ -433,22 +453,46 @@ $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{is
     "iso_connected": true
   }
 ]
-
 ```
 
 *How to serve the iso is not covered here, but you can just check [here]([How do you set up a local testing server? - Learn web development | MDN](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server))*
 
 The iso is connected. Lets power on the server
 
-
-
 ```bash
-$> curl -s -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "On"}'
-
+$> curl -s -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOn"}'
 ```
 
 ![](./assets/2022-01-21-17-10-45-image.png)
 
 
 
+## Undo boot from virtual media
 
+Just eject action and boot from hdd
+
+
+
+```bash
+$> curl -X POST ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
+
+
+$> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{iso_connected: .Inserted}]'
+[
+  {
+    "iso_connected": false
+  }
+]
+
+$> curl -s -X PATCH -H 'Content-Type: application/json'     -d '{
+      "Boot": {
+          "BootSourceOverrideTarget": "Hdd",
+          "BootSourceOverrideEnabled": "Continuous"
+      }
+    }'   "${bmc}/redfish/v1/Systems/${bmc_server}" 
+
+
+$> curl -s -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOff"}'
+$> curl -s -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOn"}'
+
+```
