@@ -215,7 +215,7 @@ As we see in the outputs above, the Refish interface manages urls in the way of:
 In order to interact with the VM we created in the previous step, we have to find out what is its UUID.
 
 ```bash
-$> sudo virsh domuuid  agent1
+$> kcli info vm -f id agent1
 184ca2d3-5fec-413f-a8b4-6823773add6d
 ```
 
@@ -372,7 +372,6 @@ $>  curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .PowerState
 $> curl -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOff"}'
 # reboot
 $> curl -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceRestart"}'
-
 ```
 
 ## Virtual media management and booting with an ISO
@@ -394,7 +393,6 @@ $> curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot.BootSourceOverride
   "BootSourceOverrideMode": "UEFI",
   "UefiTargetBootSourceOverride": "/0x31/0x33/0x01/0x01"
 }
-
 ```
 
 We change that to use first Cd ( to make this having effect, in your sushy conf you have to have SUSHY_EMULATOR_IGNORE_BOOT_DEVICE=false).
@@ -418,7 +416,6 @@ $> curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot
   "BootSourceOverrideMode": "UEFI",
   "UefiTargetBootSourceOverride": "/0x31/0x33/0x01/0x01"
 }
-
 ```
 
 Next it will boot from CD (only once).
@@ -465,13 +462,9 @@ $> curl -s -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/System
 
 ![](./assets/2022-01-21-17-10-45-image.png)
 
-
-
 ## Undo boot from virtual media
 
 Just eject action and boot from hdd
-
-
 
 ```bash
 $> curl -X POST ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
@@ -494,5 +487,4 @@ $> curl -s -X PATCH -H 'Content-Type: application/json'     -d '{
 
 $> curl -s -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOff"}'
 $> curl -s -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOn"}'
-
 ```
