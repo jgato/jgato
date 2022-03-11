@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi-with-ttl-spread
+spec:
+  completions: 20
+  parallelism: 20
+  template:
+    metadata:
+      labels:
+        type:  group-jobs-pi
+    spec:
+      containers:
+      - name: pi
+        image:  registry.redhat.io/rhel8/perl-526
+        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+      restartPolicy: Never
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              type: group-jobs-pi
