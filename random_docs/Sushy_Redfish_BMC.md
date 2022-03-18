@@ -1,6 +1,6 @@
 # Using Sushy tools to manage a BMC Redfish interface
 
-This document is a short tutorial as introduction to use Sushy tools to manage a BMC server with a Redfish interface.
+This document is a short tutorial as introduction to use Sushy tools to manage a BMC server with a Redfish interface. 
 
 What is covered in this tutorial? 
 
@@ -25,8 +25,11 @@ This virtual environment should give us enough background to later interact with
 First of all we create a VM without an OS installed. This VM will act as the Server.
 
 ```bash
-kcli create vm -P uefi_legacy=true -P start=false -P nets=[default] -P memory=8192 -P numcpus=2 agent1
+kcli create vm -P uefi_legacy=true -P start=false -P nets=[default] \
+    -P memory=8192 -P numcpus=2 -i centos7 agent1
 ```
+
+*recommended to add -i <iso> even if we dont want to boot with that iso. Otherwise, kcli creates the vm without CDROM, and the tutorial will fail later*
 
 Now we use Sushy tools to emulate the BMC Redfish interface. 
 
@@ -42,7 +45,7 @@ The package ships two simulators :
 For this tutorial we will use the Virtual Redfish BMC to manage the previously create VM. Using libvirt as the backend.
 
 ```
-$> dnf -y install pkgconf-pkg-config libvirt-devel gcc python3-libvirt python3 git python3-netifaces
+$> dnf -y install pkgconf-pkg-config libvirt-devel gcc python3-libvirt python3 git python3-netifaces httpd-tools
 pip3 install sushy-tools
 ```
 
