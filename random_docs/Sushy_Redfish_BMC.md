@@ -26,10 +26,10 @@ First of all we create a VM without an OS installed. This VM will act as the Ser
 
 ```bash
 kcli create vm -P uefi_legacy=true -P start=false -P nets=[default] \
-    -P memory=8192 -P numcpus=2 -i centos7 agent1
+    -P memory=8192 -P numcpus=2  agent1
 ```
 
-*recommended to add -i <iso> even if we dont want to boot with that iso. Otherwise, kcli creates the vm without CDROM, and the tutorial will fail later*
+*We create the VM empty, no OS.*
 
 Now we use Sushy tools to emulate the BMC Redfish interface. 
 
@@ -440,10 +440,10 @@ We create that connection
 
 ```bash
 export ISO_IMG=http://0.0.0.0:7800/CentOS-8.5.2111-x86_64-dvd1.iso
-$> curl -s -d '{ \
-    "Image":"'"${ISO_IMG}"'", \
-    "Inserted": true \
-}' -H "Content-Type: application/json" \
+$> curl -s -d '{ 
+    "Image":"'"${ISO_IMG}"'", 
+    "Inserted": true 
+}' -H "Content-Type: application/json" 
    -X POST ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
 
 
