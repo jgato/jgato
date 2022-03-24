@@ -16,11 +16,11 @@ Very summarized, when a new ClusterDeployment Resource (with the cluster specifi
 
 But OpenShift Installer is not the only way of install Openshift. The [Assisted Installer](https://cloud.redhat.com/blog/ask-an-openshift-admin-office-hour-the-openshift-assisted-installer) provides a newer and easier way of deploying Openshift. With the limitation of the infrastructure has to exist, and cannot be created by the installer. Actually, it is focused on BareMetal Installations. 
 
-This new methodology is also available through ACM, as an extension of the Hive Operator. The Assisted Service is available as an extension of Hive, taking place instead of Openshift Installer, and providing an Assisted Installer. 
+This new methodology is also available through ACM, as an extension of the Hive Operator.  
 
 ## Hive and Assisted Installer (or Agent Install)
 
-AI as an extension on Hive, and this is installed with an :
+AI as an extension on Hive, and this is installed creating an :
 
 ```yaml
 apiVersion: agent-install.openshift.io/v1beta1                                    
@@ -114,13 +114,13 @@ spec:
 
 ## Metal3
 
-Metal3: It is in charge of configuring the VirtualMedia with the customized ISO and to boot the server to install the installation. But the BMC will not download the ISO from the assisted-image-service. 
+Metal3: It is in charge of configuring the VirtualMedia with the customized ISO and to boot the server to start the installation. But the BMC will not download the ISO from the assisted-image-service. 
 
-Metal3 creates a kind of pods/caches with the ISOs. The URL to download the ISO from the Assiste-Image-Service is not too appropriate for some BMCS. Something like: "https://assisted-image-service-open-cluster-management.apps.el8k.hpecloud.org/images/3ffa8e57-bb4b-4c01-97c4-a34d5fca6bc0?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiIzZmZhOGU1Ny1iYjRiLTRjMDEtOTdjNC1hMzRkNWZjYTZiYzAifQ.UvGpeBtGMQAuvQ2SHCtuWEPJJm_1KR5RS5Mxe3jvoV07nURo-EEWgsl8l9k-gU1wvZIVS9cuSKz-wHHJc0w&arch=x86_64&type=minimal-iso&version=4.9". 
+Metal3 creates a kind of pods/cache with the custom mini-ISOs. The URL to download the ISO from the Assiste-Image-Service is not very appropriate for some BMCS. Something like: "https://assisted-image-service-open-cluster-management.apps.el8k.hpecloud.org/images/3ffa8e57-bb4b-4c01-97c4-a34d5fca6bc0?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiIzZmZhOGU1Ny1iYjRiLTRjMDEtOTdjNC1hMzRkNWZjYTZiYzAifQ.UvGpeBtGMQAuvQ2SHCtuWEPJJm_1KR5RS5Mxe3jvoV07nURo-EEWgsl8l9k-gU1wvZIVS9cuSKz-wHHJc0w&arch=x86_64&type=minimal-iso&version=4.9". 
 
 This urls would not work with some BMCs: url too long, not finishing with .iso or params and api-keys in the url.
 
-So, Metal3 caches shorter and more appropriate URLs.
+So, Metal3 caches more appropriate, and shorter,  URLs.
 
 ```bash
 oc -n openshift-machine-api get pods -l baremetal.openshift.io/cluster-baremetal-operator=metal3-image-cache
@@ -136,11 +136,13 @@ Metal3 mounts the BMC VirtualMedia with these shorter ISOs, and these bots with 
 
 ## Booting the servers
 
-The server boots with the mini-iso and the custom configuration. Inmediatly, it downlads the rootfs from the url pointed by the AgentServiceConfig. This image is about 900MB, but now we have an OS in charge and not a BMC. So there are less limitations. 
+The server boots with the mini-iso and the custom configuration. Immediately, it downloads the rootfs from the url pointed by the AgentServiceConfig. The rootfs plut the mini-iso provides a full OS. 
 
-When the full ISO created and running, the server will try to register itself with the Assisted Service. In order to identify the new server, this will use an api-key, also customized together with the ISO. If the registering is oka, it will download an AI Agent that will start the installation. And you will see in the ACM GUI, how the servers are added to the cluster, and how these progress during the insallation.
+When the full ISO created and running, the server will try to register itself with the Assisted Service. In order to identify the new server, this will use an api-key, also customized together with the ISO. If the registering is oka, it will download an AI Agent that will start the installation. And you will see in the ACM GUI, how the servers are added to the cluster, and how these progresses during the installation.
 
-During the installation, the communication is always from the Server Agent -> Assisted Service. And the Assisted service is orchestration all the installation, it generates the bootstrap/master/workers images, and makes the full installation. Similar to what it does the Openshift Installer.
+During the installation, the communication is always from the Server Agent -> Assisted Service. 
+
+The Assisted service is orchestrating all the steps, it generates the bootstrap/master/workers images, and makes the full installation. Similar to what it does the Openshift Installer.
 
 Finished the installation:
 
