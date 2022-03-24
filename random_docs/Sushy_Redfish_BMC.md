@@ -443,7 +443,7 @@ export ISO_IMG=http://0.0.0.0:7800/CentOS-8.5.2111-x86_64-dvd1.iso
 $> curl -s -d '{ 
     "Image":"'"${ISO_IMG}"'", 
     "Inserted": true 
-}' -H "Content-Type: application/json" 
+}' -H "Content-Type: application/json" \
    -X POST ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
 
 
@@ -455,7 +455,7 @@ $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{is
 ]
 ```
 
-*How to serve the iso is not covered here, but you can just check [here]([How do you set up a local testing server? - Learn web development | MDN](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server))*
+*How to serve the iso is not covered here, but you can just check [here](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server)*
 
 The iso is connected. Lets power on the server
 
