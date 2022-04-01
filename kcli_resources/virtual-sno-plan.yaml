@@ -1,0 +1,52 @@
+# This plan hels to create vms to act as SNOs
+# it also includes the possibiity of configurin
+# NUMA and cpu pinning
+
+parameters:
+ dual: false
+ num: 3
+ np: false
+
+
+{% if dual %}
+sno{{ num }}-dual:
+{% else %}
+sno{{ num }}:
+{% endif %}
+  pool: home-jgato
+  numcpus: 16
+  machine: q35
+  memory: 32768
+  start: false
+  disks:
+   - size: 250
+  nets:
+   - name: baremetal
+     nic: ens3
+     mac: 52:54:00:ff:b8:5{{num}}
+     type: virtio
+     vfio: true
+{% if np %}
+   - name: baremetal
+     type: e1000e
+     numa: 0
+     vfio: true
+   - name: baremetal
+     numa: 1
+     type: e1000e
+     vfio: true
+  numamode: preferred
+  cpupinning:
+   - vcpus: 0-7
+     hostcpus: 40-47
+   - vcpus: 8-15
+     hostcpus: 32-39
+  numa:
+   - id: 0
+     vcpus: 0-7
+     memory: 16384
+   - id: 1
+     vcpus: 8-15
+     memory: 16384
+{% endif %}
+
