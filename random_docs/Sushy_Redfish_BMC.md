@@ -1,14 +1,14 @@
 # Using Sushy tools to manage a BMC Redfish interface
 
-This document is a short tutorial as introduction to use Sushy tools to manage a BMC server with a Redfish interface. 
+This document is a short tutorial as introduction to use Sushy tools to manage a remote baremetal server.
 
 What is covered in this tutorial? 
 
-* Understand how to install and use Sushy to create virtualized Redfish interfaces.
+* Understand how to install and use Sushy to create/virtualize Redfish interfaces. Redfish is a REST standard protocol to manage servers, storage, networks, etc.
 
 * Some basics about the Redfish  BMC (REST) interface and how to interact with it. 
 
-* How to manage a BMC server using its Redfish interface.
+* How to manage a BMC server using a Redfish interface. Power-off, power-on, managing isos and virtual medias, etc.
 
 * Boot a server with a virual media iso for easiness server's provisioning
 
@@ -16,7 +16,7 @@ A virtual environment will be created for this tutorial, in order to facilitate 
 
 * A virtual machine as a server.
 
-* A virtual Redfish nterface, created with Sushy tools, as a BMC.
+* A virtual Redfish interface, created with Sushy tools, as a BMC.
 
 This virtual environment should give us enough background to later interact with real Redfish interfaces. But, it should also help us to develop some quick tests, before going for a real physical environment.
 
@@ -29,27 +29,18 @@ kcli create vm -P uefi_legacy=true -P start=false -P nets=[default] \
     -P memory=8192 -P numcpus=2  agent1
 ```
 
-*We create the VM empty, no OS.*
 
-Now we use Sushy tools to emulate the BMC Redfish interface. 
 
-*This is a set of simple simulation tools aiming at supporting the
-development and testing of the Redfish protocol.*
+Now we use Sushy tools to emulate the BMC Redfish interface. Sushy tools supports two different emulators. The one we are going to use in this tutorial is: the the virtual Redfish BMC.  
 
-The package ships two simulators :
-
-- Simple REST API server which responds the same things to client queries. It is effectively read-only.
-
-- The virtual Redfish BMC resembles the real Redfish-controlled bare-metal machine to some extent. Backed by libvirt or openstack cloud.
-
-For this tutorial we will use the Virtual Redfish BMC to manage the previously create VM. Using libvirt as the backend.
+This tool emulates a baremetal BMC implementing a Redfish REST interface. The emulator backend is implemented by libvirt. In the previous step, we have used kcli to create the VM, which is using also libvirt as backend. So, the Sushy emulator will communicate seamless with the virtual machine.  
 
 ```
 $> dnf -y install pkgconf-pkg-config libvirt-devel gcc python3-libvirt python3 git python3-netifaces httpd-tools
 pip3 install sushy-tools
 ```
 
-Lets create a configuration file:
+Lets create a basic Sushy configuration file:
 
 ```
 cat << EOF > ./sushy.conf
@@ -76,7 +67,7 @@ SUSHY_EMULATOR_BOOT_LOADER_MAP = {
 EOF
 ```
 
-* SUSHY_EMULATOR_LIBVIRT_URI = u'qemu:///system' : the backend for redfish is libvirt, so it will interact with the VMs in the host. This variable would point to other hosts.
+* SUSHY_EMULATOR_LIBVIRT_URI = u'qemu:///system' : the backend for redfish is libvirt, so it will interact with the VMs in the host. 
 * SUSHY_EMULATOR_AUTH_FILE: it is an htpasswd file with the authentication.
 
 Create the auth file
@@ -102,7 +93,7 @@ $> /usr/local/bin/sushy-emulator --config ${PWD}/sushy.conf
  * Running on http://10.39.194.148:8000/ (Press CTRL+C to quit)
 ```
 
-The sushy-emulator will create a local REST interface as a bridge with the available Redfish BMC interface. The backend is implemented by Libvirt (as it was configured in SUSHY_EMULATOR_LIBVIRT_URI). Therefore, the systems to be managed will depend on the number of VMs you have in your host. 
+The sushy-emulator will create a local REST interface as a bridge with the available Redfish BMC interface. Because of the backend is libvirt, you can manage all the VMs on the host.
 
 ```bash
 $> export bmc=admin:admin@localhost:8000
@@ -379,9 +370,9 @@ $> curl -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/$
 
 ## Virtual media management and booting with an ISO
 
-Finally, we want to provision the VM with an ISO. Something we usually do in a Baremetal lab with a console and GUI for the BMC. This is ok, but it is usually slow and the way you share the iso can have some restrictions. 
+Finally, we want to provision the VM with an ISO. Something we usually do in a baremetal server with a console and GUI for the BMC (ilo, idrac, etc). This is ok, but it is usually slow and the way you share the iso can have some restrictions. 
 
-Now it is booting from HDD:
+Currently, it is booting from HDD:
 
 ```bash
 $> curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot.BootSourceOverrideTarget
@@ -421,9 +412,9 @@ $> curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot
 }
 ```
 
-Next it will boot from CD (only once).
+Next it will boot from CD (only once). But, the CD is empty:
 
-Now we use Virtual Media to attach it to the CD with an ISO.
+
 
 There is no iso linked to the virtual media
 
@@ -435,6 +426,8 @@ $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{is
   }
 ]
 ```
+
+Now we use Virtual Media to insert an ISO into the CD.
 
 We create that connection
 
