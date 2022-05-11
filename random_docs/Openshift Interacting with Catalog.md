@@ -1,7 +1,5 @@
 # How to interact with an OCP catalogs
 
-
-
 OCP comes with a set of catalogs where different operators are distributed.
 
 ```bash
@@ -11,7 +9,6 @@ openshift-marketplace   certified-operators   Certified Operators   grpc   Red H
 openshift-marketplace   community-operators   Community Operators   grpc   Red Hat     98d
 openshift-marketplace   redhat-marketplace    Red Hat Marketplace   grpc   Red Hat     98d
 openshift-marketplace   redhat-operators      Red Hat Operators     grpc   Red Hat     98d
-
 ```
 
 By default you will see something like this, with 4 catalogs. Depending on the catalog, operators could not have Red Hat official Support.
@@ -38,10 +35,11 @@ In any case, you can check to which repository you 'pull_secret' has access, tha
 │ registry.redhat.io          │                       │                     │
 │                             │                       │                     │
 └─────────────────────────────┴───────────────────────┴─────────────────────┘
-
 ```
 
-So I will have enough perms to interact with redhat official registries.
+So I will have enough perms to interact with redhat official registries. And your auth file on path '${XDG_RUNTIME_DIR}/containers/auth.json'
+
+*There is known bug with oc-mirror 4.10 that would make you copy the auth.json file on ~/.docker/config.json*
 
 You can search for Operators:
 
@@ -50,7 +48,4 @@ You can search for Operators:
 PACKAGE                 CHANNEL  HEAD
 sriov-network-operator  4.10     sriov-network-operator.4.10.0-202204211158
 sriov-network-operator  stable   sriov-network-operator.4.10.0-202204211158
-
 ```
-
-
