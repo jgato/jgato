@@ -49,3 +49,53 @@ PACKAGE                 CHANNEL  HEAD
 sriov-network-operator  4.10     sriov-network-operator.4.10.0-202204211158
 sriov-network-operator  stable   sriov-network-operator.4.10.0-202204211158
 ```
+
+You can extend the search of an specific operator and a concrete channel to get all the available versions
+
+```bash
+> oc-mirror list operators --catalog=registry.redhat.io/redhat/community-operator-index:v4.9 --package=hive-operator --channel=alpha
+VERSIONS
+1.2.3254-512b7f4
+1.2.3299-f0cc1ba
+1.1.11
+1.1.14
+1.2.3606-2544e8a
+1.1.10
+1.2.3481-ad1892a
+1.2.3427-e50103a
+1.2.3552-133480f
+1.2.3598-e150a7f
+1.2.3633-595563c
+1.1.6
+1.2.3222-1411793
+1.2.3337-d668960
+1.2.3359-8f0773c
+1.2.3588-5ccea30
+1.2.3594-20fd254
+1.1.16
+1.1.8
+1.1.9
+1.2.3329-16c6e0f
+1.2.3490-7e0b248
+1.2.3530-0be0b66
+1.1.13
+1.1.7
+1.1.5
+1.2.3375-1f0f3eb
+1.2.3461-a607db0
+1.2.3506-f54f0ec
+1.2.3542-688681d
+1.2.3557-bfb69ae
+1.1.15
+1.2.3274-a27a4f7
+1.2.3310-bc1417a
+1.2.3391-55f6363
+1.2.3431-6ba92bb
+1.2.3457-b212e8a
+1.2.3577-1549a35
+1.2.3581-88b1c28
+1.1.12
+1.2.3179-0756b70e6
+
+
+```
