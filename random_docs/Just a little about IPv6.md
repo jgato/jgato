@@ -23,7 +23,7 @@ Here there are two IPv6 addresses on the br-ex interface.
 
 * [fe80::9640:c9ff:fe1f:bf64] Unicast Address of type **Local Link Address.** This is automatically created for any interface with IPv6. It is an IP created with some prefix rules and the MAC address of the interface. More about how to [calculate Link Local](https://www.omnisecu.com/tcpip/ipv6/link-local-ipv6-addresses.php)
 
-**Global Unicast Address**
+## Global Unicast Address
 
 The GUA is defined by the prefix of the address. The 3 first bits, 001, as reserved for GUA. But the prefix range are the first 48 bits. Basically, whatever between 2000 and 3FFF  is a GUA. In IPv4, what we commonly know as Public IP. Or routable IPs. 
 
@@ -254,5 +254,9 @@ Continuing NDP Messages:
 
 
 
+
+# radvd tool
+
+Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS) with the configuration for the nodes.
 
 
