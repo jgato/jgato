@@ -41,14 +41,14 @@ More detail about his GUA:
 
 It is a GCU from the network 2620:52:0:1351:: 
 
-Local Link Address**
+## Local Link Address
 
 This is an address that helps with communication on a same network segment. It is useful to check connectivity with host/routers sharing a same network segment.
 
-In this case, I will ping from a sever sno3, to a server  sno4 with the LL ([fe80::9640:c9ff:fe1f:c2a5] is the LL of sno4)
+In this case, I will ping from a sever sno3, to a server  sno4 with the LL ([fe80::9640:c9ff:fe1f:c2a5]). These two server belongs to the same lab/network/segment so can ping each other. 
 
 ```bash
-# ping fe80::9640:c9ff:fe1f:c2a5 -I br-ex
+[sno3]# ping fe80::9640:c9ff:fe1f:c2a5 -I br-ex
 ping6: Warning: source address might be selected on device other than br-ex.
 PING fe80::9640:c9ff:fe1f:c2a5(fe80::9640:c9ff:fe1f:c2a5) from :: br-ex: 56 data bytes
 64 bytes from fe80::9640:c9ff:fe1f:c2a5%br-ex: icmp_seq=1 ttl=64 time=0.847 ms
@@ -60,10 +60,10 @@ PING fe80::9640:c9ff:fe1f:c2a5(fe80::9640:c9ff:fe1f:c2a5) from :: br-ex: 56 data
 64 bytes from fe80::9640:c9ff:fe1f:c2a5%br-ex: icmp_seq=7 ttl=64 time=0.200 ms
 ```
 
-These two server belongs to the same lab, and there is a provisioner there:
+In the same network, I have another server (provisioner) with the following network configuration:
 
 ```bash
-$ ip -6 addr show
+[provisioner]$ ip -6 addr show
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 state UNKNOWN qlen 1000
     inet6 ::1/128 scope host 
        valid_lft forever preferred_lft forever
@@ -79,20 +79,22 @@ $ ip -6 addr show
        valid_lft forever preferred_lft forever
 ```
 
-The 'baremtal' netwok is a bridge over eno3 interface. 
+This server is connected to more than one network. 
+
+The 'baremtal' netwok is a bridge over eno3 interface.
 
 ```bash
-$ ip addres show eno3
+[provisioner]$ ip addres show eno3
 4: eno3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq master baremetal state UP group default qlen 1000
     link/ether 94:40:c9:1f:bf:87 brd ff:ff:ff:ff:ff:ff
 ```
 
-The eno3 interface shares the same network that the previous servers. They shre the segment. So, you can ping to the LL of the 'barmetal' network on the provisioner:
+The eno3 interface shares the same network than the previous servers (sno3 and sno4) . They share the share segment. So, you can ping to the LL of the 'barmetal' network on the provisioner from sno3.
 
-[fe80::e2f1:1d3d:ce3d:8fbb] is the LL address of the baremetal network interface (eno3)
+[fe80::e2f1:1d3d:ce3d:8fbb] is a LL  address of the provisioner in this shared network.
 
 ```bash
-# ping fe80::e2f1:1d3d:ce3d:8fbb -I br-ex
+[sno3]# ping fe80::e2f1:1d3d:ce3d:8fbb -I br-ex
 ping6: Warning: source address might be selected on device other than br-ex.
 PING fe80::e2f1:1d3d:ce3d:8fbb(fe80::e2f1:1d3d:ce3d:8fbb) from :: br-ex: 56 data bytes
 64 bytes from fe80::e2f1:1d3d:ce3d:8fbb%br-ex: icmp_seq=1 ttl=64 time=0.300 ms
@@ -100,10 +102,10 @@ PING fe80::e2f1:1d3d:ce3d:8fbb(fe80::e2f1:1d3d:ce3d:8fbb) from :: br-ex: 56 data
 64 bytes from fe80::e2f1:1d3d:ce3d:8fbb%br-ex: icmp_seq=3 ttl=64 time=0.224 ms
 ```
 
-There are other networks like 'provisioning'. In this case over the eno2 interface:
+The provisioner  server is connected to other networks, like the 'provisioning' one. In this case over the eno2 interface:
 
 ```bash
-$ ip addres show eno2
+[provisioner]$ ip addres show eno2
 3: eno2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq master provisioning state UP group default qlen 1000
     link/ether 94:40:c9:1f:bf:86 brd ff:ff:ff:ff:ff:ff
 ```
@@ -111,7 +113,7 @@ $ ip addres show eno2
 So, the LL address of network 'provisioning' is using other physical interface, other segment, and cannot be pinged from the sno3 server:
 
 ```bash
-# ping fe80::10e2:b68f:8a13:4d06 -I br-ex
+[sno3]# ping fe80::10e2:b68f:8a13:4d06 -I br-ex
 ping6: Warning: source address might be selected on device other than br-ex.
 PING fe80::10e2:b68f:8a13:4d06(fe80::10e2:b68f:8a13:4d06) from :: br-ex: 56 data bytes
 From fe80::9640:c9ff:fe1f:bf64%br-ex: icmp_seq=1 Destination unreachable: Address unreachable
@@ -119,13 +121,13 @@ From fe80::9640:c9ff:fe1f:bf64%br-ex: icmp_seq=2 Destination unreachable: Addres
 From fe80::9640:c9ff:fe1f:bf64%br-ex: icmp_seq=3 Destination unreachable: Address unreachable
 ```
 
-In summary, LL is very useful to check connectivity. 
+In summary, LL is very useful to check connectivity. But we will see later, how is also useful in Node Discovering Protocol.
 
-**Private address**
+## Private address
 
 With IPv6 Private address has the range: fc00::/7
 
-**Solicited-node multicast address**
+## Solicited-node multicast address
 
 Range: FF02::1:FF /104:
 
@@ -165,7 +167,7 @@ We can see, there is a coincidence from the 6 last hex characters of our Unicast
 
 When a node needs to communicate to another node, and it does not know the MAC address. It will use the NDP protocol (Node Solitication message) sending a message destination to  the Solicited-Node Multicast Address (ff02::1:ff1f:bf64), asking for who is fe80::9640:c9ff:fe1f:bf64. This node, which is listening on the Multicast Address, will see the message is specifically for him and it will return the MAC address.
 
-**Other multicast-address**
+## Other multicast-address
 
     ff01::1: All IPv6 devices
     ff01::2: All IPv6 routers
@@ -181,7 +183,7 @@ ff02::2: All IPv6 routers
 
 
 
-## Neighbor Discovery Protocol (NDP)
+# Neighbor Discovery Protocol (NDP)
 
 This protocol, with a similar function to IPv4 ARP, is based on a set of different messages that allows to send messages to unknown destination. It makes use of some of the previous explained unicast and multicast addresses.
 
@@ -189,12 +191,12 @@ This protocol, with a similar function to IPv4 ARP, is based on a set of differe
 
 **RS** — Router Solicitation: when a new interface is created, it is automatically generated. It makes RA to intermediately sent a RA.
 
-Example: from different servers, but sharing a Router. Server-1 will send a RS. From server-2 we will monitor RA messages. We will use the tool ndptool
+Example: from different servers, but sharing a Router. Server-1 will send a RS. From server-2 we will monitor RA messages. The Router in the network will responde with a RA. To follow all the process we will use the [ndptool](https://www.unix.com/man-page/centos/8/ndptool/)
 
 ```bash
-# to monitor RS messages:
+# to monitor Route Advertisement messages:
 ndptool monitor -t ra
-# to send a RA message:
+# to send a Route Solicitiation message:
 ndptool send -t rs -i br-ex
 
 ```
@@ -220,7 +222,7 @@ NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
 
 * From [fe80::a81:f4ff:fea6:dc01], this is the LL from the Router. LL addresses are used in this protocol. Some advantages: it is unique, so routers will always have the same LL Address, the NDP protocol can be used to autoconfigure network on host (no Unicast address yet, but already have a LL). More details [here](https://networkengineering.stackexchange.com/questions/55602/link-local-address-using-in-ndp-ipv6)
 
-* It also contains the source MAC address (Source linkaddr):  which finish similar to the LL. Remember the LL is derived from MAC addr, so now we also know the MAC of the router.
+* It also contains the source MAC address (Source linkaddr):  which finish similar to the LL. Remember the LL is derived from MAC addr.
 
 * We receive a route with a network prefix: Prefix: [2620:52:0:1351::/64] that is added to the route table of our server (network configuration and discovery):
 
@@ -240,5 +242,17 @@ NDP payload len 8, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
 
 
 ```
+
+
+
+Continuing NDP Messages:
+
+**NS** — Neighbor Solicitation: which is used to retrieve, from a neighbour, the LL address.
+
+**NA** — Neighbor Advertisement is sent in response to NS with the LL address. 
+
+
+
+
 
 
