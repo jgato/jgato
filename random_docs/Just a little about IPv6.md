@@ -169,16 +169,16 @@ When a node needs to communicate to another node, and it does not know the MAC a
 
 ## Other multicast-address
 
-    ff01::1: All IPv6 devices
-    ff01::2: All IPv6 routers
+    ff01::1 All IPv6 devices
+    ff01::2 All IPv6 routers
 
 In the previous example, you can see how our server has also joined the multicast address for ff01::1 (all devices). 
 
 With the scope of  Link Local address you will have:
 
 ```
-ff02::1: All IPv6 devices
-ff02::2: All IPv6 routers
+ff02::1 All IPv6 devices
+ff02::2 All IPv6 routers
 ```
 
 
@@ -243,6 +243,24 @@ NDP payload len 8, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
 
 ```
 
+This is how it looks a RS in detail. A message that can be sent by any server when boots, to discover possible Routers.
+
+*(wireshark screencaptures not from my lab, thanks to Raskia Nayanajith*
+
+![](assets/2022-06-03-13-26-59-image.png)
+
+The source used by the sending host, it is the LL. As it is explained above, it is the way of working of NDP.
+
+The destination is the multicast address that all the routers will join. In that way, the router will capture the message and it will send the RA. Notice how it is not need it to know the router address, nor the booting host needs a real IPv6 Global Unicast Address. 
+
+The response from the Router is a RA with: source Router LL, and destination,  the Multicast Address for all the hosts.
+
+![](assets/2022-06-03-13-32-30-image.png)
+
+
+
+
+
 
 
 Continuing NDP Messages:
@@ -258,5 +276,31 @@ Continuing NDP Messages:
 # radvd tool
 
 Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS) with the configuration for the nodes.
+
+
+
+# IPv6 Layer 2
+
+I dont cover in detail this layer in this tutorial. Just a quick comment about this layer and the NDP. 
+
+All the Multicast Addresses in IPv6 will have a Multicast Layer 2 Address. It will be composed in the way of 33:33:xx:xx:xx:xx, with the last 32bits corresponding to the last 32bits of the Layer-3 Multicast Address.  Therefore, a router subscribed to ff02::2 will have a corresponding Layer 2 Address: 33:33:00:00:00:02
+
+When a Router receives a RS in the  ff02::2 address, this is transformed into Layer-2 33:33:33:00:00:00:02. So the message has reached to a right destination and the router will create the answer. 
+
+You can see also here in this network capture:
+
+![](assets/2022-06-03-13-39-46-image.png)
+
+The message reaches to Layer 3 ff02::2 and Layer 2 33:33:00:00:00:02
+
+The response will work the other way around. The router will send a RA to ff02::1. This will be received for all the hosts in the Multicast Layer-3 ff02::1 and the Multicast Layer-2 33:33:00:00:00:02
+
+![](assets/2022-06-03-13-42-21-image.png)
+
+
+
+
+
+*(all the wireshark screencaptures thanks to Raskia Nayanajith: https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/ )*
 
 
