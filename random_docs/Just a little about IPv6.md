@@ -181,8 +181,6 @@ ff02::1 All IPv6 devices
 ff02::2 All IPv6 routers
 ```
 
-
-
 # Neighbor Discovery Protocol (NDP)
 
 This protocol, with a similar function to IPv4 ARP, is based on a set of different messages that allows to send messages to unknown destination. It makes use of some of the previous explained unicast and multicast addresses.
@@ -198,7 +196,6 @@ Example: from different servers, but sharing a Router. Server-1 will send a RS. 
 ndptool monitor -t ra
 # to send a Route Solicitiation message:
 ndptool send -t rs -i br-ex
-
 ```
 
 ![](assets/2022-06-03-11-35-17-output.gif)
@@ -217,7 +214,6 @@ NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
   Retransmit time: unspecified
   Source linkaddr: 08:81:f4:a6:dc:01
   Prefix: 2620:52:0:1351::/64, valid_time: 2592000s, preferred_time: 604800s, on_link: yes, autonomous_addr_conf: yes, router_addr: no
-
 ```
 
 * From [fe80::a81:f4ff:fea6:dc01], this is the LL from the Router. LL addresses are used in this protocol. Some advantages: it is unique, so routers will always have the same LL Address, the NDP protocol can be used to autoconfigure network on host (no Unicast address yet, but already have a LL). More details [here](https://networkengineering.stackexchange.com/questions/55602/link-local-address-using-in-ndp-ipv6)
@@ -239,8 +235,6 @@ We could also monitor the RS message with:
 $> ndptool monitor -t rs
 NDP payload len 8, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
   Type: RS
-
-
 ```
 
 This is how it looks a RS in detail. A message that can be sent by any server when boots, to discover possible Routers.
@@ -257,25 +251,135 @@ The response from the Router is a RA with: source Router LL, and destination,  t
 
 ![](assets/2022-06-03-13-32-30-image.png)
 
-
-
-
-
-
-
 Continuing NDP Messages:
 
 **NS** — Neighbor Solicitation: which is used to retrieve, from a neighbour, the LL address.
 
 **NA** — Neighbor Advertisement is sent in response to NS with the LL address. 
 
-
-
-
-
 # radvd tool
 
-Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS) with the configuration for the nodes.
+Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS) with the configuration for the n# ndptool monitor -t ra
+
+NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex                                                          
+  Type: RA                                                     
+  Hop limit: 64                                                
+  Managed address configuration: no                            
+  Other configuration: no                                      
+  Default router preference: medium                            
+  Router lifetime: 1800s                                       
+  Reachable time: unspecified                                  
+  Retransmit time: unspecified                                 
+  Source linkaddr: 08:81:f4:a6:dc:01                           
+  Prefix: 2620:52:0:1351::/64, valid_time: 2592000s, preferred_time: 604800s, on_link: yes, autonomous_addr_conf: yes, router_addr: noodes.
+
+*Not going in detail in this tutorial*
+
+Here an example of a radvd config file:
+
+```json
+interface baremetal
+{
+	AdvManagedFlag on;
+        # A flag indicating whether or not the router sends periodic router advertisements and responds to router solicitations.
+        # It needs to be on to enable advertisement on this interface.
+	AdvSendAdvert on;
+        # The minimum time allowed between sending unsolicited multicast router advertisements from the interface, in seconds.
+	MinRtrAdvInterval 30;
+        # The maximum time allowed between sending unsolicited multicast router advertisements from the interface, in seconds.
+	MaxRtrAdvInterval 100;
+        # The lifetime associated with the default router in units of seconds. 
+        # A lifetime of 0 indicates that the router is not a default router and should not appear on the default router list.
+	AdvDefaultLifetime 9000;
+
+	prefix 2620:52:0:1305::/64
+	{
+                # Indicates that this prefix can be used for on-link determination.
+		AdvOnLink on;
+                # Indicates that this prefix can be used for autonomous address configuration as specified in RFC 4862.
+		AdvAutonomous off;
+                # Indicates that the address of interface is sent instead of network prefix.
+		AdvRouterAddr on;
+	};
+	route ::/0 {
+                # The lifetime associated with the route in units of seconds.
+		AdvRouteLifetime 9000;
+                # The preference associated with the default router, as either "low", "medium", or "high".
+		AdvRoutePreference low;
+                # Upon shutdown, announce this route with a zero second lifetime.
+		RemoveRoute on;
+	};
+};
+
+```
+
+* 'interface baremetal' indicates the configuration to be applied in this interface
+
+* Then you have a set of flags and configs for this interface. Such as the advertising frequencies.
+
+* 'prefix' announces a network and some configuration for it. It can be used, for autoconfiguration in the hosts. But in this case, the AdvAutonomous off avoids this situation. In this lab, the hosts ip address are configured statically.
+
+* 'route' announces the routes to be used by the hosts.
+
+* 'route ::/0' is the default route
+
+
+
+Before using this configuration on my environment. I can listen for RAs:
+
+```bash
+# ndptool monitor -t ra                                  
+NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex                                                          
+  Type: RA                                                     
+  Hop limit: 64                                                
+  Managed address configuration: no                            
+  Other configuration: no                                      
+  Default router preference: medium                            
+  Router lifetime: 1800s                                       
+  Reachable time: unspecified                                  
+  Retransmit time: unspecified                                 
+  Source linkaddr: 08:81:f4:a6:dc:01                           
+  Prefix: 2620:52:0:1351::/64, valid_time: 2592000s, preferred_time: 604800s, on_link: yes, autonomous_addr_conf: yes, router_addr: no
+
+```
+
+I already see some announces for that network. This means, that other router is sending that information.  For some reason, the RA only includes Prefix, but no Routes. We dont know how this Router was configured. The RA comes from [fe80::a81:f4ff:fea6:dc01]. Maybe some other router in the network, but no the provisioner when I am working. And not under my control.
+
+To avoid some conflicts, and for testing, I will add to the radvd config file the following.
+
+```json
+        clients
+        {
+                #sno3
+                fe80::9640:c9ff:fe1f:bf64;
+                #sno4
+                fe80::21d:72ff:fe96:aaff;
+        };
+
+```
+
+So my radvd configuration will only affect to these clients. Now, I can start radvd in my provisioner server.
+
+From the clients allowed (sno3, sno4), you will start receiving the RAs. Now, from [fe80::e2f1:1d3d:ce3d:8fbb]. Which is the LL of the provisioner where I have just configured radvd:
+
+```bash
+NDP payload len 80, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
+  Type: RA
+  Hop limit: 64
+  Managed address configuration: yes
+  Other configuration: no
+  Default router preference: medium
+  Router lifetime: 9000s
+  Reachable time: unspecified
+  Retransmit time: unspecified
+  Source linkaddr: 94:40:c9:1f:bf:87
+  Prefix: 2620:52:0:1305::/64, valid_time: 86400s, preferred_time: 14400s, on_link: yes, autonomous_addr_conf: no, router_addr: yes
+  Route: ::/0, lifetime: 9000s, preference: low
+```
+
+Our Router announces Prefix but also the default Route to the two selected clients.
+
+
 
 
 
@@ -297,10 +401,4 @@ The response will work the other way around. The router will send a RA to ff02::
 
 ![](assets/2022-06-03-13-42-21-image.png)
 
-
-
-
-
 *(all the wireshark screencaptures thanks to Raskia Nayanajith: https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/ )*
-
-
