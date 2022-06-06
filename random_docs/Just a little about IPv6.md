@@ -379,7 +379,28 @@ NDP payload len 80, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
 
 Our Router announces Prefix but also the default Route to the two selected clients.
 
+From time to time you will also see the RAs announced by the other Router in the environment [fe80::a81:f4ff:fea6:dc01].
 
+When I stop my router, there will be an RA to delete the Route
+
+```bash
+NDP payload len 104, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
+  Type: RA
+  Hop limit: 64
+  Managed address configuration: yes
+  Other configuration: no
+  Default router preference: medium
+  Router lifetime: 0s
+  Reachable time: unspecified
+  Retransmit time: unspecified
+  Source linkaddr: 94:40:c9:1f:bf:87
+  Prefix: 2620:52:0:1305::/64, valid_time: 86400s, preferred_time: 14400s, on_link: yes, autonomous_addr_conf: no, router_addr: no
+  Route: ::/0, lifetime: 0s, preference: low
+
+
+```
+
+with the lifetime: 0s.
 
 
 
