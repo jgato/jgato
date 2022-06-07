@@ -43,6 +43,8 @@ It is a GCU from the network 2620:52:0:1351::
 
 ## Local Link Address
 
+Prefix: FE80::/10
+
 This is an address that helps with communication on a same network segment. It is useful to check connectivity with host/routers sharing a same network segment.
 
 In this case, I will ping from a sever sno3, to a server  sno4 with the LL ([fe80::9640:c9ff:fe1f:c2a5]). These two server belongs to the same lab/network/segment so can ping each other. 
@@ -125,11 +127,11 @@ In summary, LL is very useful to check connectivity. But we will see later, how 
 
 ## Private address
 
-With IPv6 Private address has the range: fc00::/7
+With IPv6 Private address has the prefix: fc00::/7
 
 ## Solicited-node multicast address
 
-Range: FF02::1:FF /104:
+Prefix: FF02::1:FF /104:
 
 This is a very special multicast address, automatically assigned. It is used  to obtain Layer 2 addresses  (MAC) of other nodes. It is used for Node Discovery Protocol to find destinations. Similar to IPv4 ARP.
 
@@ -277,7 +279,7 @@ NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
 
 Here an example of a radvd config file:
 
-```json
+```
 interface baremetal
 {
 	AdvManagedFlag on;
@@ -347,7 +349,7 @@ I already see some announces for that network. This means, that other router is 
 
 To avoid some conflicts, and for testing, I will add to the radvd config file the following.
 
-```json
+```
         clients
         {
                 #sno3
