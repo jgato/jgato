@@ -23,6 +23,36 @@ Here there are two IPv6 addresses on the br-ex interface.
 
 * [fe80::9640:c9ff:fe1f:bf64] Unicast Address of type **Local Link Address.** This is automatically created for any interface with IPv6. It is an IP created with some prefix rules and the MAC address of the interface. More about how to [calculate Link Local](https://www.omnisecu.com/tcpip/ipv6/link-local-ipv6-addresses.php)
 
+## IPv6 addresses structure, prefix and subnets
+
+An IPv6 is a 128bit address formatted as 8 quads of hexadecimal values. The first 4 quads are the Network Prefix, and the last 4 quads identify an unique interface.
+
+[2620:0052:0000:1351:67c2:adb3:cfd6:83]
+
+[------Network Prefix---|-----Interface ID----]
+
+Network Prefix = 64
+
+So here the network is: [2620:0052:0000:1351::] that ensure unique interfaces from [2620:0052:0000:1351:0000:0000:0000] to [2620:0052:0000:1351:ffff:ffff:ffff:ffff]. Actually, 18446744073709551616 of unique interfaces/hosts.
+
+The first 4 quads are for the Network Prefix, 64 bits. But the network can be divide into different subnet by the Prefix Length. The Prefix Length indicates how many bits belongs to the network from the Network Prefix:
+
+* /64 bits Prefix Length, indicates that the 64 first bits, of the Network Prefix, belongs to the network. So there is only one Network or Subnet  [2620:0052:0000:1351::].
+
+* /60 bits Prefix Length, indicates that the first 60 bits belongs to the network, and the other 4 bits are used for subnets. 4 bits for subnet means 16 subnets.
+  
+  From [2620:0052:0000:135**0**:: /60]  to [2620:0052:0000:135**f**:: /60]
+
+* /56 bits Prefix Length, indicates that the 56 first bits belongs to the network, and you have other 16 bits for subnets: 256 subnets
+  
+  From [2620:0052:0000:13**00**:: /60] to [2620:0052:0000:13**ff**:: /60]
+
+You can use whatever Prefix Length, but it is recommended to use in ranges of 4 bits. Because it facilitates the reading/understanding. You are just selecting how many hexadecimal characters, from the last part of the Network Prefix, are used for subnets. 
+
+Each Network/subnet has, anyway, the other 64 bits for hosts/interfaces (18446744073709551616). Therefore, there should be more than enough address. And much more, depending how you create the subnets.
+
+The first quad is reserved and it adds meaning about the kind of IPv6 address is representing (we will see this later).
+
 ## Global Unicast Address
 
 The GUA is defined by the prefix of the address. The 3 first bits, 001, as reserved for GUA. But the prefix range are the first 48 bits. Basically, whatever between 2000 and 3FFF  is a GUA. In IPv4, what we commonly know as Public IP. Or routable IPs. 
@@ -282,37 +312,36 @@ Here an example of a radvd config file:
 ```
 interface baremetal
 {
-	AdvManagedFlag on;
+    AdvManagedFlag on;
         # A flag indicating whether or not the router sends periodic router advertisements and responds to router solicitations.
         # It needs to be on to enable advertisement on this interface.
-	AdvSendAdvert on;
+    AdvSendAdvert on;
         # The minimum time allowed between sending unsolicited multicast router advertisements from the interface, in seconds.
-	MinRtrAdvInterval 30;
+    MinRtrAdvInterval 30;
         # The maximum time allowed between sending unsolicited multicast router advertisements from the interface, in seconds.
-	MaxRtrAdvInterval 100;
+    MaxRtrAdvInterval 100;
         # The lifetime associated with the default router in units of seconds. 
         # A lifetime of 0 indicates that the router is not a default router and should not appear on the default router list.
-	AdvDefaultLifetime 9000;
+    AdvDefaultLifetime 9000;
 
-	prefix 2620:52:0:1305::/64
-	{
+    prefix 2620:52:0:1305::/64
+    {
                 # Indicates that this prefix can be used for on-link determination.
-		AdvOnLink on;
+        AdvOnLink on;
                 # Indicates that this prefix can be used for autonomous address configuration as specified in RFC 4862.
-		AdvAutonomous off;
+        AdvAutonomous off;
                 # Indicates that the address of interface is sent instead of network prefix.
-		AdvRouterAddr on;
-	};
-	route ::/0 {
+        AdvRouterAddr on;
+    };
+    route ::/0 {
                 # The lifetime associated with the route in units of seconds.
-		AdvRouteLifetime 9000;
+        AdvRouteLifetime 9000;
                 # The preference associated with the default router, as either "low", "medium", or "high".
-		AdvRoutePreference low;
+        AdvRoutePreference low;
                 # Upon shutdown, announce this route with a zero second lifetime.
-		RemoveRoute on;
-	};
+        RemoveRoute on;
+    };
 };
-
 ```
 
 * 'interface baremetal' indicates the configuration to be applied in this interface
@@ -324,8 +353,6 @@ interface baremetal
 * 'route' announces the routes to be used by the hosts.
 
 * 'route ::/0' is the default route
-
-
 
 Before using this configuration on my environment. I can listen for RAs:
 
@@ -342,7 +369,6 @@ NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
   Retransmit time: unspecified                                 
   Source linkaddr: 08:81:f4:a6:dc:01                           
   Prefix: 2620:52:0:1351::/64, valid_time: 2592000s, preferred_time: 604800s, on_link: yes, autonomous_addr_conf: yes, router_addr: no
-
 ```
 
 I already see some announces for that network. This means, that other router is sending that information.  For some reason, the RA only includes Prefix, but no Routes. We dont know how this Router was configured. The RA comes from [fe80::a81:f4ff:fea6:dc01]. Maybe some other router in the network, but no the provisioner when I am working. And not under my control.
@@ -357,7 +383,6 @@ To avoid some conflicts, and for testing, I will add to the radvd config file th
                 #sno4
                 fe80::21d:72ff:fe96:aaff;
         };
-
 ```
 
 So my radvd configuration will only affect to these clients. Now, I can start radvd in my provisioner server.
@@ -398,13 +423,9 @@ NDP payload len 104, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
   Source linkaddr: 94:40:c9:1f:bf:87
   Prefix: 2620:52:0:1305::/64, valid_time: 86400s, preferred_time: 14400s, on_link: yes, autonomous_addr_conf: no, router_addr: no
   Route: ::/0, lifetime: 0s, preference: low
-
-
 ```
 
 with the lifetime: 0s.
-
-
 
 # IPv6 Layer 2
 
