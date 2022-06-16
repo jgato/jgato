@@ -182,9 +182,64 @@ Network Interfaces:
 
 This amount of Network Interfaces would be problematic, with node_exporter willing to inspect all of them. But we will see this later with the conclusions. Also, more tan 400 containers is an enough big load for such kind of server. Not something too high about cpu consuming, because these pods are not very demanding.
 
-# CPU Profiling node_exporter process
+## CPU Profiling node_exporter process
+
+The CPU profile will be extracted from node_exporter running on this worker-0 node. To get that pod:
+
+```bash
+$ oc -n openshift-monitoring get pods -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name  | grep node-exporter                                                                                               
+master-1.el8k-ztp-1.hpecloud.org   node-exporter-7bt6j
+master-0.el8k-ztp-1.hpecloud.org   node-exporter-d8mn5
+worker-0.el8k-ztp-1.hpecloud.org   node-exporter-g87bn
+master-2.el8k-ztp-1.hpecloud.org   node-exporter-pll2w
+worker-1.el8k-ztp-1.hpecloud.org   node-exporter-sdszc
+```
+
+in this case 'node-exporter-g87bn'.
+
+So, we get the cpu profiling (using [go pprof tool](https://pkg.go.dev/net/http/pprof). This command can be used even with a high activity in the cluster and it should not affect other users,. It will run by 1 minute.
+
+```bash
+$ oc exec -n openshift-monitoring node-exporter-g87bn -- curl -s http://localhost:9100/debug/pprof/profile?seconds=60 > /tmp/worker-0-lab-cpu.prof
+Defaulted container "node-exporter" out of: node-exporter, kube-rbac-proxy, init-textfile (init)
+
+```
+
+You can get the output file and uncompress. The pprof file can be visualized with the go pprof tool:
+
+
+
+```bash
+> go tool pprof -http=localhost:8999 /tmp/worker-0-lab-cpu
+Serving web UI on http://localhost:8999
+
+```
+
+And the output will be opened on the webwroser
+
+
+
+![](assets/2022-06-16-12-47-03-image.png)
+
+
+
+![](assets/2022-06-16-12-47-38-image.png)
+
+## CPU Profile interpretation
+
+[ToDo]
+
+
 
 ## Delete the node-burner jobs
+
+When you have finished and you want to get back the cluster to their previous status, you can destroy the job. You only need the UUID generated while running the kube-burner init:
+
+```bash
+$ ~/kube-burner/kube-burner destroy --uuid  60683587-eed9-44a5-adb5-40bb989b9cdb                                                                    
+INFO[2022-06-16 07:45:12] Deleting namespaces with label kube-burner-uuid=60683587-eed9-44a5-adb5-40bb989b9cdb 
+INFO[2022-06-16 07:45:12] Waiting for namespaces to be definitely deleted
+```
 
 # Some useful scripts I use to monitor
 
