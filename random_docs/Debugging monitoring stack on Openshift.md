@@ -16,9 +16,9 @@ Consider a previous step 0) for creating an Openshift Cluster. In this case I wi
 
 * OCP Standard Cluster with 3 Master and 2 Workers
 
-![](/home/jgato/.var/app/com.github.marktext.marktext/config/marktext/images/2022-06-15-09-25-17-image.png)
 
-* This cluster is fully IPv6 enabled (but it should not affect)
+
+![](assets/2022-06-16-09-41-59-image.png)
 
 * The cluster is not running any specific workload and it is pretty clean. A part from the usual [Telco/RAN operators distributed](https://www.redhat.com/en/resources/5G-open-ran-deployment-overview)
 
@@ -178,23 +178,13 @@ Containers:
 422
 Network Interfaces:
 740
-
-
 ```
 
 This amount of Network Interfaces would be problematic, with node_exporter willing to inspect all of them. But we will see this later with the conclusions. Also, more tan 400 containers is an enough big load for such kind of server. Not something too high about cpu consuming, because these pods are not very demanding.
 
-
-
 # CPU Profiling node_exporter process
 
-
-
 ## Delete the node-burner jobs
-
-
-
- 
 
 # Some useful scripts I use to monitor
 
