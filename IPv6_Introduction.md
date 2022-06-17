@@ -2,11 +2,11 @@
 
 Just some basic stuff and learning about IPv6.
 
+> My intention is to keep this tutorial live, as long as I learn more about IPv6. But, I dont want to finish with a too complex tutorial. Any feedback is welcome.
+
 > To play with IPv6 commands, I will use a laboratory composed by three servers with IPv6 enabled. One of the servers is just a regular provisioner server, that we use to deploy other servers. The we have a coupe of Openshift Single Node servers.
 
 We will just start for the beginning, get the IPv6 addresses (we will see why I use addresses instead of address later). In this case, I am using br-ex, which is the main interface with an Openshift installation. 
-
-
 
 ```bash
 # ip -6 addr show br-ex
@@ -29,9 +29,11 @@ An IPv6 is a 128bit address formatted as 8 quads of hexadecimal values. The firs
 
 [2620:0052:0000:1351:67c2:adb3:cfd6:83]
 
-[------Network Prefix---|-----Interface ID----]
+(------Network Prefix---|-----Interface ID----)
 
 Network Prefix = 64
+
+Interface ID = 64
 
 So here the network is: [2620:0052:0000:1351::] that ensure unique interfaces from [2620:0052:0000:1351:0000:0000:0000] to [2620:0052:0000:1351:ffff:ffff:ffff:ffff]. Actually, 18446744073709551616 of unique interfaces/hosts.
 
@@ -178,9 +180,7 @@ So, we can check how our servers has this assigned:
         inet6 ff01::1
 ```
 
-But, we can see there is no only one multicast group the server has joined. Which one is the solicited-node multicast address.
-
-The solicited-node multicast address is derived from the IPv6 address, so:
+But, we can see there is no only one multicast group the server has joined. Which one is the solicited-node multicast address? The solicited-node multicast address is derived from the IPv6 address, so:
 
 ```bash
 # ip -6 addr show br-ex
@@ -206,6 +206,8 @@ When a node needs to communicate to another node, and it does not know the MAC a
 
 In the previous example, you can see how our server has also joined the multicast address for ff01::1 (all devices).
 
+If it were a Router, it will also listen on ff01::2
+
 With the scope of  Link Local address you will have:
 
 ```
@@ -221,12 +223,12 @@ This protocol, with a similar function to IPv4 ARP, is based on a set of differe
 
 **RS** — Router Solicitation: when a new interface is created, it is automatically generated. It makes RA to intermediately sent a RA.
 
-Example: from different servers, but sharing a Router. Server-1 will send a RS. From server-2 we will monitor RA messages. The Router in the network will responde with a RA. To follow all the process we will use the [ndptool](https://www.unix.com/man-page/centos/8/ndptool/)
+Example: from different servers, but sharing a Router. Server-1 will send a RS. From server-2 we will monitor RA messages. The Router in the network will respond with a RA. To follow all the process we will use the [ndptool](https://www.unix.com/man-page/centos/8/ndptool/)
 
 ```bash
-# to monitor Route Advertisement messages:
+# server-2 to monitor Route Advertisement messages:
 ndptool monitor -t ra
-# to send a Route Solicitiation message:
+# server-1 to send a Route Solicitiation message:
 ndptool send -t rs -i br-ex
 ```
 
@@ -269,43 +271,29 @@ NDP payload len 8, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
   Type: RS
 ```
 
-This is how it looks a RS in detail. A message that can be sent by any server when boots, to discover possible Routers.
+Following an RS message in detail. A message that can be sent by any server when boots, to discover possible Routers.
 
 *(wireshark screencaptures not from my lab, thanks to Raskia Nayanajith*
 
 ![](assets/2022-06-03-13-26-59-image.png)
 
-The source used by the sending host, it is the LL. As it is explained above, it is the way of working of NDP.
+The source is the LL of the server making the Router Solicitation. As it is explained above, it is the way of working of NDP.
 
-The destination is the multicast address that all the routers will join. In that way, the router will capture the message and it will send the RA. Notice how it is not need it to know the router address, nor the booting host needs a real IPv6 Global Unicast Address.
+The destination is the multicast address that all the routers will join. In that way, the router will capture the message and it will send the RA. 
 
-The response from the Router is a RA with: source Router LL, and destination,  the Multicast Address for all the hosts.
+Notice how the server sending the solicitation dont need to know the router address. Neither, the server sending the solicitation, needs to have already assigned a real IPv6 Global Unicast Address. Only need the LL to start. 
+
+The response from the Router is a RA. This time, the source is the Router LL, and destination,  the Multicast Address for all the hosts.
 
 ![](assets/2022-06-03-13-32-30-image.png)
 
-Continuing NDP Messages:
 
-**NS** — Neighbor Solicitation: which is used to retrieve, from a neighbour, the LL address.
-
-**NA** — Neighbor Advertisement is sent in response to NS with the LL address.
 
 # radvd tool
 
-Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS) with the configuration for the n# ndptool monitor -t ra
+Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS). 
 
-NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
-  Type: RA
-  Hop limit: 64
-  Managed address configuration: no
-  Other configuration: no
-  Default router preference: medium
-  Router lifetime: 1800s
-  Reachable time: unspecified
-  Retransmit time: unspecified
-  Source linkaddr: 08:81:f4:a6:dc:01
-  Prefix: 2620:52:0:1351::/64, valid_time: 2592000s, preferred_time: 604800s, on_link: yes, autonomous_addr_conf: yes, router_addr: noodes.
-
-*Not going in detail in this tutorial*
+> Not going in detail in this tutorial about how to use/configure radvd
 
 Here an example of a radvd config file:
 
@@ -385,7 +373,7 @@ To avoid some conflicts, and for testing, I will add to the radvd config file th
         };
 ```
 
-So my radvd configuration will only affect to these clients. Now, I can start radvd in my provisioner server.
+So my radvd configuration will only affect to these two servers. Now, I can start radvd in my provisioner server.
 
 From the clients allowed (sno3, sno4), you will start receiving the RAs. Now, from [fe80::e2f1:1d3d:ce3d:8fbb]. Which is the LL of the provisioner where I have just configured radvd:
 
@@ -408,7 +396,7 @@ Our Router announces Prefix but also the default Route to the two selected clien
 
 From time to time you will also see the RAs announced by the other Router in the environment [fe80::a81:f4ff:fea6:dc01].
 
-When I stop my router, there will be an RA to delete the Route
+When I stop my radvd, there will be an RA to delete the Route
 
 ```bash
 NDP payload len 104, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
@@ -429,7 +417,7 @@ with the lifetime: 0s.
 
 # IPv6 Layer 2
 
-I dont cover in detail this layer in this tutorial. Just a quick comment about this layer and the NDP.
+> I dont cover in detail this layer in this tutorial. Just a quick comment about this layer and the NDP.
 
 All the Multicast Addresses in IPv6 will have a Multicast Layer 2 Address. It will be composed in the way of 33:33:xx:xx:xx:xx, with the last 32bits corresponding to the last 32bits of the Layer-3 Multicast Address.  Therefore, a router subscribed to ff02::2 will have a corresponding Layer 2 Address: 33:33:00:00:00:02
 
