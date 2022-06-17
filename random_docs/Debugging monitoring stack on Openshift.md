@@ -16,8 +16,6 @@ Consider a previous step 0) for creating an Openshift Cluster. In this case I wi
 
 * OCP Standard Cluster with 3 Master and 2 Workers
 
-
-
 ![](assets/2022-06-16-09-41-59-image.png)
 
 * The cluster is not running any specific workload and it is pretty clean. A part from the usual [Telco/RAN operators distributed](https://www.redhat.com/en/resources/5G-open-ran-deployment-overview)
@@ -93,9 +91,9 @@ I have done some modifications to this example to allow you to select which node
 
 * So, lets debug node_exporter according to each node
 
-The kube-burner jobs that I will create can be found [here]()
+The kube-burner jobs that I will create can be found [here](https://github.com/jgato/kube-burner/tree/master/examples/workloads/kubelet-density-heavy-node)
 
-What is actually this example doing: it is creating a pair client/server pods. Because it is configured with 280 iteractions, it will create 280 clients and 280 serves. Also, I am placing all the pods in the same host. Therefore, the host will have to have capacity for at least 560 pods.
+What is actually this example doing?: it is creating a pair client/server pods. Because it is configured with 280 iteractions, it will create 280 clients and 280 serves. Also, I am placing all the pods in the same host. Therefore, the host will have to have capacity for at least 560 pods.
 
 About the limit of pods, by default OCP has a limit of 252 per node. We will change that following this interesting [article](https://cloud.redhat.com/blog/500_pods_per_node). I have increased pods limit to 400, which does not require to provide more IP Addresses. 
 
@@ -202,34 +200,24 @@ So, we get the cpu profiling (using [go pprof tool](https://pkg.go.dev/net/http/
 ```bash
 $ oc exec -n openshift-monitoring node-exporter-g87bn -- curl -s http://localhost:9100/debug/pprof/profile?seconds=60 > /tmp/worker-0-lab-cpu.prof
 Defaulted container "node-exporter" out of: node-exporter, kube-rbac-proxy, init-textfile (init)
-
 ```
 
 You can get the output file and uncompress. The pprof file can be visualized with the go pprof tool:
 
-
-
 ```bash
 > go tool pprof -http=localhost:8999 /tmp/worker-0-lab-cpu
 Serving web UI on http://localhost:8999
-
 ```
 
 And the output will be opened on the webwroser
 
-
-
 ![](assets/2022-06-16-12-47-03-image.png)
-
-
 
 ![](assets/2022-06-16-12-47-38-image.png)
 
 ## CPU Profile interpretation
 
 [ToDo]
-
-
 
 ## Delete the node-burner jobs
 
