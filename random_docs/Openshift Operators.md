@@ -74,11 +74,11 @@ So, we have see how MCP assign MCs for an specific node's role. This is very imp
 
 Other options:
 
-* Master + CustomRole: it is oka, but it will apply only Master Configs
+* Master + CustomRole: Not allowed, error
 
 * Master + Worker: as it is explained, it is ok and it will apply Master Configs
 
-* Worker + CustomRole: not allowed and the host will not apply to any MCP, so no MCs appled
+* Worker + CustomRole: applies both
 
 * Master + Worker + CustomRole: the same, not allowed
 
