@@ -12,7 +12,7 @@ Metal3 will be, usually, in charge of managing this process from the installatio
 
 One the first things done by Metal3 is to configure the server to boot (once) with the CD. But here appears the first error:
 
-```
+```log
   errorMessage: 'Image provisioning failed: Deploy step deploy.deploy failed: Redfish
     exception occurred. Error: Setting boot mode to uefi failed for node 3c33dfa7-6950-4a90-a939-d3b71c546863.
     Error: HTTP PATCH https://10.19.10.71:9000/redfish/v1/Systems/1 returned code
@@ -28,7 +28,7 @@ One the first things done by Metal3 is to configure the server to boot (once) wi
 
 What Metal3 is trying to do is:
 
-```json
+```bash
 >  curl -s -k -X PATCH -H 'Content-Type: application/json'     -d '{
       "Boot": {
           "BootSourceOverrideMode": "UEFI"
@@ -59,7 +59,7 @@ What Metal3 is trying to do is:
 
 Metal3 is trying to change the "BootSourceOverrideMode" from "Legacy" to "UEFI". The error says, it is because "UEFI" is not a valid option, but this is not true. 
 
-```json
+```bash
 > curl -s -k ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot
 {
   "BootSourceOverrideEnabled": "Once",
