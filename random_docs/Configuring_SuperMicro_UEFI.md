@@ -28,7 +28,7 @@ One  of  the first things done by Metal3 is to configure the server to boot (onc
 
 What Metal3 is trying to do is:
 
-```json
+```bash
 $>  curl -s -k -X PATCH -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://${BMC_ENDPOINT}/redfish/v1/Systems/1 \
     -H 'Content-Type: application/json' -d '{
       "Boot": {
@@ -60,7 +60,7 @@ $>  curl -s -k -X PATCH -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://
 
 Metal3 is trying to change the "BootSourceOverrideMode" from "Legacy" to "UEFI". The error says, it is because "UEFI" is not a valid option, but this is not true. 
 
-```json
+```bash
 $> curl -s -X GET -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://${BMC_ENDPOINT}/redfish/v1/Systems/1 | jq .Boot
 {
   "BootSourceOverrideEnabled": "Once",
