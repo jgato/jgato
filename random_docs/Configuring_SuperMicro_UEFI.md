@@ -29,7 +29,8 @@ One  of  the first things done by Metal3 is to configure the server to boot (onc
 What Metal3 is trying to do is:
 
 ```bash
-$>  curl -s -k -X PATCH -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://${BMC_ENDPOINT}/redfish/v1/Systems/1 \
+$>  curl -s -k -X PATCH -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \
+    https://${BMC_ENDPOINT}/redfish/v1/Systems/1 \
     -H 'Content-Type: application/json' -d '{
       "Boot": {
           "BootSourceOverrideMode": "UEFI"
@@ -61,7 +62,8 @@ $>  curl -s -k -X PATCH -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://
 Metal3 is trying to change the "BootSourceOverrideMode" from "Legacy" to "UEFI". The error says, it is because "UEFI" is not a valid option, but this is not true. 
 
 ```bash
-$> curl -s -X GET -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://${BMC_ENDPOINT}/redfish/v1/Systems/1 | jq .Boot
+$> curl -s -X GET -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \
+     https://${BMC_ENDPOINT}/redfish/v1/Systems/1 | jq .Boot
 {
   "BootSourceOverrideEnabled": "Once",
   "BootSourceOverrideMode": "Legacy",
@@ -89,8 +91,9 @@ This seem to be an issue in the Redfish API implementation. Which requires to se
 This other request will success about setting the boot options.
 
 ```bash
-$> curl -s -k -X PATCH -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://${BMC_ENDPOINT}/redfish/v1/Systems/1 \
-    -H 'Content-Type: application/json'     -d '{
+$> curl -s -k -X PATCH -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \
+    https://${BMC_ENDPOINT}/redfish/v1/Systems/1 \
+    -H 'Content-Type: application/json'     -d '{
       "Boot": {
           "BootSourceOverrideEnabled": "Once",
           "BootSourceOverrideMode": "UEFI",
@@ -120,7 +123,10 @@ I have also created a custom [container image](https://quay.io/repository/jgato/
 So, run fakefish container on a server in between your ACM and the BMC. Just changing the IP of the BMC
 
 ```bash
-podman run --name fakefish --rm -p 9000:9000 quay.io/jgato/fakefish-supermicro:latest --listen-port 9000 --remote-bmc <REMOTE_BMC_ADDRESS_IP>
+$> podman run --name fakefish --rm -p 9000:9000 \
+    quay.io/jgato/fakefish-supermicro:latest \
+    --listen-port 9000 \
+    --remote-bmc <REMOTE_BMC_ADDRESS_IP>
 ```
 
 > You need one containers for each BMC.  
@@ -136,7 +142,8 @@ So, the Server is configured and booted with the new ISO, and configured BootOnc
 While Bios is Booting and Metal3 has configured everything, you can check the BootOnce, pointing to boot Once from Cd
 
 ```bash
-$  curl -s -X GET -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://${BMC_ENDPOINT}/redfish/v1/Systems/1 | jq .Boot                                                                                                  
+$  curl -s -X GET -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \
+     https://${BMC_ENDPOINT}/redfish/v1/Systems/1 | jq .Boot                                                                                                  
 {
   "BootSourceOverrideEnabled": "Once",
   "BootSourceOverrideMode": "UEFI",
@@ -157,7 +164,8 @@ $  curl -s -X GET -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://${B
 In the last moment, when it is about to boot, you can observe this is changed:
 
 ```bash
-$ curl -s -X GET -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"''  https://${BMC_ENDPOINT}/redfish/v1/Systems/1 | jq .Boot                                                                                                   
+$ curl -s -X GET -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \
+     https://${BMC_ENDPOINT}/redfish/v1/Systems/1 | jq .Boot                                                                                                   
 {
   "BootSourceOverrideEnabled": "Disabled",
   "BootSourceOverrideMode": "Legacy",
@@ -225,8 +233,8 @@ Nothing to say specially about the different issue. None has worked out of the b
 Some strange situation, It could be that there is an applet console which mounted an iso and it is not released:
 
 ```bash
-$> curl -s -k -X GET -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' https://${BMC_ENDPOINT}/redfish/v1/Managers/1/VM1/CD1 | jq
-
+$> curl -s -k -X GET -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \ 
+    https://${BMC_ENDPOINT}/redfish/v1/Managers/1/VM1/CD1 | jq
 {
   "@odata.context": "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
   "@odata.type": "#VirtualMedia.VirtualMedia",
@@ -247,7 +255,8 @@ $> curl -s -k -X GET -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' https://${BM
 After resetting the server and BMC, the problem seems to disappear, and the iso is umounted:
 
 ```bash
-$> curl -s  -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' https://${BMC_ENDPOINT}/redfish/v1/Managers/1/VM1/CD1 |jq
+$> curl -s  -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \ 
+https://${BMC_ENDPOINT}/redfish/v1/Managers/1/VM1/CD1 |jq
 $>
 ```
 
