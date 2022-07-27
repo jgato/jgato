@@ -233,8 +233,8 @@ Nothing to say specially about the different issue. None has worked out of the b
 Some strange situation, It could be that there is an applet console which mounted an iso and it is not released:
 
 ```bash
-$> curl -s -k -X GET -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \ 
-    https://${BMC_ENDPOINT}/redfish/v1/Managers/1/VM1/CD1 | jq
+$> curl -s -k -X GET -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \
+    https://${BMC_ENDPOINT}/redfish/v1/Managers/1/VM1/CD1 | jq
 {
   "@odata.context": "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
   "@odata.type": "#VirtualMedia.VirtualMedia",
@@ -255,8 +255,8 @@ $> curl -s -k -X GET -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \
 After resetting the server and BMC, the problem seems to disappear, and the iso is umounted:
 
 ```bash
-$> curl -s  -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \ 
-https://${BMC_ENDPOINT}/redfish/v1/Managers/1/VM1/CD1 |jq
+$> curl -s  -k -u ''"${BMC_USERNAME}"'':''"${BMC_PASSWORD}"'' \
+    https://${BMC_ENDPOINT}/redfish/v1/Managers/1/VM1/CD1 |jq
 $>
 ```
 
