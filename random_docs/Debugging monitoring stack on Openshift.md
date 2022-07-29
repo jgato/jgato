@@ -83,7 +83,9 @@ jobs:
 
 * podWait if 'true' it waits for all the pods of each iteration to be running, before going with the next one. Here it is false, so we will create more pods at the same time ;)
 
-I have done some modifications to this example to allow you to select which node will run all the jobs. Why all in the same node? 
+### Custom burning workload
+
+I have done some modifications to the previous example to allow you to select which node will run all the jobs. Why all in the same node? 
 
 * I want to optimize node_exporter, which runs individually in each node.
 
@@ -93,15 +95,17 @@ I have done some modifications to this example to allow you to select which node
 
 The kube-burner jobs that I will create can be found [here](https://github.com/jgato/kube-burner/tree/master/examples/workloads/kubelet-density-heavy-node)
 
-What is actually this example doing?: it is creating a pair client/server pods. Because it is configured with 280 iteractions, it will create 280 clients and 280 serves. Also, I am placing all the pods in the same host. Therefore, the host will have to have capacity for at least 560 pods.
+**What is actually this example doing?** 
 
-About the limit of pods, by default OCP has a limit of 252 per node. We will change that following this interesting [article](https://cloud.redhat.com/blog/500_pods_per_node). I have increased pods limit to 400, which does not require to provide more IP Addresses. 
+it is 90% the same than 'kubelet-density-heavy'. it is creating a pair client/server pods. Because it is configured with 170 iteractions, it will create 170 clients and 170 serves. Also, I am placing all the pods in the same host. Therefore, the host will have to have capacity for at least 340 pods.
+
+About the limit of pods, by default OCP has a limit of 252 per node. We will change that following this interesting [article](https://cloud.redhat.com/blog/500_pods_per_node). I have increased pods limit to 400, which does not require to provide more IP Addresses. Our 340 burning pods + the currently existing ones should not reach the limit.
 
 The experiment will push the cluster limits. It is not only about the number of pods, also, it depends on the communication capacities between 'kubelet' and 'kube-apiserver' and the number of requests. This can be tuned with the qps/burst. There is a great article about the [limits of running pods](https://cloud.redhat.com/blog/500_pods_per_node). 
 
 ### Burning worker-0
 
-The starting point of this node is pretty clean, a part from some Operators used on Telco/RAN environments.
+The starting point of this node is pretty clean, a part from some Operators used on Telco/RAN environments. About 60 pods and 50 network (mainly virtual) interfaces.
 
 ```bash
 $ oc debug node/worker-0.el8k-ztp-1.hpecloud.org                                                                                                
@@ -118,9 +122,9 @@ sh-4.4# ip link show 2>/dev/null | wc -l
 
 * prometheus cpu consumption about 5%-8%
 
-* node_exporter has peaks of 5%-7% each time is requested to provide metrics
+* node_exporter has peaks of 5%-7% each time is requested to provide metrics (each 15sec IIRC)
 
-Using my custom kube-burner job, I have configured it in that way:
+Using my custom kube-burner job, I have configured it in that way (notice the nodeName pointing to the node we want to burn):
 
 ```yaml
   - name: kubelet-density-heavy
@@ -160,7 +164,7 @@ We will check how kube-burner will be consuming resources:
 We lunch the experiment:
 
 ```bash
-$ ~/kube-burner/kube-burner init -c ./kubelet-density-heavy.yml
+$ ~/kube-burner/kube-burner init -c ./kubelet-density-heavy-node.yaml
 ```
 
 and we observe the how the resources are consumed as long as pods are created.
