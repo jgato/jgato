@@ -1,8 +1,19 @@
-# Debugging monitoring stack on Openshift
+# Debugging monitoring stack on Openshift and Telco environments
 
-The following tutorial will cover a possible way of debugging Openshift monitoring stack (aka Prometheus/NodeExporter). Actually, our main objective is the node_exporter pod.
+The following tutorial will cover a possible way of debugging Openshift monitoring stack.
 
-We are trying to simulate a Telco/RAN environment, where optimizing the platform is really important. 
+Observing monitoring stack includes the behavior of:
+
+* Prometheus, which is gathering metrics.
+- node_exporter which provides metrics from node physical resources, like devices, cpu, etc
+
+- kubelet which provides some Kubernetes metrics (like pods) with the cAdvisor
+
+For this experiment, our main focus will be node_exporter, which is more affected when more devices have to be tracked. In Baremetal servers this will have a higher impact. 
+
+We are trying to simulate a Telco/RAN environment, where optimizing the platform is really important.  
+
+> These systems need to optimize platform at maximum. Only an small set of CPUs are assigned for platform (OS, Openshift, etc) and the others are used by the user to run client's workloads. In these scenarios, optimizing each component of Openshif is very important, to have more CPUs for the Telco client's workloads.
 
 The tutorial will cover 3 different steps
 
@@ -12,7 +23,7 @@ The tutorial will cover 3 different steps
 
 3. Some possible tuning
 
-Consider a previous step 0) for creating an Openshift Cluster. In this case I will use a cluster with these characteristics: 
+Consider a previous step 0) for creating an Openshift **Baremetal** Cluster. In this case I will use a cluster with these characteristics: 
 
 * OCP Standard Cluster with 3 Master and 2 Workers
 
@@ -22,7 +33,7 @@ Consider a previous step 0) for creating an Openshift Cluster. In this case I wi
 
 * The worker nodes will have a workload cpu partitioning. You can read more about this [here](https://docs.openshift.com/container-platform/4.6/scalability_and_performance/cnf-performance-addon-operator-for-low-latency-nodes.html#cnf-restricting-cpu-infra-container_cnf-master) and [here](https://docs.openshift.com/container-platform/4.10/scalability_and_performance/sno-du-enabling-workload-partitioning-on-single-node-openshift.html). This is managed by one of the operators in the previous bullet point (Performance Addon Operator)
 
-This last point is key for this debugging. Some systems (like Telco RAN) need to optimize platform at maximum. So only an small set of CPUs are assigned for platform (OS, Openshift, etc) and the others are used by the user to run their workloads on Openshift. In these scenarios, optimizing each component of Openshif is need it. 
+This last point is key for this debugging
 
 ## Lets burn the cluster
 
@@ -100,6 +111,33 @@ The kube-burner jobs that I will create can be found [here](https://github.com/j
 it is 90% the same than 'kubelet-density-heavy'. it is creating a pair client/server pods. Because it is configured with 170 iteractions, it will create 170 clients and 170 serves. Also, I am placing all the pods in the same host. Therefore, the host will have to have capacity for at least 340 pods.
 
 About the limit of pods, by default OCP has a limit of 252 per node. We will change that following this interesting [article](https://cloud.redhat.com/blog/500_pods_per_node). I have increased pods limit to 400, which does not require to provide more IP Addresses. Our 340 burning pods + the currently existing ones should not reach the limit.
+
+```bash
+$ oc label --overwrite machineconfigpool worker custom-kubelet=large-pods
+machineconfigpool.machineconfiguration.openshift.io/worker labeled
+$ oc get mcp worker -o jsonpath={.metadata.labels} | jq
+{
+  "custom-kubelet": "large-pods",
+  "machineconfiguration.openshift.io/mco-built-in": "",
+  "pools.operator.machineconfiguration.openshift.io/worker": ""
+}
+$ oc apply -f - << 'EOF'
+apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  name: "set-max-pods"
+spec:
+  machineConfigPoolSelector:
+    matchLabels:
+      custom-kubelet: large-pods
+  kubeletConfig:
+    maxPods: 400
+EOF
+kubeletconfig.machineconfiguration.openshift.io/set-max-pods created
+
+```
+
+Wait for the workers to reboot.
 
 The experiment will push the cluster limits. It is not only about the number of pods, also, it depends on the communication capacities between 'kubelet' and 'kube-apiserver' and the number of requests. This can be tuned with the qps/burst. There is a great article about the [limits of running pods](https://cloud.redhat.com/blog/500_pods_per_node). 
 
@@ -183,6 +221,22 @@ Network Interfaces:
 ```
 
 This amount of Network Interfaces would be problematic, with node_exporter willing to inspect all of them. But we will see this later with the conclusions. Also, more tan 400 containers is an enough big load for such kind of server. Not something too high about cpu consuming, because these pods are not very demanding.
+
+
+
+## Observing monitoring stack
+
+Now, that we are consuming the resources that were the objective of this experiment, we can observe the behaviour of the monitoring stack:
+
+* Prometheus, which is gathering metrics.
+
+* node_exporter which provides metrics from node physical resources, like devices, cpu, etc
+
+* kubelet which provides some Kubernetes metrics (like pods) with the cAdvisor
+
+[ToDo]
+
+
 
 ## CPU Profiling node_exporter process
 
