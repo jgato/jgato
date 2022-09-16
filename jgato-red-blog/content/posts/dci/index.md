@@ -1,6 +1,6 @@
 +++
 title = "DCI Openshift App Agent"
-date = "2022-09-16T11:19:12+02:00"
+date = "2021-11-26"
 author = "Jose Gato Luis"
 authorTwitter = "jgatoluis" #do not include @
 cover = ""

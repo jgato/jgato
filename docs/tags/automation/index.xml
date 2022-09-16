@@ -6,11 +6,11 @@
     <description>Recent content in automation on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 16 Sep 2022 11:19:12 +0200</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/automation/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 26 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/automation/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>DCI Openshift App Agent</title>
       <link>https://jgato.github.io/jgato/posts/dci/</link>
-      <pubDate>Fri, 16 Sep 2022 11:19:12 +0200</pubDate>
+      <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/posts/dci/</guid>
       <description>DCI Openshift App Agent This DCI Agents helps you to run any kind of test or application in a Openshift existing deployment.

@@ -1,6 +1,6 @@
 +++
 title = "Just a little of IPv6 "
-date = "2022-09-16T11:19:12+02:00"
+date = "2022-06-03"
 author = "Jose Gato Luis"
 authorTwitter = "jgatoluis" #do not include @
 cover = ""
