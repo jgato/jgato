@@ -84,7 +84,7 @@ paginate = 5
     missingBackButtonLabel = "Back to home page"
 
     [languages.en.params.logo]
-      logoText = "Terminal"
+      logoText = "Jose Gato Blog"
       logoHomeLink = ""
 
 #    [languages.en.menu]
