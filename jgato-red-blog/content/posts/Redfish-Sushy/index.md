@@ -172,7 +172,7 @@ $> kcli list vms
 
 In my case, I have 7 VMs. So it returns 7 Managers (BMCs) or 7 Systems (Servers)
 
-```bash
+```json
 {
     "@odata.type": "#ComputerSystemCollection.ComputerSystemCollection",
     "Name": "Computer System Collection",

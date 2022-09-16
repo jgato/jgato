@@ -264,45 +264,45 @@
 </span></span><span style="display:flex;"><span>|   support    |  down  |     | CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2 | kvirt | centos8 |
 </span></span><span style="display:flex;"><span>+--------------+--------+-----+--------------------------------------------------------+-------+---------+
 </span></span></code></pre></div><p>In my case, I have 7 VMs. So it returns 7 Managers (BMCs) or 7 Systems (Servers)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.type&#34;</span>: <span style="color:#e6db74">&#34;#ComputerSystemCollection.ComputerSystemCollection&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;Computer System Collection&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Members@odata.count&#34;</span>: 7,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Members&#34;</span>: <span style="color:#f92672">[</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;@odata.type&#34;</span>: <span style="color:#e6db74">&#34;#ComputerSystemCollection.ComputerSystemCollection&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;Computer System Collection&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;Members@odata.count&#34;</span>: <span style="color:#ae81ff">7</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;Members&#34;</span>: [
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/9f0b1a48-7eb9-45ed-95cf-4ac0877cab0d&#34;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/9f0b1a48-7eb9-45ed-95cf-4ac0877cab0d&#34;</span>
+</span></span><span style="display:flex;"><span>            },
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/3a877855-8bb2-4907-be67-ca91ff6d6bc7&#34;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/3a877855-8bb2-4907-be67-ca91ff6d6bc7&#34;</span>
+</span></span><span style="display:flex;"><span>            },
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/c3605a63-90f2-4aad-a227-4e49cf257d8a&#34;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/c3605a63-90f2-4aad-a227-4e49cf257d8a&#34;</span>
+</span></span><span style="display:flex;"><span>            },
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/0604fdde-d410-40f0-8dd0-0f49f2202a94&#34;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/0604fdde-d410-40f0-8dd0-0f49f2202a94&#34;</span>
+</span></span><span style="display:flex;"><span>            },
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/dd1ef1cf-7c9c-4e1a-8907-dc2ce25f4a39&#34;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/dd1ef1cf-7c9c-4e1a-8907-dc2ce25f4a39&#34;</span>
+</span></span><span style="display:flex;"><span>            },
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>
+</span></span><span style="display:flex;"><span>            },
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/04d4b2dc-1cdc-4f6e-900a-03007e9ed5c9&#34;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/04d4b2dc-1cdc-4f6e-900a-03007e9ed5c9&#34;</span>
+</span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">]</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.context&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/</span>$metadata<span style="color:#e6db74">#ComputerSystemCollection.ComputerSystemCollection&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@Redfish.Copyright&#34;</span>: <span style="color:#e6db74">&#34;Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright.&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;@odata.context&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/$metadata#ComputerSystemCollection.ComputerSystemCollection&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;@Redfish.Copyright&#34;</span>: <span style="color:#e6db74">&#34;Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright.&#34;</span>
+</span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h2 id="interacting-with-a-redfish-interface">Interacting with a Redfish interface<a href="#interacting-with-a-redfish-interface" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>As we see in the outputs above, the Refish interface manages urls in the way of:</p>
 <pre tabindex="0"><code>/redfish/v1/Systems/UUID/   # For the Server
