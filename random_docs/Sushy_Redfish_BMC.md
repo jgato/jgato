@@ -10,11 +10,11 @@ What is covered in this tutorial?
 
 * How to manage a BMC server using a Redfish interface. Power-off, power-on, managing isos and virtual medias, etc.
 
-* Boot a server with a virual media iso for easiness server's provisioning
+* **Provision a baremetal server with a new Operative System**
 
 A virtual environment will be created for this tutorial, in order to facilitate the environment availability. This means:
 
-* A virtual machine as a server.
+* A virtual machine as a baremetal server. Created with [kcli tool](https://github.com/karmab/kcli).
 
 * A virtual Redfish interface, created with Sushy tools, as a BMC.
 
@@ -22,7 +22,7 @@ This virtual environment should give us enough background to later interact with
 
 ## Creating the virtual environment
 
-First of all we create a VM without an OS installed. This VM will act as the Server.
+First of all we create a VM without an OS installed. This VM will act as our baremetal Server.
 
 ```bash
 kcli create vm -P uefi_legacy=true -P start=false -P nets=[default] \
@@ -68,7 +68,7 @@ EOF
 ```
 
 * SUSHY_EMULATOR_LIBVIRT_URI = u'qemu:///system' : the backend for redfish is libvirt, so it will interact with the VMs in the host. 
-* SUSHY_EMULATOR_AUTH_FILE: it is an htpasswd file with the authentication.
+* SUSHY_EMULATOR_AUTH_FILE: it is an htpasswd file with the authentication. You can expect all the Redfish REST interfaces to have authorization.
 
 Create the auth file
 
@@ -194,7 +194,7 @@ In my case, I have 7 VMs. So it returns 7 Managers (BMCs) or 7 Systems (Servers)
     "@odata.id": "/redfish/v1/Systems",
     "@Redfish.Copyright": "Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright."
 }
-┌─
+
 ```
 
 ## Interacting with a Redfish interface
@@ -206,14 +206,14 @@ As we see in the outputs above, the Refish interface manages urls in the way of:
 /redfish/v1/Managers/UUID/   # For the BMC
 ```
 
-In order to interact with the VM we created in the previous step, we have to find out what is its UUID.
+In order to interact with the VM we created in the previous step, we have to find out what is its UUID. Lets get the UUID from the VM created with kcli in the first step:
 
 ```bash
 $> kcli info vm -f id agent1
 184ca2d3-5fec-413f-a8b4-6823773add6d
 ```
 
-So, lets interact with our VM with the Redfish interface:
+Now, we can interact with our VM using the Redfish interface and the UUID of the server:
 
 ```bash
 $> export bmc_server=184ca2d3-5fec-413f-a8b4-6823773add6d
@@ -316,7 +316,7 @@ Interesting info:
 
 * "ProcessorSummary.Count": 2, again, as we specified when creating VM
 
-Some BMC info for this Server:
+Some more info from the Server:
 
 ```bash
 > curl -s ${bmc}/redfish/v1/Managers/${bmc_server} | jq
@@ -370,9 +370,9 @@ $> curl -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/$
 
 ## Virtual media management and booting with an ISO
 
-Finally, we want to provision the VM with an ISO. Something we usually do in a baremetal server with a console and GUI for the BMC (ilo, idrac, etc). This is ok, but it is usually slow and the way you share the iso can have some restrictions. 
+Finally, we want to provision the VM with an ISO. Something we usually do in a baremetal server with a console and GUI for the BMC (ilo, idrac, etc). This is ok, but it is usually slow and it does not allows you many automations. Uing the Redfish REST interface is much more flexible than a GUI interface.
 
-Currently, it is booting from HDD:
+Currently, the server is booting from HDD:
 
 ```bash
 $> curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot.BootSourceOverrideTarget
@@ -398,6 +398,7 @@ $> curl -s -X PATCH -H 'Content-Type: application/json'     -d '{
           "BootSourceOverrideEnabled": "Continuous"
       }
     }'   "${bmc}/redfish/v1/Systems/${bmc_server}" 
+# lets confirm the change
 $> curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot
 {
   "BootSourceOverrideEnabled": "Continuous",
@@ -412,11 +413,7 @@ $> curl -s ${bmc}/redfish/v1/Systems/${bmc_server} | jq .Boot
 }
 ```
 
-Next it will boot from CD (only once). But, the CD is empty:
-
-
-
-There is no iso linked to the virtual media
+Next it will boot from CD (only once). But, the CD is empty. There is no iso linked to the virtual media
 
 ```bash
 $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{iso_connected: .Inserted}]'
@@ -427,19 +424,17 @@ $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{is
 ]
 ```
 
-Now we use Virtual Media to insert an ISO into the CD.
-
-We create that connection
+We can create a connection with the Virtual Media and an ISO. 
 
 ```bash
-export ISO_IMG=http://0.0.0.0:7800/CentOS-8.5.2111-x86_64-dvd1.iso
+$> export ISO_IMG=http://0.0.0.0:7800/CentOS-8.5.2111-x86_64-dvd1.iso
 $> curl -s -d '{ 
     "Image":"'"${ISO_IMG}"'", 
     "Inserted": true 
 }' -H "Content-Type: application/json" \
    -X POST ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
 
-
+# check the connection with the iso
 $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{iso_connected: .Inserted}]'
 [
   {
@@ -450,12 +445,15 @@ $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{is
 
 *How to serve the iso is not covered here, but you can just check [here](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server)*
 
-The iso is connected. Lets power on the server
+With the iso is connected and the boot sequence pointing to CD, lets power on the server:
 
 ```bash
 $> curl -s -H "Content-Type: application/json"  -X POST ${bmc}/redfish/v1/Systems/${bmc_server}/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOn"}'
 ```
-
+In a few moments, you will see (from the console) how is booting with the ISO installer.
+ * With a real baremetal server, you can connect to the BMC to check the console of the server.
+ * With a VM, you can use kcli to connect to the VM's console. This is not covered in this tutorial, but I have something about it [here](https://github.com/jgato/jgato/blob/main/random_docs/kcli-commands.md)
+  
 ![](./assets/2022-01-21-17-10-45-image.png)
 
 ## Undo boot from virtual media
@@ -465,6 +463,7 @@ Just eject action and boot from hdd
 ```bash
 $> curl -X POST ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
 
+# check virtual media is disconnected
 
 $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{iso_connected: .Inserted}]'
 [
@@ -472,6 +471,8 @@ $> curl -s ${bmc}/redfish/v1/Managers/${bmc_server}/VirtualMedia/Cd/ | jq  '[{is
     "iso_connected": false
   }
 ]
+
+#check is booting again  HDD
 
 $> curl -s -X PATCH -H 'Content-Type: application/json'     -d '{
       "Boot": {
