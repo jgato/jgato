@@ -2,6 +2,7 @@ baseURL = 'https://jgato.github.io/jgato/'
 languageCode = 'en-us'
 title = 'Jose Gato Blog'
 
+publishdir = '../docs'
 ########################
 # Theme configuration
 #########################

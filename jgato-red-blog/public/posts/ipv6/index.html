@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Just a little of IPv6  :: Jose Gato Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Just some basic stuff and learning about IPv6 and different kind of addresses and protocols." />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://jgato.github.io/jgato/posts/ipv6/" />
+
+
+
+
+<link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
+
+  <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/red.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://jgato.github.io/jgato/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://jgato.github.io/jgato/img/favicon/red.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="jgatoluis" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Just a little of IPv6 ">
+<meta property="og:description" content="Just some basic stuff and learning about IPv6 and different kind of addresses and protocols." />
+<meta property="og:url" content="https://jgato.github.io/jgato/posts/ipv6/" />
+<meta property="og:site_name" content="Jose Gato Blog" />
+
+  <meta property="og:image" content="https://jgato.github.io/jgato/">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-09-16 11:19:12 &#43;0200 CEST" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="red">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+  </div>
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://jgato.github.io/jgato/posts/ipv6/">Just a little of IPv6</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-09-16
+        
+      </span>
+    
+    
+      <span class="post-author">:: Jose Gato Luis</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://jgato.github.io/jgato/tags/ipv6/">IPV6</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="just-a-little-of-ipv6">Just a little of IPv6<a href="#just-a-little-of-ipv6" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Just some basic stuff and learning about IPv6.</p>
+<blockquote>
+<p>My intention is to keep this tutorial live, as long as I learn more about IPv6. But, I dont want to finish with a too complex tutorial. Any feedback is welcome.</p>
+</blockquote>
+<blockquote>
+<p>To play with IPv6 commands, I will use a laboratory composed by three servers with IPv6 enabled. One of the servers is just a regular provisioner server, that we use to deploy other servers. The we have a coupe of Openshift Single Node servers.</p>
+</blockquote>
+<p>We will just start for the beginning, get the IPv6 addresses (we will see why I use addresses instead of address later). In this case, I am using br-ex, which is the main interface with an Openshift installation.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># ip -6 addr show br-ex</span>
+</span></span><span style="display:flex;"><span>14: br-ex: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc noqueue state UNKNOWN group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    inet6 2620:52:0:1351:67c2:adb3:cfd6:83/64 scope global noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>    inet6 fe80::9640:c9ff:fe1f:bf64/64 scope link noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span></code></pre></div><p>Here there are two IPv6 addresses on the br-ex interface.</p>
+<ul>
+<li>
+<p>[2620:52:0:1351:67c2:adb3:cfd6:83] Unicast Address of type <strong>Global Unicast Address</strong> is the main IPv6 assigned to this host in this interface.</p>
+</li>
+<li>
+<p>[fe80::9640:c9ff:fe1f:bf64] Unicast Address of type <strong>Local Link Address.</strong> This is automatically created for any interface with IPv6. It is an IP created with some prefix rules and the MAC address of the interface. More about how to <a href="https://www.omnisecu.com/tcpip/ipv6/link-local-ipv6-addresses.php">calculate Link Local</a></p>
+</li>
+</ul>
+<h2 id="ipv6-addresses-structure-prefix-and-subnets">IPv6 addresses structure, prefix and subnets<a href="#ipv6-addresses-structure-prefix-and-subnets" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>An IPv6 is a 128bit address formatted as 8 quads of hexadecimal values. The first 4 quads are the Network Prefix, and the last 4 quads identify an unique interface.</p>
+<p>[2620:0052:0000:1351:67c2:adb3:cfd6:83]</p>
+<p>(&mdash;&mdash;Network Prefix&mdash;|&mdash;&ndash;Interface ID&mdash;-)</p>
+<p>Network Prefix = 64</p>
+<p>Interface ID = 64</p>
+<p>So here the network is: [2620:0052:0000:1351::] that ensure unique interfaces from [2620:0052:0000:1351:0000:0000:0000] to [2620:0052:0000:1351:ffff:ffff:ffff:ffff]. Actually, 18446744073709551616 of unique interfaces/hosts.</p>
+<p>The first 4 quads are for the Network Prefix, 64 bits. But the network can be divide into different subnet by the Prefix Length. The Prefix Length indicates how many bits belongs to the network from the Network Prefix:</p>
+<ul>
+<li>
+<p>/64 bits Prefix Length, indicates that the 64 first bits, of the Network Prefix, belongs to the network. So there is only one Network or Subnet  [2620:0052:0000:1351::].</p>
+</li>
+<li>
+<p>/60 bits Prefix Length, indicates that the first 60 bits belongs to the network, and the other 4 bits are used for subnets. 4 bits for subnet means 16 subnets.</p>
+<p>From [2620:0052:0000:135<strong>0</strong>:: /60]  to [2620:0052:0000:135<strong>f</strong>:: /60]</p>
+</li>
+<li>
+<p>/56 bits Prefix Length, indicates that the 56 first bits belongs to the network, and you have other 16 bits for subnets: 256 subnets</p>
+<p>From [2620:0052:0000:13<strong>00</strong>:: /60] to [2620:0052:0000:13<strong>ff</strong>:: /60]</p>
+</li>
+</ul>
+<p>You can use whatever Prefix Length, but it is recommended to use in ranges of 4 bits. Because it facilitates the reading/understanding. You are just selecting how many hexadecimal characters, from the last part of the Network Prefix, are used for subnets.</p>
+<p>Each Network/subnet has, anyway, the other 64 bits for hosts/interfaces (18446744073709551616). Therefore, there should be more than enough address. And much more, depending how you create the subnets.</p>
+<p>The first quad is reserved and it adds meaning about the kind of IPv6 address is representing (we will see this later).</p>
+<h2 id="global-unicast-address">Global Unicast Address<a href="#global-unicast-address" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>The GUA is defined by the prefix of the address. The 3 first bits, 001, as reserved for GUA. But the prefix range are the first 48 bits. Basically, whatever between 2000 and 3FFF  is a GUA. In IPv4, what we commonly know as Public IP. Or routable IPs.</p>
+<p>Better explained <a href="https://www.omnisecu.com/tcpip/ipv6/global-unicast-ipv6-addresses.php">here</a></p>
+<p>More detail about his GUA:</p>
+<table>
+<thead>
+<tr>
+<th>IP address</th>
+<th><strong>2620:52:0:1351:67c2:adb3:cfd6:83/64</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>GLOBAL-UNICAST</td>
+</tr>
+<tr>
+<td>network</td>
+<td>2620:52:0:1351::</td>
+</tr>
+<tr>
+<td>Prefix length</td>
+<td>64</td>
+</tr>
+<tr>
+<td>network range</td>
+<td>2620:0052:0000:1351:0000:0000:0000:0000-<!-- raw HTML omitted -->2620:0052:0000:1351:ffff:ffff:ffff:ffff</td>
+</tr>
+<tr>
+<td>total IP addresses</td>
+<td>18446744073709551616</td>
+</tr>
+</tbody>
+</table>
+<p>It is a GCU from the network 2620:52:0:1351::</p>
+<h2 id="local-link-address">Local Link Address<a href="#local-link-address" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Prefix: FE80::/10</p>
+<p>This is an address that helps with communication on a same network segment. It is useful to check connectivity with host/routers sharing a same network segment.</p>
+<p>In this case, I will ping from a sever sno3, to a server  sno4 with the LL ([fe80::9640:c9ff:fe1f:c2a5]). These two server belongs to the same lab/network/segment so can ping each other.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>sno3<span style="color:#f92672">]</span><span style="color:#75715e"># ping fe80::9640:c9ff:fe1f:c2a5 -I br-ex</span>
+</span></span><span style="display:flex;"><span>ping6: Warning: source address might be selected on device other than br-ex.
+</span></span><span style="display:flex;"><span>PING fe80::9640:c9ff:fe1f:c2a5<span style="color:#f92672">(</span>fe80::9640:c9ff:fe1f:c2a5<span style="color:#f92672">)</span> from :: br-ex: <span style="color:#ae81ff">56</span> data bytes
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::9640:c9ff:fe1f:c2a5%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.847 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::9640:c9ff:fe1f:c2a5%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.180 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::9640:c9ff:fe1f:c2a5%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.245 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::9640:c9ff:fe1f:c2a5%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.240 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::9640:c9ff:fe1f:c2a5%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.357 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::9640:c9ff:fe1f:c2a5%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">6</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.224 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::9640:c9ff:fe1f:c2a5%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">7</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.200 ms
+</span></span></code></pre></div><p>In the same network, I have another server (provisioner) with the following network configuration:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>provisioner<span style="color:#f92672">]</span>$ ip -6 addr show
+</span></span><span style="display:flex;"><span>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">65536</span> state UNKNOWN qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    inet6 ::1/128 scope host
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>7: provisioning: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1500</span> state UP qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    inet6 fd00:1101::1/64 scope global noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>    inet6 fe80::10e2:b68f:8a13:4d06/64 scope link noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>15: baremetal: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1500</span> state UP qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    inet6 2620:52:0:1351:67c2:adb3:cfd6:f31b/64 scope global dynamic noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft 2591832sec preferred_lft 604632sec
+</span></span><span style="display:flex;"><span>    inet6 fe80::e2f1:1d3d:ce3d:8fbb/64 scope link noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span></code></pre></div><p>This server is connected to more than one network.</p>
+<p>The &lsquo;baremtal&rsquo; netwok is a bridge over eno3 interface.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>provisioner<span style="color:#f92672">]</span>$ ip addres show eno3
+</span></span><span style="display:flex;"><span>4: eno3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc mq master baremetal state UP group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/ether 94:40:c9:1f:bf:87 brd ff:ff:ff:ff:ff:ff
+</span></span></code></pre></div><p>The eno3 interface shares the same network than the previous servers (sno3 and sno4) . They share the share segment. So, you can ping to the LL of the &lsquo;barmetal&rsquo; network on the provisioner from sno3.</p>
+<p>[fe80::e2f1:1d3d:ce3d:8fbb] is a LL  address of the provisioner in this shared network.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>sno3<span style="color:#f92672">]</span><span style="color:#75715e"># ping fe80::e2f1:1d3d:ce3d:8fbb -I br-ex</span>
+</span></span><span style="display:flex;"><span>ping6: Warning: source address might be selected on device other than br-ex.
+</span></span><span style="display:flex;"><span>PING fe80::e2f1:1d3d:ce3d:8fbb<span style="color:#f92672">(</span>fe80::e2f1:1d3d:ce3d:8fbb<span style="color:#f92672">)</span> from :: br-ex: <span style="color:#ae81ff">56</span> data bytes
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::e2f1:1d3d:ce3d:8fbb%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.300 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::e2f1:1d3d:ce3d:8fbb%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.303 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from fe80::e2f1:1d3d:ce3d:8fbb%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.224 ms
+</span></span></code></pre></div><p>The provisioner  server is connected to other networks, like the &lsquo;provisioning&rsquo; one. In this case over the eno2 interface:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>provisioner<span style="color:#f92672">]</span>$ ip addres show eno2
+</span></span><span style="display:flex;"><span>3: eno2: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc mq master provisioning state UP group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/ether 94:40:c9:1f:bf:86 brd ff:ff:ff:ff:ff:ff
+</span></span></code></pre></div><p>So, the LL address of network &lsquo;provisioning&rsquo; is using other physical interface, other segment, and cannot be pinged from the sno3 server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>sno3<span style="color:#f92672">]</span><span style="color:#75715e"># ping fe80::10e2:b68f:8a13:4d06 -I br-ex</span>
+</span></span><span style="display:flex;"><span>ping6: Warning: source address might be selected on device other than br-ex.
+</span></span><span style="display:flex;"><span>PING fe80::10e2:b68f:8a13:4d06<span style="color:#f92672">(</span>fe80::10e2:b68f:8a13:4d06<span style="color:#f92672">)</span> from :: br-ex: <span style="color:#ae81ff">56</span> data bytes
+</span></span><span style="display:flex;"><span>From fe80::9640:c9ff:fe1f:bf64%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> Destination unreachable: Address unreachable
+</span></span><span style="display:flex;"><span>From fe80::9640:c9ff:fe1f:bf64%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> Destination unreachable: Address unreachable
+</span></span><span style="display:flex;"><span>From fe80::9640:c9ff:fe1f:bf64%br-ex: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> Destination unreachable: Address unreachable
+</span></span></code></pre></div><p>In summary, LL is very useful to check connectivity. But we will see later, how is also useful in Node Discovering Protocol.</p>
+<h2 id="private-address">Private address<a href="#private-address" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>With IPv6 Private address has the prefix: fc00::/7</p>
+<h2 id="solicited-node-multicast-address">Solicited-node multicast address<a href="#solicited-node-multicast-address" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Prefix: FF02::1:FF /104:</p>
+<p>This is a very special multicast address, automatically assigned. It is used  to obtain Layer 2 addresses  (MAC) of other nodes. It is used for Node Discovery Protocol to find destinations. Similar to IPv4 ARP.</p>
+<p>So, we can check how our servers has this assigned:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># ip -6 maddr show br-ex</span>
+</span></span><span style="display:flex;"><span>14:     br-ex
+</span></span><span style="display:flex;"><span>        inet6 ff02::1:ff00:0 users <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>        inet6 ff02::1:ffd6:83
+</span></span><span style="display:flex;"><span>        inet6 ff02::1:ff1f:bf64
+</span></span><span style="display:flex;"><span>        inet6 ff02::2
+</span></span><span style="display:flex;"><span>        inet6 ff02::1
+</span></span><span style="display:flex;"><span>        inet6 ff01::1
+</span></span></code></pre></div><p>But, we can see there is no only one multicast group the server has joined. Which one is the solicited-node multicast address? The solicited-node multicast address is derived from the IPv6 address, so:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># ip -6 addr show br-ex</span>
+</span></span><span style="display:flex;"><span>14: br-ex: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc noqueue state UNKNOWN group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    inet6 2620:52:0:1351:67c2:adb3:cfd6:83/64 scope global noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>    inet6 fe80::9640:c9ff:fe1f:bf64/64 scope link noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span></code></pre></div><p>We can see, there is a coincidence from the 6 last hex characters of our Unicast Address and the Solicited-Node Multicast Address.</p>
+<ul>
+<li>
+<p>Unicast Address 2620:52:0:1351:67c2:adb3:cf<strong>d6:83</strong> and Multicast ff02::1:ff<strong>d6:83</strong></p>
+</li>
+<li>
+<p>Link Local Address fe80::9640:c9ff:fe<strong>1f:bf64</strong> and Multicast ff02::1:ff<strong>1f:bf64</strong></p>
+</li>
+</ul>
+<p>When a node needs to communicate to another node, and it does not know the MAC address. It will use the NDP protocol (Node Solitication message) sending a message destination to  the Solicited-Node Multicast Address (ff02::1:ff1f:bf64), asking for who is fe80::9640:c9ff:fe1f:bf64. This node, which is listening on the Multicast Address, will see the message is specifically for him and it will return the MAC address.</p>
+<h2 id="other-multicast-address">Other multicast-address<a href="#other-multicast-address" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<pre><code>ff01::1 All IPv6 devices
+ff01::2 All IPv6 routers
+</code></pre>
+<p>In the previous example, you can see how our server has also joined the multicast address for ff01::1 (all devices).</p>
+<p>If it were a Router, it will also listen on ff01::2</p>
+<p>With the scope of  Link Local address you will have:</p>
+<pre tabindex="0"><code>ff02::1 All IPv6 devices
+ff02::2 All IPv6 routers
+</code></pre><h1 id="neighbor-discovery-protocol-ndp">Neighbor Discovery Protocol (NDP)<a href="#neighbor-discovery-protocol-ndp" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>This protocol, with a similar function to IPv4 ARP, is based on a set of different messages that allows to send messages to unknown destination. It makes use of some of the previous explained unicast and multicast addresses.</p>
+<p><strong>RA</strong> — Router advertisement: which is sent by routers with network configuration. Sent periodically.</p>
+<p><strong>RS</strong> — Router Solicitation: when a new interface is created, it is automatically generated. It makes RA to intermediately sent a RA.</p>
+<p>Example: from different servers, but sharing a Router. Server-1 will send a RS. From server-2 we will monitor RA messages. The Router in the network will respond with a RA. To follow all the process we will use the <a href="https://www.unix.com/man-page/centos/8/ndptool/">ndptool</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># server-2 to monitor Route Advertisement messages:</span>
+</span></span><span style="display:flex;"><span>ndptool monitor -t ra
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># server-1 to send a Route Solicitiation message:</span>
+</span></span><span style="display:flex;"><span>ndptool send -t rs -i br-ex
+</span></span></code></pre></div><p><img src="assets/2022-06-03-11-35-17-output.gif" alt=""></p>
+<p>Some important things from the received RA message:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
+</span></span><span style="display:flex;"><span>  Type: RA
+</span></span><span style="display:flex;"><span>  Hop limit: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>  Managed address configuration: no
+</span></span><span style="display:flex;"><span>  Other configuration: no
+</span></span><span style="display:flex;"><span>  Default router preference: medium
+</span></span><span style="display:flex;"><span>  Router lifetime: 1800s
+</span></span><span style="display:flex;"><span>  Reachable time: unspecified
+</span></span><span style="display:flex;"><span>  Retransmit time: unspecified
+</span></span><span style="display:flex;"><span>  Source linkaddr: 08:81:f4:a6:dc:01
+</span></span><span style="display:flex;"><span>  Prefix: 2620:52:0:1351::/64, valid_time: 2592000s, preferred_time: 604800s, on_link: yes, autonomous_addr_conf: yes, router_addr: no
+</span></span></code></pre></div><ul>
+<li>
+<p>From [fe80::a81:f4ff:fea6:dc01], this is the LL from the Router. LL addresses are used in this protocol. Some advantages: it is unique, so routers will always have the same LL Address, the NDP protocol can be used to autoconfigure network on host (no Unicast address yet, but already have a LL). More details <a href="https://networkengineering.stackexchange.com/questions/55602/link-local-address-using-in-ndp-ipv6">here</a></p>
+</li>
+<li>
+<p>It also contains the source MAC address (Source linkaddr):  which finish similar to the LL. Remember the LL is derived from MAC addr.</p>
+</li>
+<li>
+<p>We receive a route with a network prefix: Prefix: [2620:52:0:1351::/64] that is added to the route table of our server (network configuration and discovery):</p>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># ip -6 route | grep 2620:52:0:1351::</span>
+</span></span><span style="display:flex;"><span>2620:52:0:1351::/64 dev br-ex proto kernel metric <span style="color:#ae81ff">800</span> pref medium
+</span></span><span style="display:flex;"><span>fd02::/112 via 2620:52:0:1351:: dev br-ex metric <span style="color:#ae81ff">1024</span> mtu <span style="color:#ae81ff">1400</span> pref medium
+</span></span><span style="display:flex;"><span>default via 2620:52:0:1351:: dev br-ex proto static metric <span style="color:#ae81ff">800</span> pref medium
+</span></span></code></pre></div><p>We could also monitor the RS message with:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; ndptool monitor -t rs
+</span></span><span style="display:flex;"><span>NDP payload len 8, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
+</span></span><span style="display:flex;"><span>  Type: RS
+</span></span></code></pre></div><p>Following an RS message in detail. A message that can be sent by any server when boots, to discover possible Routers.</p>
+<p><em>(wireshark screencaptures not from my lab, thanks to Raskia Nayanajith</em></p>
+<p><img src="assets/2022-06-03-13-26-59-image.png" alt=""></p>
+<p>The source is the LL of the server making the Router Solicitation. As it is explained above, it is the way of working of NDP.</p>
+<p>The destination is the multicast address that all the routers will join. In that way, the router will capture the message and it will send the RA.</p>
+<p>Notice how the server sending the solicitation dont need to know the router address. Neither, the server sending the solicitation, needs to have already assigned a real IPv6 Global Unicast Address. Only need the LL to start.</p>
+<p>The response from the Router is a RA. This time, the source is the Router LL, and destination,  the Multicast Address for all the hosts.</p>
+<p><img src="assets/2022-06-03-13-32-30-image.png" alt=""></p>
+<h1 id="radvd-tool">radvd tool<a href="#radvd-tool" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS).</p>
+<blockquote>
+<p>Not going in detail in this tutorial about how to use/configure radvd</p>
+</blockquote>
+<p>Here an example of a radvd config file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">interface</span> <span style="color:#960050;background-color:#1e0010">baremetal</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">AdvManagedFlag</span> <span style="color:#960050;background-color:#1e0010">on;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">A</span> <span style="color:#960050;background-color:#1e0010">flag</span> <span style="color:#960050;background-color:#1e0010">indicating</span> <span style="color:#960050;background-color:#1e0010">whether</span> <span style="color:#960050;background-color:#1e0010">or</span> <span style="color:#960050;background-color:#1e0010">not</span> <span style="color:#960050;background-color:#1e0010">the</span> <span style="color:#960050;background-color:#1e0010">router</span> <span style="color:#960050;background-color:#1e0010">sends</span> <span style="color:#960050;background-color:#1e0010">periodic</span> <span style="color:#960050;background-color:#1e0010">router</span> <span style="color:#960050;background-color:#1e0010">advertisements</span> <span style="color:#960050;background-color:#1e0010">and</span> <span style="color:#960050;background-color:#1e0010">responds</span> <span style="color:#960050;background-color:#1e0010">to</span> <span style="color:#960050;background-color:#1e0010">router</span> <span style="color:#960050;background-color:#1e0010">solicitations.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">It</span> <span style="color:#960050;background-color:#1e0010">needs</span> <span style="color:#960050;background-color:#1e0010">to</span> <span style="color:#960050;background-color:#1e0010">be</span> <span style="color:#960050;background-color:#1e0010">on</span> <span style="color:#960050;background-color:#1e0010">to</span> <span style="color:#960050;background-color:#1e0010">enable</span> <span style="color:#960050;background-color:#1e0010">advertisement</span> <span style="color:#960050;background-color:#1e0010">on</span> <span style="color:#960050;background-color:#1e0010">this</span> <span style="color:#960050;background-color:#1e0010">interface.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">AdvSendAdvert</span> <span style="color:#960050;background-color:#1e0010">on;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">The</span> <span style="color:#960050;background-color:#1e0010">minimum</span> <span style="color:#960050;background-color:#1e0010">time</span> <span style="color:#960050;background-color:#1e0010">allowed</span> <span style="color:#960050;background-color:#1e0010">between</span> <span style="color:#960050;background-color:#1e0010">sending</span> <span style="color:#960050;background-color:#1e0010">unsolicited</span> <span style="color:#960050;background-color:#1e0010">multicast</span> <span style="color:#960050;background-color:#1e0010">router</span> <span style="color:#960050;background-color:#1e0010">advertisements</span> <span style="color:#960050;background-color:#1e0010">from</span> <span style="color:#960050;background-color:#1e0010">the</span> <span style="color:#960050;background-color:#1e0010">interface,</span> <span style="color:#960050;background-color:#1e0010">in</span> <span style="color:#960050;background-color:#1e0010">seconds.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">MinRtrAdvInterval</span> <span style="color:#960050;background-color:#1e0010">30;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">The</span> <span style="color:#960050;background-color:#1e0010">maximum</span> <span style="color:#960050;background-color:#1e0010">time</span> <span style="color:#960050;background-color:#1e0010">allowed</span> <span style="color:#960050;background-color:#1e0010">between</span> <span style="color:#960050;background-color:#1e0010">sending</span> <span style="color:#960050;background-color:#1e0010">unsolicited</span> <span style="color:#960050;background-color:#1e0010">multicast</span> <span style="color:#960050;background-color:#1e0010">router</span> <span style="color:#960050;background-color:#1e0010">advertisements</span> <span style="color:#960050;background-color:#1e0010">from</span> <span style="color:#960050;background-color:#1e0010">the</span> <span style="color:#960050;background-color:#1e0010">interface,</span> <span style="color:#960050;background-color:#1e0010">in</span> <span style="color:#960050;background-color:#1e0010">seconds.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">MaxRtrAdvInterval</span> <span style="color:#960050;background-color:#1e0010">100;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">The</span> <span style="color:#960050;background-color:#1e0010">lifetime</span> <span style="color:#960050;background-color:#1e0010">associated</span> <span style="color:#960050;background-color:#1e0010">with</span> <span style="color:#960050;background-color:#1e0010">the</span> <span style="color:#960050;background-color:#1e0010">default</span> <span style="color:#960050;background-color:#1e0010">router</span> <span style="color:#960050;background-color:#1e0010">in</span> <span style="color:#960050;background-color:#1e0010">units</span> <span style="color:#960050;background-color:#1e0010">of</span> <span style="color:#960050;background-color:#1e0010">seconds.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">A</span> <span style="color:#960050;background-color:#1e0010">lifetime</span> <span style="color:#960050;background-color:#1e0010">of</span> <span style="color:#960050;background-color:#1e0010">0</span> <span style="color:#960050;background-color:#1e0010">indicates</span> <span style="color:#960050;background-color:#1e0010">that</span> <span style="color:#960050;background-color:#1e0010">the</span> <span style="color:#960050;background-color:#1e0010">router</span> <span style="color:#960050;background-color:#1e0010">is</span> <span style="color:#960050;background-color:#1e0010">not</span> <span style="color:#960050;background-color:#1e0010">a</span> <span style="color:#960050;background-color:#1e0010">default</span> <span style="color:#960050;background-color:#1e0010">router</span> <span style="color:#960050;background-color:#1e0010">and</span> <span style="color:#960050;background-color:#1e0010">should</span> <span style="color:#960050;background-color:#1e0010">not</span> <span style="color:#960050;background-color:#1e0010">appear</span> <span style="color:#960050;background-color:#1e0010">on</span> <span style="color:#960050;background-color:#1e0010">the</span> <span style="color:#960050;background-color:#1e0010">default</span> <span style="color:#960050;background-color:#1e0010">router</span> <span style="color:#960050;background-color:#1e0010">list.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">AdvDefaultLifetime</span> <span style="color:#960050;background-color:#1e0010">9000;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">prefix</span> <span style="color:#960050;background-color:#1e0010">2620:52:0:1305::/64</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">Indicates</span> <span style="color:#960050;background-color:#1e0010">that</span> <span style="color:#960050;background-color:#1e0010">this</span> <span style="color:#960050;background-color:#1e0010">prefix</span> <span style="color:#960050;background-color:#1e0010">can</span> <span style="color:#960050;background-color:#1e0010">be</span> <span style="color:#960050;background-color:#1e0010">used</span> <span style="color:#960050;background-color:#1e0010">for</span> <span style="color:#960050;background-color:#1e0010">on-link</span> <span style="color:#960050;background-color:#1e0010">determination.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">AdvOnLink</span> <span style="color:#960050;background-color:#1e0010">on;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">Indicates</span> <span style="color:#960050;background-color:#1e0010">that</span> <span style="color:#960050;background-color:#1e0010">this</span> <span style="color:#960050;background-color:#1e0010">prefix</span> <span style="color:#960050;background-color:#1e0010">can</span> <span style="color:#960050;background-color:#1e0010">be</span> <span style="color:#960050;background-color:#1e0010">used</span> <span style="color:#960050;background-color:#1e0010">for</span> <span style="color:#960050;background-color:#1e0010">autonomous</span> <span style="color:#960050;background-color:#1e0010">address</span> <span style="color:#960050;background-color:#1e0010">configuration</span> <span style="color:#960050;background-color:#1e0010">as</span> <span style="color:#960050;background-color:#1e0010">specified</span> <span style="color:#960050;background-color:#1e0010">in</span> <span style="color:#960050;background-color:#1e0010">RFC</span> <span style="color:#960050;background-color:#1e0010">4862.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">AdvAutonomous</span> <span style="color:#960050;background-color:#1e0010">off;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">Indicates</span> <span style="color:#960050;background-color:#1e0010">that</span> <span style="color:#960050;background-color:#1e0010">the</span> <span style="color:#960050;background-color:#1e0010">address</span> <span style="color:#960050;background-color:#1e0010">of</span> <span style="color:#960050;background-color:#1e0010">interface</span> <span style="color:#960050;background-color:#1e0010">is</span> <span style="color:#960050;background-color:#1e0010">sent</span> <span style="color:#960050;background-color:#1e0010">instead</span> <span style="color:#960050;background-color:#1e0010">of</span> <span style="color:#960050;background-color:#1e0010">network</span> <span style="color:#960050;background-color:#1e0010">prefix.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">AdvRouterAddr</span> <span style="color:#960050;background-color:#1e0010">on;</span>
+</span></span><span style="display:flex;"><span>    }<span style="color:#960050;background-color:#1e0010">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">route</span> <span style="color:#960050;background-color:#1e0010">::/</span><span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">The</span> <span style="color:#960050;background-color:#1e0010">lifetime</span> <span style="color:#960050;background-color:#1e0010">associated</span> <span style="color:#960050;background-color:#1e0010">with</span> <span style="color:#960050;background-color:#1e0010">the</span> <span style="color:#960050;background-color:#1e0010">route</span> <span style="color:#960050;background-color:#1e0010">in</span> <span style="color:#960050;background-color:#1e0010">units</span> <span style="color:#960050;background-color:#1e0010">of</span> <span style="color:#960050;background-color:#1e0010">seconds.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">AdvRouteLifetime</span> <span style="color:#960050;background-color:#1e0010">9000;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">The</span> <span style="color:#960050;background-color:#1e0010">preference</span> <span style="color:#960050;background-color:#1e0010">associated</span> <span style="color:#960050;background-color:#1e0010">with</span> <span style="color:#960050;background-color:#1e0010">the</span> <span style="color:#960050;background-color:#1e0010">default</span> <span style="color:#960050;background-color:#1e0010">router,</span> <span style="color:#960050;background-color:#1e0010">as</span> <span style="color:#960050;background-color:#1e0010">either</span> <span style="color:#f92672">&#34;low&#34;</span>, <span style="color:#f92672">&#34;medium&#34;</span>, <span style="color:#960050;background-color:#1e0010">or</span> <span style="color:#f92672">&#34;high&#34;</span><span style="color:#960050;background-color:#1e0010">.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">AdvRoutePreference</span> <span style="color:#960050;background-color:#1e0010">low;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#960050;background-color:#1e0010">Upon</span> <span style="color:#960050;background-color:#1e0010">shutdown</span>, <span style="color:#960050;background-color:#1e0010">announce</span> <span style="color:#960050;background-color:#1e0010">this</span> <span style="color:#960050;background-color:#1e0010">route</span> <span style="color:#960050;background-color:#1e0010">with</span> <span style="color:#960050;background-color:#1e0010">a</span> <span style="color:#960050;background-color:#1e0010">zero</span> <span style="color:#960050;background-color:#1e0010">second</span> <span style="color:#960050;background-color:#1e0010">lifetime.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">RemoveRoute</span> <span style="color:#960050;background-color:#1e0010">on;</span>
+</span></span><span style="display:flex;"><span>    }<span style="color:#960050;background-color:#1e0010">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">};</span>
+</span></span></code></pre></div><ul>
+<li>
+<p>&lsquo;interface baremetal&rsquo; indicates the configuration to be applied in this interface</p>
+</li>
+<li>
+<p>Then you have a set of flags and configs for this interface. Such as the advertising frequencies.</p>
+</li>
+<li>
+<p>&lsquo;prefix&rsquo; announces a network and some configuration for it. It can be used, for autoconfiguration in the hosts. But in this case, the AdvAutonomous off avoids this situation. In this lab, the hosts ip address are configured statically.</p>
+</li>
+<li>
+<p>&lsquo;route&rsquo; announces the routes to be used by the hosts.</p>
+</li>
+<li>
+<p>&lsquo;route ::/0&rsquo; is the default route</p>
+</li>
+</ul>
+<p>Before using this configuration on my environment. I can listen for RAs:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># ndptool monitor -t ra</span>
+</span></span><span style="display:flex;"><span>NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
+</span></span><span style="display:flex;"><span>  Type: RA
+</span></span><span style="display:flex;"><span>  Hop limit: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>  Managed address configuration: no
+</span></span><span style="display:flex;"><span>  Other configuration: no
+</span></span><span style="display:flex;"><span>  Default router preference: medium
+</span></span><span style="display:flex;"><span>  Router lifetime: 1800s
+</span></span><span style="display:flex;"><span>  Reachable time: unspecified
+</span></span><span style="display:flex;"><span>  Retransmit time: unspecified
+</span></span><span style="display:flex;"><span>  Source linkaddr: 08:81:f4:a6:dc:01
+</span></span><span style="display:flex;"><span>  Prefix: 2620:52:0:1351::/64, valid_time: 2592000s, preferred_time: 604800s, on_link: yes, autonomous_addr_conf: yes, router_addr: no
+</span></span></code></pre></div><p>I already see some announces for that network. This means, that other router is sending that information.  For some reason, the RA only includes Prefix, but no Routes. We dont know how this Router was configured. The RA comes from [fe80::a81:f4ff:fea6:dc01]. Maybe some other router in the network, but no the provisioner when I am working. And not under my control.</p>
+<p>To avoid some conflicts, and for testing, I will add to the radvd config file the following.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">clients</span>
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">#sno3</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">fe80::9640:c9ff:fe1f:bf64;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">#sno4</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">fe80::21d:72ff:fe96:aaff;</span>
+</span></span><span style="display:flex;"><span>        }<span style="color:#960050;background-color:#1e0010">;</span>
+</span></span></code></pre></div><p>So my radvd configuration will only affect to these two servers. Now, I can start radvd in my provisioner server.</p>
+<p>From the clients allowed (sno3, sno4), you will start receiving the RAs. Now, from [fe80::e2f1:1d3d:ce3d:8fbb]. Which is the LL of the provisioner where I have just configured radvd:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>NDP payload len 80, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
+</span></span><span style="display:flex;"><span>  Type: RA
+</span></span><span style="display:flex;"><span>  Hop limit: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>  Managed address configuration: yes
+</span></span><span style="display:flex;"><span>  Other configuration: no
+</span></span><span style="display:flex;"><span>  Default router preference: medium
+</span></span><span style="display:flex;"><span>  Router lifetime: 9000s
+</span></span><span style="display:flex;"><span>  Reachable time: unspecified
+</span></span><span style="display:flex;"><span>  Retransmit time: unspecified
+</span></span><span style="display:flex;"><span>  Source linkaddr: 94:40:c9:1f:bf:87
+</span></span><span style="display:flex;"><span>  Prefix: 2620:52:0:1305::/64, valid_time: 86400s, preferred_time: 14400s, on_link: yes, autonomous_addr_conf: no, router_addr: yes
+</span></span><span style="display:flex;"><span>  Route: ::/0, lifetime: 9000s, preference: low
+</span></span></code></pre></div><p>Our Router announces Prefix but also the default Route to the two selected clients.</p>
+<p>From time to time you will also see the RAs announced by the other Router in the environment [fe80::a81:f4ff:fea6:dc01].</p>
+<p>When I stop my radvd, there will be an RA to delete the Route</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>NDP payload len 104, from addr: fe80::e2f1:1d3d:ce3d:8fbb, iface: br-ex
+</span></span><span style="display:flex;"><span>  Type: RA
+</span></span><span style="display:flex;"><span>  Hop limit: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>  Managed address configuration: yes
+</span></span><span style="display:flex;"><span>  Other configuration: no
+</span></span><span style="display:flex;"><span>  Default router preference: medium
+</span></span><span style="display:flex;"><span>  Router lifetime: 0s
+</span></span><span style="display:flex;"><span>  Reachable time: unspecified
+</span></span><span style="display:flex;"><span>  Retransmit time: unspecified
+</span></span><span style="display:flex;"><span>  Source linkaddr: 94:40:c9:1f:bf:87
+</span></span><span style="display:flex;"><span>  Prefix: 2620:52:0:1305::/64, valid_time: 86400s, preferred_time: 14400s, on_link: yes, autonomous_addr_conf: no, router_addr: no
+</span></span><span style="display:flex;"><span>  Route: ::/0, lifetime: 0s, preference: low
+</span></span></code></pre></div><p>with the lifetime: 0s.</p>
+<h1 id="ipv6-layer-2">IPv6 Layer 2<a href="#ipv6-layer-2" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<blockquote>
+<p>I dont cover in detail this layer in this tutorial. Just a quick comment about this layer and the NDP.</p>
+</blockquote>
+<p>All the Multicast Addresses in IPv6 will have a Multicast Layer 2 Address. It will be composed in the way of 33:33:xx:xx:xx:xx, with the last 32bits corresponding to the last 32bits of the Layer-3 Multicast Address.  Therefore, a router subscribed to ff02::2 will have a corresponding Layer 2 Address: 33:33:00:00:00:02</p>
+<p>When a Router receives a RS in the  ff02::2 address, this is transformed into Layer-2 33:33:33:00:00:00:02. So the message has reached to a right destination and the router will create the answer.</p>
+<p>You can see also here in this network capture:</p>
+<p><img src="assets/2022-06-03-13-39-46-image.png" alt=""></p>
+<p>The message reaches to Layer 3 ff02::2 and Layer 2 33:33:00:00:00:02</p>
+<p>The response will work the other way around. The router will send a RA to ff02::1. This will be received for all the hosts in the Multicast Layer-3 ff02::1 and the Multicast Layer-2 33:33:00:00:00:02</p>
+<p><img src="assets/2022-06-03-13-42-21-image.png" alt=""></p>
+<p><em>(all the wireshark screencaptures thanks to Raskia Nayanajith: <a href="https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/">https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/</a> )</em></p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://jgato.github.io/jgato/posts/dci/">
+                <span class="button__icon">←</span>
+                <span class="button__text">DCI Openshift App Agent</span>
+            </a>
+        </span>
+        
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://jgato.github.io/jgato/assets/main.js"></script>
+<script src="https://jgato.github.io/jgato/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
