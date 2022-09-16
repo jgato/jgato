@@ -5,10 +5,19 @@
     <loc>https://jgato.github.io/jgato/</loc>
     <lastmod>2022-09-16T11:19:12+02:00</lastmod>
   </url><url>
-    <loc>https://jgato.github.io/jgato/tags/ipv6/</loc>
+    <loc>https://jgato.github.io/jgato/tags/bmc/</loc>
+    <lastmod>2022-09-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/kcli/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jgato.github.io/jgato/posts/</loc>
+    <lastmod>2022-09-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/redfish/</loc>
+    <lastmod>2022-09-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/sush/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jgato.github.io/jgato/posts/redfish-sushy/</loc>
@@ -16,6 +25,9 @@
   </url><url>
     <loc>https://jgato.github.io/jgato/tags/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/ipv6/</loc>
+    <lastmod>2022-06-03T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jgato.github.io/jgato/posts/ipv6/</loc>
     <lastmod>2022-06-03T00:00:00+00:00</lastmod>
