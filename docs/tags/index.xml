@@ -6,11 +6,21 @@
     <description>Recent content in Tags on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 16 Sep 2022 11:19:12 +0200</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 03 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>IPV6</title>
+      <link>https://jgato.github.io/jgato/tags/ipv6/</link>
+      <pubDate>Fri, 03 Jun 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/ipv6/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
     <item>
       <title>automation</title>
       <link>https://jgato.github.io/jgato/tags/automation/</link>
-      <pubDate>Fri, 16 Sep 2022 11:19:12 +0200</pubDate>
+      <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/tags/automation/</guid>
       <description></description>
@@ -20,7 +30,7 @@
     <item>
       <title>dci</title>
       <link>https://jgato.github.io/jgato/tags/dci/</link>
-      <pubDate>Fri, 16 Sep 2022 11:19:12 +0200</pubDate>
+      <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/tags/dci/</guid>
       <description></description>
@@ -28,19 +38,9 @@
     </item>
     
     <item>
-      <title>IPV6</title>
-      <link>https://jgato.github.io/jgato/tags/ipv6/</link>
-      <pubDate>Fri, 16 Sep 2022 11:19:12 +0200</pubDate>
-      
-      <guid>https://jgato.github.io/jgato/tags/ipv6/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
       <title>openshift</title>
       <link>https://jgato.github.io/jgato/tags/openshift/</link>
-      <pubDate>Fri, 16 Sep 2022 11:19:12 +0200</pubDate>
+      <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/tags/openshift/</guid>
       <description></description>
