@@ -11,6 +11,7 @@ showFullContent = false
 readingTime = false
 hideComments = false
 +++
+*picture copyright [@ivan-samkov](https://www.pexels.com/@ivan-samkov/)*
 
 # Using Sushy tools to manage a BMC Redfish interface
 
