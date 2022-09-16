@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Sushy tools and Redfish tutorial  :: Jose Gato Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="This document is a short tutorial as introduction to use Sushy tools to manage a remote baremetal server." />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://jgato.github.io/jgato/posts/redfish-sushy/" />
+
+
+
+
+<link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
+
+  <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/red.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://jgato.github.io/jgato/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://jgato.github.io/jgato/img/favicon/red.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="jgatoluis" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Sushy tools and Redfish tutorial ">
+<meta property="og:description" content="This document is a short tutorial as introduction to use Sushy tools to manage a remote baremetal server." />
+<meta property="og:url" content="https://jgato.github.io/jgato/posts/redfish-sushy/" />
+<meta property="og:site_name" content="Jose Gato Blog" />
+
+  <meta property="og:image" content="https://jgato.github.io/jgato/">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-09-16 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="red">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://jgato.github.io/jgato/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+  </div>
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://jgato.github.io/jgato/posts/redfish-sushy/">Sushy tools and Redfish tutorial</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-09-16
+        
+      </span>
+    
+    
+      <span class="post-author">:: Jose Gato Luis</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://jgato.github.io/jgato/tags/ipv6/">IPV6</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="using-sushy-tools-to-manage-a-bmc-redfish-interface">Using Sushy tools to manage a BMC Redfish interface<a href="#using-sushy-tools-to-manage-a-bmc-redfish-interface" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>This document is a short tutorial as introduction to use Sushy tools to manage a remote baremetal server.</p>
+<p>What is covered in this tutorial?</p>
+<ul>
+<li>
+<p>Understand how to install and use Sushy to create/virtualize Redfish interfaces. Redfish is a REST standard protocol to manage servers, storage, networks, etc.</p>
+</li>
+<li>
+<p>Some basics about the Redfish  BMC (REST) interface and how to interact with it.</p>
+</li>
+<li>
+<p>How to manage a BMC server using a Redfish interface. Power-off, power-on, managing isos and virtual medias, etc.</p>
+</li>
+<li>
+<p><strong>Provision a baremetal server with a new Operative System</strong></p>
+</li>
+</ul>
+<p>A virtual environment will be created for this tutorial, in order to facilitate the environment availability. This means:</p>
+<ul>
+<li>
+<p>A virtual machine as a baremetal server. Created with <a href="https://github.com/karmab/kcli">kcli tool</a>.</p>
+</li>
+<li>
+<p>A virtual Redfish interface, created with Sushy tools, as a BMC.</p>
+</li>
+</ul>
+<p>This virtual environment should give us enough background to later interact with real Redfish interfaces. It will also help us to develop, safetly, some quick tests, before going for a real physical environment.</p>
+<h2 id="creating-the-virtual-environment">Creating the virtual environment<a href="#creating-the-virtual-environment" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>First of all we create a VM without an OS installed. This VM will act as our baremetal Server.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; kcli create vm -P uefi_legacy<span style="color:#f92672">=</span>true -P start<span style="color:#f92672">=</span>false -P nets<span style="color:#f92672">=[</span>default<span style="color:#f92672">]</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -P memory<span style="color:#f92672">=</span><span style="color:#ae81ff">8192</span> -P numcpus<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>  agent1
+</span></span></code></pre></div><p>Now we use Sushy tools to emulate the BMC Redfish interface. Sushy tools supports two different emulators. The one we are going to use in this tutorial is: the the virtual Redfish BMC.</p>
+<p>This tool emulates a baremetal BMC implementing a Redfish REST interface. The emulator backend is implemented by libvirt. In the previous step, we have used kcli to create the VM, which is using also libvirt as backend. So, the Sushy emulator will communicate seamless with the virtual machine.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; dnf -y install pkgconf-pkg-config libvirt-devel gcc python3-libvirt python3 git python3-netifaces httpd-tools
+</span></span><span style="display:flex;"><span>pip3 install sushy-tools
+</span></span></code></pre></div><p>Lets create a basic Sushy configuration file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cat <span style="color:#e6db74">&lt;&lt; EOF &gt; ./sushy.conf
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">SUSHY_EMULATOR_LISTEN_IP = u&#39;0.0.0.0&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">SUSHY_EMULATOR_LISTEN_PORT = 8000
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">SUSHY_EMULATOR_SSL_CERT = None
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">SUSHY_EMULATOR_SSL_KEY = None
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">SUSHY_EMULATOR_OS_CLOUD = None
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">SUSHY_EMULATOR_LIBVIRT_URI = u&#39;qemu:///system&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"># If authentication is desired, set this to an htpasswd file.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">SUSHY_EMULATOR_AUTH_FILE = &#39;./auth.conf&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">#SUSHY_EMULATOR_IGNORE_BOOT_DEVICE = True
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">SUSHY_EMULATOR_IGNORE_BOOT_DEVICE = False
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">SUSHY_EMULATOR_BOOT_LOADER_MAP = {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    u&#39;UEFI&#39;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        u&#39;x86_64&#39;: u&#39;/usr/share/OVMF/OVMF_CODE.secboot.fd&#39;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        u&#39;aarch64&#39;: u&#39;/usr/share/AAVMF/AAVMF_CODE.fd&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    },
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    u&#39;Legacy&#39;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        u&#39;x86_64&#39;: None,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        u&#39;aarch64&#39;: None
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">EOF</span>
+</span></span></code></pre></div><ul>
+<li>&ldquo;SUSHY_EMULATOR_LIBVIRT_URI = u&rsquo;qemu:///system&rsquo;&rdquo;: the backend for redfish is libvirt, so it will interact with the VMs in the host.</li>
+<li>&ldquo;SUSHY_EMULATOR_AUTH_FILE&rdquo; it is an htpasswd file with the authentication. You can expect all the Redfish REST interfaces to have authorization.</li>
+</ul>
+<p>Create the auth file</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; htpasswd -cB <span style="color:#e6db74">${</span>PWD<span style="color:#e6db74">}</span>/auth.conf admin
+</span></span><span style="display:flex;"><span>New password:
+</span></span><span style="display:flex;"><span>Re-type new password:
+</span></span><span style="display:flex;"><span>Adding password <span style="color:#66d9ef">for</span> user admin
+</span></span></code></pre></div><p>Now you can run the service with the created configuration.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; /usr/local/bin/sushy-emulator --config <span style="color:#e6db74">${</span>PWD<span style="color:#e6db74">}</span>/sushy.conf
+</span></span><span style="display:flex;"><span> * Serving Flask app <span style="color:#e6db74">&#39;sushy_tools.emulator.main&#39;</span> <span style="color:#f92672">(</span>lazy loading<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span> * Environment: production
+</span></span><span style="display:flex;"><span>   WARNING: This is a development server. Do not use it in a production deployment.
+</span></span><span style="display:flex;"><span>   Use a production WSGI server instead.
+</span></span><span style="display:flex;"><span> * Debug mode: off
+</span></span><span style="display:flex;"><span> * Running on all addresses.
+</span></span><span style="display:flex;"><span>   WARNING: This is a development server. Do not use it in a production deployment.
+</span></span><span style="display:flex;"><span> * Running on http://10.39.194.148:8000/ <span style="color:#f92672">(</span>Press CTRL+C to quit<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>The sushy-emulator will create a local REST interface as a bridge with the available Redfish BMC interface. Because of the backend is libvirt, you can manage all the VMs on the host.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; export bmc<span style="color:#f92672">=</span>admin:admin@localhost:8000
+</span></span><span style="display:flex;"><span>$&gt; curl <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Managers
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.type&#34;</span>: <span style="color:#e6db74">&#34;#ManagerCollection.ManagerCollection&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;Manager Collection&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Members@odata.count&#34;</span>: 7,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Members&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/04d4b2dc-1cdc-4f6e-900a-03007e9ed5c9&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/0604fdde-d410-40f0-8dd0-0f49f2202a94&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/3a877855-8bb2-4907-be67-ca91ff6d6bc7&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/9f0b1a48-7eb9-45ed-95cf-4ac0877cab0d&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/c3605a63-90f2-4aad-a227-4e49cf257d8a&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/dd1ef1cf-7c9c-4e1a-8907-dc2ce25f4a39&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">]</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Oem&#34;</span>: <span style="color:#f92672">{}</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.context&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/</span>$metadata<span style="color:#e6db74">#ManagerCollection.ManagerCollection&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@Redfish.Copyright&#34;</span>: <span style="color:#e6db74">&#34;Copyright 2014-2017 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright.&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># you have any interface for any VM in your host</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$&gt; kcli list vms
+</span></span><span style="display:flex;"><span>+--------------+--------+-----+--------------------------------------------------------+-------+---------+
+</span></span><span style="display:flex;"><span>|     Name     | Status | Ips |                         Source                         |  Plan | Profile |
+</span></span><span style="display:flex;"><span>+--------------+--------+-----+--------------------------------------------------------+-------+---------+
+</span></span><span style="display:flex;"><span>|    agent1    |  down  |     |                                                        | kvirt |  kvirt  |
+</span></span><span style="display:flex;"><span>|   bifrost    |  down  |     | CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2 | kvirt | centos8 |
+</span></span><span style="display:flex;"><span>|   bifrost2   |  down  |     | CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2 | kvirt | centos8 |
+</span></span><span style="display:flex;"><span>|   minikube   |  down  |     |                                                        |       |         |
+</span></span><span style="display:flex;"><span>| minikube-m02 |  down  |     |                                                        |       |         |
+</span></span><span style="display:flex;"><span>| minikube-m03 |  down  |     |                                                        |       |         |
+</span></span><span style="display:flex;"><span>|   support    |  down  |     | CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2 | kvirt | centos8 |
+</span></span><span style="display:flex;"><span>+--------------+--------+-----+--------------------------------------------------------+-------+---------+
+</span></span></code></pre></div><p>In my case, I have 7 VMs. So it returns 7 Managers (BMCs) or 7 Systems (Servers)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.type&#34;</span>: <span style="color:#e6db74">&#34;#ComputerSystemCollection.ComputerSystemCollection&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;Computer System Collection&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Members@odata.count&#34;</span>: 7,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Members&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/9f0b1a48-7eb9-45ed-95cf-4ac0877cab0d&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/3a877855-8bb2-4907-be67-ca91ff6d6bc7&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/c3605a63-90f2-4aad-a227-4e49cf257d8a&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/0604fdde-d410-40f0-8dd0-0f49f2202a94&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/dd1ef1cf-7c9c-4e1a-8907-dc2ce25f4a39&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/04d4b2dc-1cdc-4f6e-900a-03007e9ed5c9&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">]</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.context&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/</span>$metadata<span style="color:#e6db74">#ComputerSystemCollection.ComputerSystemCollection&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@Redfish.Copyright&#34;</span>: <span style="color:#e6db74">&#34;Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright.&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h2 id="interacting-with-a-redfish-interface">Interacting with a Redfish interface<a href="#interacting-with-a-redfish-interface" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>As we see in the outputs above, the Refish interface manages urls in the way of:</p>
+<pre tabindex="0"><code>/redfish/v1/Systems/UUID/   # For the Server
+/redfish/v1/Managers/UUID/   # For the BMC
+</code></pre><p>In order to interact with the VM we created in the previous step, we have to find out what is its UUID. Lets get the UUID from the VM created with kcli in the first step:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; kcli info vm -f id agent1
+</span></span><span style="display:flex;"><span>184ca2d3-5fec-413f-a8b4-6823773add6d
+</span></span></code></pre></div><p>Now, we can interact with our VM using the Redfish interface and the UUID of the server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; export bmc_server<span style="color:#f92672">=</span>184ca2d3-5fec-413f-a8b4-6823773add6d
+</span></span><span style="display:flex;"><span>$&gt; curl -s <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span> | jq
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;@odata.type&#34;</span>: <span style="color:#e6db74">&#34;#ComputerSystem.v1_1_0.ComputerSystem&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Id&#34;</span>: <span style="color:#e6db74">&#34;184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;agent1&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;UUID&#34;</span>: <span style="color:#e6db74">&#34;184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Manufacturer&#34;</span>: <span style="color:#e6db74">&#34;Sushy Emulator&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Status&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;State&#34;</span>: <span style="color:#e6db74">&#34;Enabled&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Health&#34;</span>: <span style="color:#e6db74">&#34;OK&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;HealthRollUp&#34;</span>: <span style="color:#e6db74">&#34;OK&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;PowerState&#34;</span>: <span style="color:#e6db74">&#34;Off&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Boot&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;BootSourceOverrideEnabled&#34;</span>: <span style="color:#e6db74">&#34;Continuous&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;BootSourceOverrideTarget&#34;</span>: <span style="color:#e6db74">&#34;Hdd&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;BootSourceOverrideTarget@Redfish.AllowableValues&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Pxe&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Cd&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Hdd&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">]</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;BootSourceOverrideMode&#34;</span>: <span style="color:#e6db74">&#34;UEFI&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;UefiTargetBootSourceOverride&#34;</span>: <span style="color:#e6db74">&#34;/0x31/0x33/0x01/0x01&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;ProcessorSummary&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Count&#34;</span>: 2,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Status&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;State&#34;</span>: <span style="color:#e6db74">&#34;Enabled&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Health&#34;</span>: <span style="color:#e6db74">&#34;OK&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;HealthRollUp&#34;</span>: <span style="color:#e6db74">&#34;OK&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;MemorySummary&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;TotalSystemMemoryGiB&#34;</span>: 8,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Status&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;State&#34;</span>: <span style="color:#e6db74">&#34;Enabled&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Health&#34;</span>: <span style="color:#e6db74">&#34;OK&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;HealthRollUp&#34;</span>: <span style="color:#e6db74">&#34;OK&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Bios&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d/BIOS&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Processors&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d/Processors&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Memory&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d/Memory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;EthernetInterfaces&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d/EthernetInterfaces&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;SimpleStorage&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d/SimpleStorage&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Storage&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d/Storage&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;IndicatorLED&#34;</span>: <span style="color:#e6db74">&#34;Lit&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Links&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Chassis&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Chassis/15693887-7984-9484-3272-842188918912&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">]</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;ManagedBy&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Actions&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;#ComputerSystem.Reset&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;target&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d/Actions/ComputerSystem.Reset&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;ResetType@Redfish.AllowableValues&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;On&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;ForceOff&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;GracefulShutdown&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;GracefulRestart&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;ForceRestart&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;Nmi&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;ForceOn&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;@odata.context&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/</span>$metadata<span style="color:#e6db74">#ComputerSystem.ComputerSystem&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;@Redfish.Copyright&#34;</span>: <span style="color:#e6db74">&#34;Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright.&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>Interesting info:</p>
+<ul>
+<li>
+<p>&ldquo;Name&rdquo;: &ldquo;agent1&rdquo;, which is the name we gave to the VM</p>
+</li>
+<li>
+<p>&ldquo;PowerState&rdquo;: &ldquo;off&rdquo;,  this is ok, the VM is off</p>
+</li>
+<li>
+<p>&ldquo;ProcessorSummary.Count&rdquo;: 2, again, as we specified when creating VM</p>
+</li>
+</ul>
+<p>Some more info from the Server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; curl -s <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Managers/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span> | jq
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;@Redfish.Copyright&#34;</span>: <span style="color:#e6db74">&#34;Copyright 2014-2017 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright.&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;@odata.context&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/</span>$metadata<span style="color:#e6db74">#Manager.Manager&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;@odata.type&#34;</span>: <span style="color:#e6db74">&#34;#Manager.v1_3_1.Manager&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;DateTime&#34;</span>: <span style="color:#e6db74">&#34;2022-56-21T13:56:01+00:00&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;DateTimeLocalOffset&#34;</span>: <span style="color:#e6db74">&#34;+00:00&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Description&#34;</span>: <span style="color:#e6db74">&#34;Contoso BMC&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;FirmwareVersion&#34;</span>: <span style="color:#e6db74">&#34;1.00&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Id&#34;</span>: <span style="color:#e6db74">&#34;184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Links&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;ManagerForChassis&#34;</span>: <span style="color:#f92672">[]</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;ManagerForServers&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Systems/184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;ManagerType&#34;</span>: <span style="color:#e6db74">&#34;BMC&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Model&#34;</span>: <span style="color:#e6db74">&#34;Joo Janta 200&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;agent1-Manager&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;PowerState&#34;</span>: <span style="color:#e6db74">&#34;On&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;ServiceEntryPointUUID&#34;</span>: null,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;Status&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Health&#34;</span>: <span style="color:#e6db74">&#34;OK&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;State&#34;</span>: <span style="color:#e6db74">&#34;Enabled&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;UUID&#34;</span>: <span style="color:#e6db74">&#34;184ca2d3-5fec-413f-a8b4-6823773add6d&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;VirtualMedia&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;@odata.id&#34;</span>: <span style="color:#e6db74">&#34;/redfish/v1/Managers/184ca2d3-5fec-413f-a8b4-6823773add6d/VirtualMedia&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>To power on the server, look at the system &ldquo;Actions.#ComputerSystem.Reset.target&rdquo; to get the url and the list of actions supported: on, off, GracefulShutdown, etc</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># rest the server</span>
+</span></span><span style="display:flex;"><span>$&gt; curl -s -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span>  -X POST <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/Actions/ComputerSystem.Reset -d <span style="color:#e6db74">&#39;{&#34;ResetType&#34;: &#34;On&#34;}&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># check current status</span>
+</span></span><span style="display:flex;"><span>$&gt;  curl -s <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span> | jq .PowerState
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;On&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># switch off</span>
+</span></span><span style="display:flex;"><span>$&gt; curl -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span>  -X POST <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/Actions/ComputerSystem.Reset -d <span style="color:#e6db74">&#39;{&#34;ResetType&#34;: &#34;ForceOff&#34;}&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># reboot</span>
+</span></span><span style="display:flex;"><span>$&gt; curl -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span>  -X POST <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/Actions/ComputerSystem.Reset -d <span style="color:#e6db74">&#39;{&#34;ResetType&#34;: &#34;ForceRestart&#34;}&#39;</span>
+</span></span></code></pre></div><h2 id="virtual-media-management-and-booting-with-an-iso">Virtual media management and booting with an ISO<a href="#virtual-media-management-and-booting-with-an-iso" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Finally, we want to provision the VM with an ISO. Something we usually do in a baremetal server with a console and GUI for the BMC (ilo, idrac, etc). This is ok, but it is usually slow and it does not allows you many automations. Uing the Redfish REST interface is much more flexible than a GUI interface.</p>
+<p>Currently, the server is booting from HDD:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; curl -s <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span> | jq .Boot.BootSourceOverrideTarget
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;BootSourceOverrideEnabled&#34;</span>: <span style="color:#e6db74">&#34;Continuous&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;BootSourceOverrideTarget&#34;</span>: <span style="color:#e6db74">&#34;Hdd&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;BootSourceOverrideTarget@Redfish.AllowableValues&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Pxe&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Cd&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Hdd&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">]</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;BootSourceOverrideMode&#34;</span>: <span style="color:#e6db74">&#34;UEFI&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;UefiTargetBootSourceOverride&#34;</span>: <span style="color:#e6db74">&#34;/0x31/0x33/0x01/0x01&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>We change that to use first Cd ( to make this having effect, in your sushy conf you have to have SUSHY_EMULATOR_IGNORE_BOOT_DEVICE=false).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; curl -s -X PATCH -H <span style="color:#e6db74">&#39;Content-Type: application/json&#39;</span>     -d <span style="color:#e6db74">&#39;{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      &#34;Boot&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;BootSourceOverrideTarget&#34;: &#34;Cd&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;BootSourceOverrideEnabled&#34;: &#34;Continuous&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    }&#39;</span>   <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span><span style="color:#e6db74">/redfish/v1/Systems/</span><span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># lets confirm the change</span>
+</span></span><span style="display:flex;"><span>$&gt; curl -s <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span> | jq .Boot
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;BootSourceOverrideEnabled&#34;</span>: <span style="color:#e6db74">&#34;Continuous&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;BootSourceOverrideTarget&#34;</span>: <span style="color:#e6db74">&#34;Cd&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;BootSourceOverrideTarget@Redfish.AllowableValues&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Pxe&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Cd&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Hdd&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">]</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;BootSourceOverrideMode&#34;</span>: <span style="color:#e6db74">&#34;UEFI&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;UefiTargetBootSourceOverride&#34;</span>: <span style="color:#e6db74">&#34;/0x31/0x33/0x01/0x01&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>Next it will boot from CD (only once). But, the CD is empty. There is no iso linked to the virtual media</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; curl -s <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Managers/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/VirtualMedia/Cd/ | jq  <span style="color:#e6db74">&#39;[{iso_connected: .Inserted}]&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;iso_connected&#34;</span>: false
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>We can create a connection with the Virtual Media and an ISO.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; export ISO_IMG<span style="color:#f92672">=</span>http://0.0.0.0:7800/CentOS-8.5.2111-x86_64-dvd1.iso
+</span></span><span style="display:flex;"><span>$&gt; curl -s -d <span style="color:#e6db74">&#39;{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;Image&#34;:&#34;&#39;</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>ISO_IMG<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39;&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;Inserted&#34;: true
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}&#39;</span> -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>   -X POST <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Managers/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># check the connection with the iso</span>
+</span></span><span style="display:flex;"><span>$&gt; curl -s <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Managers/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/VirtualMedia/Cd/ | jq  <span style="color:#e6db74">&#39;[{iso_connected: .Inserted}]&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;iso_connected&#34;</span>: true
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">]</span>
+</span></span></code></pre></div><p><em>How to serve the iso is not covered here, but you can just check <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server">here</a></em></p>
+<p>With the iso is connected and the boot sequence pointing to CD, lets power on the server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; curl -s -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span>  -X POST <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/Actions/ComputerSystem.Reset -d <span style="color:#e6db74">&#39;{&#34;ResetType&#34;: &#34;ForceOn&#34;}&#39;</span>
+</span></span></code></pre></div><p>In a few moments, you will see (from the console) how is booting with the ISO installer.</p>
+<ul>
+<li>With a real baremetal server, you can connect to the BMC to check the console of the server.</li>
+<li>With a VM, you can use kcli to connect to the VM&rsquo;s console. This is not covered in this tutorial, but I have something about it <a href="https://github.com/jgato/jgato/blob/main/random_docs/kcli-commands.md">here</a></li>
+</ul>
+<p><img src="./assets/iso-installer.png" alt=""></p>
+<h2 id="undo-boot-from-virtual-media">Undo boot from virtual media<a href="#undo-boot-from-virtual-media" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Just eject action and boot from hdd</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; curl -X POST <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Managers/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># check virtual media is disconnected</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$&gt; curl -s <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Managers/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/VirtualMedia/Cd/ | jq  <span style="color:#e6db74">&#39;[{iso_connected: .Inserted}]&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;iso_connected&#34;</span>: false
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#check is booting again  HDD</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$&gt; curl -s -X PATCH -H <span style="color:#e6db74">&#39;Content-Type: application/json&#39;</span>     -d <span style="color:#e6db74">&#39;{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      &#34;Boot&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;BootSourceOverrideTarget&#34;: &#34;Hdd&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;BootSourceOverrideEnabled&#34;: &#34;Continuous&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    }&#39;</span>   <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span><span style="color:#e6db74">/redfish/v1/Systems/</span><span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$&gt; curl -s -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span>  -X POST <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/Actions/ComputerSystem.Reset -d <span style="color:#e6db74">&#39;{&#34;ResetType&#34;: &#34;ForceOff&#34;}&#39;</span>
+</span></span><span style="display:flex;"><span>$&gt; curl -s -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span>  -X POST <span style="color:#e6db74">${</span>bmc<span style="color:#e6db74">}</span>/redfish/v1/Systems/<span style="color:#e6db74">${</span>bmc_server<span style="color:#e6db74">}</span>/Actions/ComputerSystem.Reset -d <span style="color:#e6db74">&#39;{&#34;ResetType&#34;: &#34;ForceOn&#34;}&#39;</span>
+</span></span></code></pre></div>
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://jgato.github.io/jgato/posts/ipv6/">
+                <span class="button__text">Just a little of IPv6 </span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://jgato.github.io/jgato/assets/main.js"></script>
+<script src="https://jgato.github.io/jgato/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
