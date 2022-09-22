@@ -18,7 +18,11 @@ PolicyGenTemplate is a CRD by ZTP tools. It allows you to use some pre-existing 
 
 When you need to make more generic configurations, like RBAC, Users, Projects, etc, you can still combine your GitOps/ArgoCD pipelines but directly using ACM Policies. ACM Policies would be a little bit more complex, than just using a PGT, but are much more flexible. Actually, these Policies can desired status of whatever existing resource on an Openshift/Kubernetes cluster.
 
-### [Day1,Day2] Configuring/Upgrading with PolicyGenTemplates
+### Configuring/Upgrading with exiting PolicyGenTemplates
+
+The list of templates that can be references from a PGT can be found [here](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs)
+
+From there we will find different templates that can be easily used from a PGT for making new configurations
 
 #### Disabling CatalogesSources from an OperatorHub
 
@@ -75,7 +79,101 @@ NAMESPACE               NAME               DISPLAY             TYPE   PUBLISHER 
 openshift-marketplace   redhat-operators   Red Hat Operators   grpc   Red Hat     17d
 ```
 
-### [Day1, Day2] Configuring with ACM Policies
+### Injecting/Creating your own PolicyGenTemplates
+
+In the previous section we have used PGTs with existing templates to facilitate configurations and upgrades. When you are using a PGT to create a Policy you will have some of these references to other existing yamls.
+
+```yaml
+ sourceFiles:
+    - fileName: SriovSubscription.yaml
+      policyName: "subscriptions-policy"
+    - fileName: SriovSubscriptionNS.yaml
+      policyName: "subscriptions-policy"
+    - fileName: SriovSubscriptionOperGroup.yaml
+      policyName: "subscriptions-policy"
+```
+
+These yamls files lives inside the ZTP installation you did into ArgoCD. You can check all these pre-created yamls [here](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/). But mainly, inside these files, you will find just Openshift/Kubernetes pre-configured resources:
+
+'SriovSubscription.yaml'
+
+```yaml
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: sriov-network-operator-subscription
+  namespace: openshift-sriov-network-operator
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+spec:
+  channel: "stable"
+  name: sriov-network-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Manual
+status:
+  state: AtLatestKnown
+```
+
+Internally, ZTP tools will create the proper Policies (Based on these resources) and will make the need it bindings according to your PGT rules:
+
+```yaml
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "common-rangen-4.9"
+  namespace: "ztp-common"
+spec:
+  bindingRules:
+    common: "true"
+    du-profile: "v4.9"
+```
+
+If you need to create any Openshift/kubernetes Resource that is not managed by any of these pre-existing files, you can inject your own ones. Or you can just use raw ACM Policies, as it is explained in the next section.
+
+How we inject our own files to be used by a PGT?
+
+First you create the yaml with the Resource you want to manage:
+
+```yaml
+apiVersion: project.openshift.io/v1
+kind: Project
+metadata:
+  name: foo
+status:
+  phase: Active
+
+```
+
+Then we have to inject the yaml into the currently running Pod with ArgoCD.
+
+Lets copy that file inside:
+
+```bash
+$>  oc -n openshift-gitops rsync source-crs/ openshift-gitops-repo-server-684d5bd56-t4lts:/.config/kustomize/plugin/ran.openshift.io/v1/policygentemplate/source-crs/ -c argocd-repo-server
+WARNING: cannot use rsync: rsync not available in container
+CreateProject.yaml
+```
+
+Now it can be referenced from a PGT:
+
+```yaml
+ sourceFiles:
+    - fileName: CreateProject.yaml
+      policyName: "projects-policy"
+```
+
+And you can use it to create projects different than foo, when you reference one resource, you can override whatever attribute in the CRD.
+
+```yaml
+ sourceFiles:
+    - fileName: CreateProject.yaml
+      policyName: "projects-policy"
+      metadata:
+        name: bar
+```
+
+### Configuring with ACM Policies
 
 When there are no PGT templates, raw ACM Policies can be created. Actually, the PGT Templates are transformed into ACM Policies by one of the two Kustomize plugins.
 
@@ -244,7 +342,6 @@ spec:
     matchExpressions:                                                             
       - key: group-du                                                           
         operator: Exists                                                              
-
 ```
 
 `PlacementBinding:' here there are no changes, you are just linking the Policy with the PlacementRule
@@ -308,4 +405,14 @@ subjects:
     name: extra-project-create  
 ```
 
+# Some examplex
 
+## Applying roles to nodes
+
+The idea is to have a Policy with a 'musthave'  'node.metadata.labels.<role>=""' From a Policy point of view this is pretty straight forward. Here the difficulty is how to have a flexible way of linking nodes with this roles.
+
+First, we have to create any Policy for each Role we will need:
+
+```yaml
+
+```
