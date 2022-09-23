@@ -142,7 +142,6 @@ metadata:
   name: foo
 status:
   phase: Active
-
 ```
 
 Then we have to inject the yaml into the currently running Pod with ArgoCD.
@@ -403,16 +402,4 @@ subjects:
   - apiGroup: policy.open-cluster-management.io                                   
     kind: Policy                                                                  
     name: extra-project-create  
-```
-
-# Some examplex
-
-## Applying roles to nodes
-
-The idea is to have a Policy with a 'musthave'  'node.metadata.labels.<role>=""' From a Policy point of view this is pretty straight forward. Here the difficulty is how to have a flexible way of linking nodes with this roles.
-
-First, we have to create any Policy for each Role we will need:
-
-```yaml
-
 ```
