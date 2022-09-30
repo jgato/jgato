@@ -12,6 +12,76 @@ But also, the profile can be extended with the usage of extra-manifest according
 
 It is important to remark, these manifests are applied during installation. The advantage of applying here is, that you have your cluster up and configured at the same time. Not having to apply policies on day-2 operations. Some of these Policies would require to reboot nodes to be applied. Something, sometimes, would be not desired or allowed. 
 
+### Using extra-manifests
+
+To extend any Siteconfig with extra configuration, you can create any directories with yamls including Resources to be added to the cluster during installation.
+
+For example, you can write some Node Resource to create some roles during installation:
+
+'cluster-extra-configs'
+
+```yaml
+apiVersion: v1
+kind: Node
+metadata:
+  name: "master-0.el8k-ztp-1.hpecloud.org"
+  labels:
+    node-role.kubernetes.io/role1: ""
+    node-role.kubernetes.io/master: ""                                         
+    node-role.kubernetes.io/worker: ""
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: "master-1.el8k-ztp-1.hpecloud.org"
+  labels:
+    node-role.kubernetes.io/role1: ""
+    node-role.kubernetes.io/master: ""                                         
+    node-role.kubernetes.io/worker: ""
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: "master-2.el8k-ztp-1.hpecloud.org"
+  labels:
+    node-role.kubernetes.io/role2: ""
+
+```
+
+Then you can add this extra manifest to the siteconfig:
+
+'el8k-ztp-1.yaml Siteconfig'
+
+```yaml
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "el8k-ztp-1"
+  namespace: "el8k-ztp-1"
+spec:
+  baseDomain: "hpecloud.org"
+  pullSecretRef:
+    name: "assisted-deployment-pull-secret"
+  clusterImageSetNameRef: "img4.10.10-x86-64-appsub"
+  sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCei2UnkBB9g9DPhu4fpMFKmrlhR9UIYYPet61WF3qr6Rp2LkxEhZtbRk6tZjaiVXo/Ff6rsayyoEy86bPCE+4/Kl+3V/KueKW2fgxz/tg1uLiDerWj8+J8KAGJ8TsBAl3cWYYQtHxlwCnyPSmspWB/UegNTd+0cHhkPiTYd6wylgmbBi9MWOAISkXOLWUjsOmKUKiTLkfX2VWqvkk8BH2/blHp0xCSZ2NWifc+VmCvz+M36mj0aRF5dEmfdy+wg7m9wi2/Hq59+NLGBef3kKjBnj0A/K0wFfT0ufi03OkztDOY7Y0xxIkl8Bi/Hof4rDlfKVKA9hcMSo3TY2o0asmTTXUhGZ/FVuZcIZpULOFMXKUR3oKeqnr/dff32IHVwgYb8n8C5zUepWu7tVUKnvxZ0Gwajy1Ru+xjrlROFT+761faJHmG5Ev/EdwKHkXHq5EMHgopyiYV7swJEnFzAUzaiu8DP1FYNJyocRvp6AZpbIlyFoabyq+o2yn2Fhny6gs= jgato@provisioner.el8k.hpecloud.org"
+  clusters:
+  - clusterName: "el8k-ztp-1"
+    networkType: "OVNKubernetes"
+    clusterLabels:
+      common-4-10: "true"
+      group-du-3node: ""
+      sites : "el8k-ztp-1-site"
+...
+....
+    extraManifestPath: "extra-manifests/el8k-ztp-1-roles.yaml"
+    nodes:
+      - hostName: "master-0.el8k-ztp-1.hpecloud.org"
+        role: "master"
+        bmcAddress: "redfish-virtualmedia://10.19.1
+```
+
+
+
 ## PolicyGenTemplates
 
 PolicyGenTemplate is a CRD by ZTP tools. It allows you to use some pre-existing templates that will generate ACM Policies related to Telco RAN usual activities. It can be seen as a set of pre-created helpers, that can make same upgrade/configuration of Telco RAN activities easier. For example: deploying RAN operators, configuring SRIOV interfaces, configuring PTP, etc
