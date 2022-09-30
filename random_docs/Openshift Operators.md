@@ -141,6 +141,33 @@ Some confusions:
 0-103
 ```
 
+#### How to get a whole picture of your hardware NUMAS
+
+The lstopo tool can help you to get a picture of the architecture
+
+```bash
+$> oc debug node/master-0.intel-1-sno-1.hubcluster-1.lab.eng.cert.redhat.com --image=quay.io/karampok/snife -- lstopo -f /host/tmp/numas.png
+```
+
+Then copy the picture to your host (trick):
+
+One terminal to open a debug node (pod), and make rsync to copy the file from the pod in other terminal
+
+```bash
+# Terminal 1
+$> oc debug node/master-0.intel-1-sno-1.hubcluster-1.lab.eng.cert.redhat.com
+# Terminal 2
+$> oc -n default rsync master-0intel-1-sno-1hubcluster-1labengcertredhatcom-debug:/host/tmp/numas.png /tmp
+```
+
+![](assets/2022-09-30-12-08-03-numas.png)
+
+
+
+
+
+
+
 #### How to know the affinity between irqs and cpus
 
 ```bash
