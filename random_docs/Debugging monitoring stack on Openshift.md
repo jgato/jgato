@@ -134,7 +134,6 @@ spec:
     maxPods: 400
 EOF
 kubeletconfig.machineconfiguration.openshift.io/set-max-pods created
-
 ```
 
 Wait for the workers to reboot.
@@ -222,8 +221,6 @@ Network Interfaces:
 
 This amount of Network Interfaces would be problematic, with node_exporter willing to inspect all of them. But we will see this later with the conclusions. Also, more tan 400 containers is an enough big load for such kind of server. Not something too high about cpu consuming, because these pods are not very demanding.
 
-
-
 ## Observing monitoring stack
 
 Now, that we are consuming the resources that were the objective of this experiment, we can observe the behaviour of the monitoring stack:
@@ -235,8 +232,6 @@ Now, that we are consuming the resources that were the objective of this experim
 * kubelet which provides some Kubernetes metrics (like pods) with the cAdvisor
 
 [ToDo]
-
-
 
 ## CPU Profiling node_exporter process
 
