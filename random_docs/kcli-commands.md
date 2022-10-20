@@ -56,6 +56,69 @@ and recreate it:
 $ kcli create disk -s 250 sno7
 ```
 
+## Moving disks
+
+Useful if you run out of space in your disks.
+
+Stop the VM
+
+```bash
+[jgato@provisioner ~]$ kcli stop vm sno7
+Stopping vm sno7 in local...
+sno7 stopped
+
+```
+
+Get the disk from your VM:
+
+```bash
+[jgato@provisioner ~]$ kcli info vm sno7
+name: sno7
+id: 64fee173-6d1b-43bc-ae9d-80b72ee57e6a
+creationdate: 07-10-2022 10:07
+status: down
+autostart: False
+plan: sno7
+profile: kvirt
+cpus: 16
+memory: 32768
+net interface: eth0 mac: 52:54:00:ff:b8:57 net: baremetal type: bridge
+diskname: vda disksize: 250GB diskformat: virtio type: qcow2 path: /var/lib/libvirt/images/sno7_0.img
+
+```
+
+In principle we the disk, but you can move also the iso.
+
+```bash
+[jgato@provisioner ~]$ sudo mv /var/lib/libvirt/images/sno7_0.img libvirt/pool/images/
+[sudo] password for jgato: 
+
+```
+
+I move it to my '/home' because I have more room there.
+
+Now edit the VM to change the disk location:
+
+```bash
+[jgato@provisioner ~]$ sudo virsh edit sno7
+...
+...
+ <devices>
+    <emulator>/usr/libexec/qemu-kvm</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2' cache='none'/>
+      <source file='/home/jgato/libvirt/pool/images/sno7_0.img'/>
+      <backingStore/>
+      <target dev='vda' bus='virtio'/>
+      <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
+    </disk>
+...
+```
+
+Start the VM again.
+
+
+
 ## Create different configuration clients
 
 By default kcli will access your local libvirt environment. But it could be used to access other remote environments.
