@@ -1,4 +1,4 @@
-# Debugging monitoring stack part. II
+# Performing monitoring stack
 
 In this chapter we will play with some tuning trying to get better performance on the monitoring stack. Better performing because of we will configure it to make a less intensive work about collecting metrics from the different services.
 
@@ -22,13 +22,160 @@ We will take this metrics with:
 
 Why we make special interest on doubling 'node_exporter' scrape interval? 'node_exporter' takes metrics about Pods, Containers, Memory Used by these, etc. These metrics are extracted from 'kubelet' cAdvisory, so, 'kubelet' is very affected by Prometheus gathering metrics. 
 
-From Prometheus there are many different scrape_intervals, most of them set to 15s. To increase this is not easy because configuration is managed by operators. If you are using an OpenShift Red Hat supported environment, you cannot change that without breaking the support. Changing these intervals would affect other Openshift metrics/alarms and also the auto scaling feature. It is out of the scope of this tutorial to find out which value is better.
+From Prometheus there are many different scrape_intervals, most of them set to 30s. To increase this is not easy because configuration is managed by operators. If you are using an OpenShift Red Hat supported environment, you cannot change that without breaking the support. Changing these intervals would affect other Openshift metrics/alarms and also the auto scaling feature. It is out of the scope of this tutorial to find out which value is better.
 
 How we are burning the cluster? In a previous tutorial I explained how I use kube-burner (https://github.com/jgato/jgato/blob/main/random_docs/Debugging%20monitoring%20stack%20on%20Openshift.md) 
 
 Following we show the results of the experiment. At the end of the document I show how I have managed to 'hack' the monitoring stack to change the metrics.
 
+## The experiment
 
+To take the measurements we will use Prometheus with the following queries:
+
+CPU usage for prometheus pods
+
+```
+sort_desc(avg_over_time(pod:container_cpu_usage:sum[30m]))
+```
+
+CPU usage of '/system/slice' and '/system/slice/kubelet.service'
+
+```
+sort_desc((rate(container_cpu_usage_seconds_total{id=~".*system.slice.*",node="worker-0.el8k-ztp-1.hpecloud.org"}[30m])))
+```
+
+About this last query, it takes the CPU usage under '/system/slice' where you find kubelet, crio-o, etc. Some processes used support the Openshift platform.  When we burn the cluster, we create some loads but only on one of the workers (worker-0). So, the 'kubelet' consumption we are interested on, it is the one on that worker. Of course, in worker-1 we can compare how 'kubelet' is performing when no load is there.
+
+With '/system/slice' we get the whole CPU consumption under these services, and we take also how much is consumed by 'kubelet', The difference between the '/system/slice' and 'kubelet' is the CPU consumed by other services like: cri-o, ovs-*, etc. But we only need to know how much is consuming kubelet. 
+
+Remember we take the consumption of kubelet, because inside it has the cAdvisor. Which is queried by Prometheus with the node_exporter.  The scrape_interval of 'node_exporter' is very special, and impacts directly on 'kubelet' (cAdvisory).
+
+These are the results collected with the experiment
+
+### Clean cluster
+
+All the measurements taken during 30m
+
+#### Default monitoring stack configuration
+
+All set to default values
+
+```bash
+>  oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'scrape_interval' 
+Defaulting container name to prometheus.
+Use 'oc describe pod/prometheus-k8s-0-debug -n openshift-monitoring' to see all of the containers in this pod.
+
+Starting pod/prometheus-k8s-0-debug ...
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+...
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+..
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 1m
+  scrape_interval: 1m
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 15s
+  scrape_interval: 2m
+  scrape_interval: 2m
+  scrape_interval: 30s
+  scrape_interval: 57s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 10s
+  scrape_interval: 30s
+...
+  scrape_interval: 30s
+
+Removing debug pod ...
+```
+
+* CPU usage for prometheus pods
+  
+  * prometheus-k8s-0  
+  
+  * prometheus-k8s-1  
+
+* CPU usage of '/system/slice' and '/system/slice/kubelet.service'
+  
+  * '/system/slice' 0.17%
+  
+  * '/system/slice/kubelet.service' 0.09%
+
+Quick conclusions: everything is relaxed and Prometheus and Kubelet are not consuming too much.
+
+#### Double scrap time for 'node_exporter'
+
+* CPU usage for prometheus pods
+
+* CPU usage of '/system/slice' and '/system/slice/kubelet.service'
+
+#### Double all the scraping times
+
+* CPU usage for prometheus pods
+  
+  * prometheus-k8s-0  0.09%
+  
+  * prometheus-k8s-1  0.09%
+  
+  ![](assets/2022-10-20-13-10-22-image.png)
+
+* CPU usage of '/system/slice' and '/system/slice/kubelet.service'
+  
+  * '/system/slice' 0.17%
+  
+  * '/system/slice/kubelet.service' 0.09%
+  
+  ![](assets/2022-10-20-13-12-17-image.png)
+
+### Burn cluster
+
+#### Default monitoring stack configuration
+
+* CPU usage for prometheus pods
+  
+  * prometheus-k8s-0  
+  
+  * prometheus-k8s-1  
+
+* CPU usage of '/system/slice' and '/system/slice/kubelet.service'
+  
+  * '/system/slice' 0.17%
+  
+  * '/system/slice/kubelet.service' 0.09%
+
+#### Double scrap time for 'node_exporter'
+
+* CPU usage for prometheus pods
+
+* CPU usage of '/system/slice' and '/system/slice/kubelet.service'
+
+#### Double all the scraping times
+
+* CPU usage for prometheus pods
+  
+  * prometheus-k8s-0 
+  
+  * prometheus-k8s-1 
+
+* CPU usage of '/system/slice' and '/system/slice/kubelet.service'
+  
+  * '/system/slice' 0.17%
+  
+  * '/system/slice/kubelet.service' 0.09%
 
 # Hacking the monitoring stack to change scrap intervals
 
@@ -165,15 +312,12 @@ H4sIAAAAAAAAA+2dW5OjOJbH3+tTODrm.......Ck+Z1uPvw/zuRltydbAgA=
 
 Edit again the secret and change the config file:
 
-
-
 ```yaml
 > oc -n openshift-monitoring edit secrets prometheus-k8s
 
 apiVersion: v1                                                                 
 data:                                                                          
   prometheus.yaml.gz: H4sIAAAAAAAAA+2dW5OjOJbH3+tTODrm.......Ck+Z1uPvw/zuRltydbAgA=
-
 ```
 
 This configuration is reflected into the Prometheus Pods:
