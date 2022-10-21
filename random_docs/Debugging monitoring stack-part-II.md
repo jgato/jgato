@@ -333,15 +333,82 @@ Starting pod/prometheus-k8s-0-debug ...
 
 * CPU usage for prometheus pods
   
-  * prometheus-k8s-0 
+  * prometheus-k8s-0  17%
   
-  * prometheus-k8s-1 
+  * prometheus-k8s-1  17%
+  
+  ![](assets/2022-10-21-11-04-11-image.png)
 
 * CPU usage of '/system/slice' and '/system/slice/kubelet.service' in seconds
   
-  * '/system/slice' 0.17%
+  * '/system/slice' 0.40sec
   
-  * '/system/slice/kubelet.service' 0.09%
+  * '/system/slice/kubelet.service' 0.31sec
+  
+  ![](assets/2022-10-21-11-05-56-image.png)
+
+There is a high impact on Prometheus consumption caused by doubling most of the metrics. 
+
+We dont see a high impact on Kubelet, this is caused because the doubled metrics were the one with 30s. This dont include the metrics for 'kubelet', which was already 60sec:
+
+
+
+```bash
+>  oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'kube-state-metrics/1'  -A 7 
+Defaulting container name to prometheus.
+Use 'oc describe pod/prometheus-k8s-0-debug -n openshift-monitoring' to see all of the containers in this pod.
+
+Starting pod/prometheus-k8s-0-debug ...
+- job_name: serviceMonitor/openshift-monitoring/kube-state-metrics/1
+  honor_labels: false
+  kubernetes_sd_configs:
+  - role: endpoints
+    namespaces:
+      names:
+      - openshift-monitoring
+  scrape_interval: 1m
+```
+
+#### (Extra) Doubling kube-state-metrics to affect Kubelet
+
+We change that metric to 2m:
+
+ 
+
+```bash
+>  oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'kube-state-metrics/0'  -A 7 
+Defaulting container name to prometheus.
+Use 'oc describe pod/prometheus-k8s-0-debug -n openshift-monitoring' to see all of the containers in this pod.
+
+Starting pod/prometheus-k8s-0-debug ...
+- job_name: serviceMonitor/openshift-monitoring/kube-state-metrics/0
+  honor_labels: true
+  kubernetes_sd_configs:
+  - role: endpoints
+    namespaces:
+      names:
+      - openshift-monitoring
+  scrape_interval: 2m
+
+>  oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'kube-state-metrics/1'  -A 7 
+Defaulting container name to prometheus.
+Use 'oc describe pod/prometheus-k8s-0-debug -n openshift-monitoring' to see all of the containers in this pod.
+
+Starting pod/prometheus-k8s-0-debug ...
+- job_name: serviceMonitor/openshift-monitoring/kube-state-metrics/1
+  honor_labels: false
+  kubernetes_sd_configs:
+  - role: endpoints
+    namespaces:
+      names:
+      - openshift-monitoring
+  scrape_interval: 2m
+
+```
+
+and we observe the CPU consumption of Kubelet:
+
+
 
 ### Final conclusions
 
@@ -350,8 +417,6 @@ With the experiment we can observe the expected to behavior:
 * Prometheus is mainly affected by how frequent it has to scrap metrics. So there is a direct relation on lowering CPU consumption when we scrap less frequent.
 
 * Kubelet/cAdvisory will be queried to retrieve metrics on the Kubernetes environment, pods, memory, etc. Therefore, when we burn the cluster, Kubelet is more affected. 
-
-
 
 # Hacking the monitoring stack to change scrap intervals
 
@@ -557,7 +622,6 @@ spec:
       app.kubernetes.io/instance: k8s
       app.kubernetes.io/name: prometheus
       app.kubernetes.io/part-of: openshift-monitoring
-
 ```
 
 Changing this interval will affect the own Prometheus self-metrics. You can play with it, but it will end-up anyway on the prometheus.yaml.gz file as:
@@ -580,7 +644,6 @@ Changing this interval will affect the own Prometheus self-metrics. You can play
     key_file: /etc/prometheus/secrets/metrics-client-certs/tls.key             
   bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token           
   relabel_configs:                                                             
-
 ```
 
 You have both ways to configure it.
