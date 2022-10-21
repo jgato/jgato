@@ -1,38 +1,38 @@
-# Performing monitoring stack
+# Prometheus scrape intervals and performance
 
-In this chapter we will play with some tuning trying to get better performance on the monitoring stack. Better performing because of we will configure it to make a less intensive work about collecting metrics from the different services.
+In this tutorial I will play with some tuning trying to get better performance on the monitoring stack. The experiment consists on lowering the scraping frequency  to make a less intensive work about collecting metrics from the different services. Special focus on how these intervals affect to 'Kubelet'. Kubelet/cAdvisor exposes metrics about Pods, Memory, etc. 
 
-This is just testing to dig into the Prometheus/node_exporter performance. It is nothing recommended/official/supported. Just a test experiment.
+This is just testing to dig into the Prometheus and Kubelet performance. It is nothing recommended/official/supported. Just a test experiment.
 
 The experiment will consist on getting the following metrics:
 
 * Get the pods more CPU consuming during the last 30m
 
-* Get the '/system/slice' CPU consuming to have the global slice consumption and 'kubelet', during the last 30m
+* Get the '/system/slice' CPU consuming to have the global slice consumption and '/system/slice/kubelet.service', during the last 30m
 
 We will take this metrics with:
 
-* A clean cluster and A cluster with a big number of pods running.
+* A clean cluster and a cluster with a big number of pods running.
   
   * Default monitoring stack configuration
   
-  * Double scrap time for the metrics for 'node_exporter'
-  
   * Double all the scraping times
 
-Why we make special interest on doubling 'node_exporter' scrape interval? 'node_exporter' takes metrics about Pods, Containers, Memory Used by these, etc. These metrics are extracted from 'kubelet' cAdvisory, so,'kubelet' is very affected by Prometheus gathering metrics. 
+Why we make special interest on  performance of Kubelet? Kubelet/cAdvisor takes metrics about Pods, Containers, Memory Used by these, etc. Specially on environments very loaded, Kubelet CPU consumption would be very affected, it is been queried too frequent. 
 
-From Prometheus there are many different scrape_intervals, most of them set to 30s. To increase this is not easy because configuration is managed by operators. If you are using an OpenShift Red Hat supported environment, you cannot change that without breaking the support. Changing these intervals would affect other Openshift metrics/alarms and also the auto scaling feature. It is out of the scope of this tutorial to find out which value is better.
+Why we make special interest on performance of Prometheus? It is the core of all the monitoring stack. From Prometheus there are many different scrape_intervals, most of them set to 30s. Scraping more frequent should affect to CPU consumed. Scraping on loaded environments should affect also, because of more data is retrieved.
+
+To change scrape intervals  is not an easy task. This configuration is managed by operators. If you are using an OpenShift Red Hat supported environment, you cannot change that without breaking the support. Changing these intervals would affect other Openshift metrics/alarms and also the auto scaling feature. It is out of the scope of this tutorial to find out which value is better.
 
 How we are burning the cluster? In a previous [tutorial](https://github.com/jgato/jgato/blob/main/random_docs/Debugging%20monitoring%20stack%20on%20Openshift.md) I explained how I use kube-burner.
 
 The infrastructure I am using for the experiment:
 
-OCP Standard Cluster with 3 Master and 2 Workers
+OCP Standard Cluster (baremetal) with 3 Master and 2 Workers
 
 ![](assets/2022-06-16-09-41-59-image.png)
 
-The workers, where I will take most of results, are just vms with 16 cores and 32.00 GiB.
+The workers, where I will take most of results, are just vms with 16 cores and 32.00 GiB, on a baremetal server.
 
 Following we show the results of the experiment. At the end of the document I show how I have managed to 'hack' the monitoring stack to change the metrics.
 
@@ -62,11 +62,11 @@ These are the results collected with the experiment
 
 ### Clean cluster
 
-All the measurements taken during 30m
+Just clean installed cluster with no extra workloads.
 
 #### Default monitoring stack configuration
 
-All set to default values
+All scrap intervals are set to default values
 
 ```bash
 >  oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'scrape_interval' 
@@ -128,93 +128,9 @@ Removing debug pod ...
 
 Quick conclusions: 
 
-In default and relaxed conditions, we can quickly observe how much 'kubelet' consumes from the total amount of /system/slice. Just 'kubelet' takes 50% of the total consumed by this 'slice'.
+In default and relaxed conditions, we can quickly observe how much 'kubelet' consumes from the total amount of /system/slice. Just 'kubelet' takes 50% of the total consumed by this 'slice'. In the total consumption of CPU, 10sec, is not very much. But it is half of what is happening under 'system/slice'.
 
 Prometheus containers take about 17% of a single CPU which is not very much, but in this moment the cluster is not doing anything. 
-
-#### Double scrap time for 'node_exporter'
-
-Scrap time for 'node_exporter' is 15s. We double this and we let the others as default:
-
-```yaml
->  oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'scrape_interval' 
-Defaulting container name to prometheus.
-Use 'oc describe pod/prometheus-k8s-0-debug -n openshift-monitoring' to see all of the containers in this pod.
-
-Starting pod/prometheus-k8s-0-debug ...
-  scrape_interval: 30s
-  scrape_interval: 30s
-...
-  scrape_interval: 30s
-  scrape_interval: 60s
-  scrape_interval: 60s
-  scrape_interval: 30s
-...
-  scrape_interval: 1m
-  scrape_interval: 1m
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 2m
-  scrape_interval: 2m
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 10s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-  scrape_interval: 30s
-
-Removing debug pod ...
-```
-
-Ensure the one for node_exporter is 30s.
-
-```bash
->  oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'node-exporter/0'  -A 7 
-Defaulting container name to prometheus.
-Use 'oc describe pod/prometheus-k8s-0-debug -n openshift-monitoring' to see all of the containers in this pod.
-
-Starting pod/prometheus-k8s-0-debug ...
-- job_name: serviceMonitor/openshift-monitoring/node-exporter/0
-  honor_labels: false
-  kubernetes_sd_configs:
-  - role: endpoints
-    namespaces:
-      names:
-      - openshift-monitoring
-  scrape_interval: 30s
-
-Removing debug pod ...
-```
-
-* CPU usage for prometheus pods
-  
-  * prometheus-k8s-0 20%
-  
-  * prometheus-k8s-1 20%
-  
-  ![](assets/2022-10-20-15-43-38-image.png)
-
-* CPU usage of '/system/slice' and '/system/slice/kubelet.service' in seconds
-  
-  * '/system/slice' 0.18 sec
-  
-  * '/system/slice/kubelet.service' 0.10 sec
-  
-  ![](assets/2022-10-20-15-44-11-image.png)
-
-Quick conclusions: not very much changes from the default.
 
 #### Double all the scraping times
 
@@ -272,25 +188,7 @@ Starting pod/prometheus-k8s-0-debug ...
 Removing debug pod ...
 ```
 
-So, more or less arre going to be around 60s. The one for node_export is doubled from 15s to 30s.
-
-```bash
-> oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'node-exporter/0'  -A 7 
-Defaulting container name to prometheus.
-Use 'oc describe pod/prometheus-k8s-0-debug -n openshift-monitoring' to see all of the containers in this pod.
-
-Starting pod/prometheus-k8s-0-debug ...
-- job_name: serviceMonitor/openshift-monitoring/node-exporter/0
-  honor_labels: false
-  kubernetes_sd_configs:
-  - role: endpoints
-    namespaces:
-      names:
-      - openshift-monitoring
-  scrape_interval: 30s
-
-Removing debug pod ...
-```
+So, more or less are going to be around 60s. 
 
 * CPU usage for prometheus pods
   
@@ -314,9 +212,9 @@ Quick conclusions: we see a good reduction on Prometheus consumption
 
 In the first step the cluster is pretty relaxed, so the consumption is ok, but in some way high for a cluster without loads. 
 
-The second step tries to focus on the scraping time of node_exporter, and therefore Kubelet. But there is no difference, no improvements on the consumption. Kubelet (cAdvisory) is pretty relaxed, no matter how frequent you call it. Maybe, because there are few Pods or resources to monitor by Kubelet. In this step, Prometheus consumes pretty the same. It makes sense, because we only changed one scrape interval focused on getting metrics from Kubelet. With a more loaded cluster, this step should have a good impact on Kubelet consumption. 
+For the second step we double most of the scraping times. We dont see improvements on Kubelet consumption. Kubelet can respond any query pretty fast. The cluster is not loaded, so Kubelet dont have to do a very consuming work about returning metrics.
 
-For the third step we double most of the scraping times. The one about node_exporter and Kubelet was not changed. So, again, we dont see improvements on Kubelet consumption. Kubelet can respond any query pretty fast. Where we see a significant impact is on Prometheus performing. Prometheus is configured with many scraping jobs, and we have doubled most of them. So, Prometheus has to query less frequency and this impacts really significant on the CPU consumption. Going from about 20% of one CPU to about 12%. Almost half of CPU consumption.
+Where we see a significant impact is on Prometheus performing. Prometheus is configured with many scraping jobs, and we have doubled most of them. So, Prometheus has to query less frequency and this impacts really significant on the CPU consumption. Going from about 20% of one CPU to about 12%. Almost half of CPU consumption.
 
 **Doubling scraping times on most of the intervals makes Prometheus to consume half of usual CPU consumption.**
 
@@ -326,27 +224,112 @@ Now we will burn the cluster, this will affect very much to Kubelet. Depending o
 
 The cluster is pretty much loaded of pods, not very much CPU consumed from these pods, but many pods. But more Pods are more info to get from Kubelet (cAdvisor), which is one of our main objectives. 
 
+```bash
+sh-4.4# crictl ps | wc -l
+268
+sh-4.4# crictl pods | wc -l
+239
+sh-4.4# ip link show 2>/dev/null | wc -l 
+458
+```
+
 #### Default monitoring stack configuration
 
+All the operators up and therefore the scraping terminals to default:
+
+```bash
+>  oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'scrape_interval'  
+Defaulting container name to prometheus.
+Use 'oc describe pod/prometheus-k8s-0-debug -n openshift-monitoring' to see all of the containers in this pod.
+
+Starting pod/prometheus-k8s-0-debug ...
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+ ...
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 30s
+  scrape_interval: 30s
+...
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 1m
+  scrape_interval: 1m
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 15s
+  scrape_interval: 2m
+  scrape_interval: 2m
+  scrape_interval: 30s
+...
+  scrape_interval: 30s
+  scrape_interval: 30s
+  scrape_interval: 30s
+```
+
 * CPU usage for prometheus pods
   
-  * prometheus-k8s-0  
+  * prometheus-k8s-0   30%
   
-  * prometheus-k8s-1  
+  * prometheus-k8s-1   30%
+  
+  ![](assets/2022-10-21-09-08-37-image.png)
 
 * CPU usage of '/system/slice' and '/system/slice/kubelet.service' in seconds
   
-  * '/system/slice' 0.17%
+  * '/system/slice' 0.50sec
   
-  * '/system/slice/kubelet.service' 0.09%
+  * '/system/slice/kubelet.service' 0.37sec
+  
+  ![](assets/2022-10-21-09-13-28-image.png)
 
-#### Double scrap time for 'node_exporter'
-
-* CPU usage for prometheus pods
-
-* CPU usage of '/system/slice' and '/system/slice/kubelet.service' in seconds
+Quick conclusion: as expected, in a loaded environment, scraping very frequent, has a big impact on the CPU consumed by Prometheus. Almost doubled. But the impact is even bigger on Kubelet, with node_exporter scraping so frequently and having to return metrics from so many Pods. Almost 4 times more time CPU consumed in compared with the clean cluster.
 
 #### Double all the scraping times
+
+We double the lower scraping times, all of them that were 30s are now 60s.
+
+```bash
+>  oc -n openshift-monitoring debug pod/prometheus-k8s-0 -- cat /etc/prometheus/config_out/prometheus.env.yaml | grep 'scrape_interval'  
+Defaulting container name to prometheus.
+Use 'oc describe pod/prometheus-k8s-0-debug -n openshift-monitoring' to see all of the containers in this pod.
+
+Starting pod/prometheus-k8s-0-debug ...
+  scrape_interval: 60s
+  scrape_interval: 60s
+...
+  scrape_interval: 60s
+  scrape_interval: 60s
+...
+  scrape_interval: 1m
+  scrape_interval: 1m
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 2m
+  scrape_interval: 2m
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 10s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+  scrape_interval: 60s
+```
 
 * CPU usage for prometheus pods
   
@@ -359,6 +342,16 @@ The cluster is pretty much loaded of pods, not very much CPU consumed from these
   * '/system/slice' 0.17%
   
   * '/system/slice/kubelet.service' 0.09%
+
+### Final conclusions
+
+With the experiment we can observe the expected to behavior:
+
+* Prometheus is mainly affected by how frequent it has to scrap metrics. So there is a direct relation on lowering CPU consumption when we scrap less frequent.
+
+* Kubelet/cAdvisory will be queried to retrieve metrics on the Kubernetes environment, pods, memory, etc. Therefore, when we burn the cluster, Kubelet is more affected. 
+
+
 
 # Hacking the monitoring stack to change scrap intervals
 
@@ -522,6 +515,75 @@ Starting pod/prometheus-k8s-0-debug ...
 
 Removing debug pod ...
 ```
+
+A part from that, there is one ServiceMonitor:
+
+```yaml
+> oc -n openshift-monitoring get servicemonitor prometheus-k8s -o yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  creationTimestamp: "2022-10-10T09:49:38Z"
+  generation: 12
+  labels:
+    app.kubernetes.io/component: prometheus
+    app.kubernetes.io/instance: k8s
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/part-of: openshift-monitoring
+    app.kubernetes.io/version: 2.32.1
+  name: prometheus-k8s
+  namespace: openshift-monitoring
+  resourceVersion: "12988731"
+  uid: 66919a9d-bcf8-4be5-b7c8-b32ff1f0bce4
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    bearerTokenSecret:
+      key: ""
+    interval: 30s
+    port: metrics
+    scheme: https
+    tlsConfig:
+      ca: {}
+      caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+      cert: {}
+      certFile: /etc/prometheus/secrets/metrics-client-certs/tls.crt
+      keyFile: /etc/prometheus/secrets/metrics-client-certs/tls.key
+      serverName: prometheus-k8s.openshift-monitoring.svc
+  namespaceSelector: {}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: prometheus
+      app.kubernetes.io/instance: k8s
+      app.kubernetes.io/name: prometheus
+      app.kubernetes.io/part-of: openshift-monitoring
+
+```
+
+Changing this interval will affect the own Prometheus self-metrics. You can play with it, but it will end-up anyway on the prometheus.yaml.gz file as:
+
+```yaml
+- job_name: serviceMonitor/openshift-monitoring/prometheus-k8s/0               
+  honor_labels: false                                                          
+  kubernetes_sd_configs:                                                       
+  - role: endpoints                                                            
+    namespaces:                                                                
+      names:                                                                       
+      - openshift-monitoring                                                   
+  scrape_interval: 15s                                                         
+  scheme: https                                                                
+  tls_config:                                                                  
+    insecure_skip_verify: false                                                
+    server_name: prometheus-k8s.openshift-monitoring.svc                                                                                                                                                                                                      
+    ca_file: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt 
+    cert_file: /etc/prometheus/secrets/metrics-client-certs/tls.crt            
+    key_file: /etc/prometheus/secrets/metrics-client-certs/tls.key             
+  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token           
+  relabel_configs:                                                             
+
+```
+
+You have both ways to configure it.
 
 Now, we can configure our scrape intervals as we need for our experiments.
 
