@@ -389,7 +389,7 @@ Digging into the different jobs we have in the 'Prometheus.yaml' configuration f
   scrape_interval: 60s
 ```
 
-So these are the jobs which are scraping metrics from Kubelet.  We have already doubled 
+So these are the jobs which are scraping metrics from Kubelet.  We had already doubled them, but we will do it again up to 120s.
 
 
 
