@@ -43,8 +43,10 @@ To take the measurements we will use Prometheus with the following queries:
 CPU usage for prometheus pods
 
 ```
-sort_desc(avg_over_time(pod:container_cpu_usage:sum{pod=~"prometheus-k8s-.*"}[30m]))CPU usage of '/system/slice' and '/system/slice/kubelet.service'
+sort_desc(avg_over_time(pod:container_cpu_usage:sum{pod=~"prometheus-k8s-.*"}[30m]))
 ```
+
+CPU usage of '/system/slice' and '/system/slice/kubelet.service'
 
 ```
 sort_desc((rate(container_cpu_usage_seconds_total{id=~".*system.slice.*",node="worker-0.el8k-ztp-1.hpecloud.org"}[30m])))
@@ -391,10 +393,6 @@ Digging into the different jobs we have in the 'Prometheus.yaml' configuration f
 
 So these are the jobs which are scraping metrics from Kubelet.  We had already doubled them, but we will do it again up to 120s.
 
-
-
-
-
 #### (Extra) Doubling the specific scraping intervals which affect Kubelet
 
 We have change these intervals to 2m:
@@ -460,7 +458,82 @@ With the experiment we can observe the expected to behavior:
   
   **Almost 30% of reduction from the original consumption**
 
+# The experiment as SNO
 
+We have been doing some tests based on "almost" doubling all the different jobs metrics captured by the Monitoring stack. This is already supported when using Single Node Opensift. A kind of OCP cluster where the resources are more limited to only one single node. This was included with [SNO 4.11](https://github.com/openshift/cluster-monitoring-operator/pull/1652/files). And officially supported.
+
+To finish our tests, we will try to make the same for multinode. So, we will made a more concrete change on the scrape intervals. To the ones managed by ServiceMonitors:
+
+```bash
+$> oc -n openshift-monitoring get servicemonitor
+NAME                          AGE
+cluster-monitoring-operator   14d
+etcd                          14d
+kube-state-metrics            14d
+kubelet                       14d
+node-exporter                 14d
+openshift-state-metrics       14d
+prometheus-adapter            14d
+prometheus-k8s                14d
+prometheus-operator           14d
+telemeter-client              14d
+thanos-querier                14d
+thanos-sidecar                14d
+```
+
+In the sections bellow, it is explained how to hack change the intervals. With the Operators disabled, you can modify this ServiceMonitors, or to go directly to the 'prometheus.yaml.gz' secret file. The result is the same. If you change the ServiceMonitors, these are reflected on the configuration secret file. Or, you can just get this file, and manually modify one by one. The second is a little bit more complex, for this test. You have to be sure which metrics to double. So, it is better to change in on the Service Monitor and let the stack reflect this on the configuration file. 
+
+```bash
+$> oc -n openshift-monitoring get servicemonitor -o jsonpath={.items[*].spec.endpoints[*].interval} 
+30s 1m 1m 30s 30s 30s 30s 15s 2m 2m 30s 30s 30s 30s 30s
+```
+
+The ServiceMonitor we will update: 
+
+* Interval from 15s to 30s:
+  
+  * node-exporter,
+
+* Interval from 30s to 60s: 
+  
+  * etcd, kubelet, prometheus-adapter,  prometheus-k8s, telemeter-client, thanos-querier thanos-sidecar
+
+* Interval from 1m to 2m:
+  
+  * kube-state-metrics
+
+* We keep the ones currently at 2 minutes. The PR for SNO put the limite to 2m maximum.
+
+* The ServiceMonitor for the two operators are not needed to change. It does not contain any scrape interval.
+
+So we use the following:
+
+```bash
+>  oc -n openshift-monitoring get servicemonitor  -o json  \
+ | sed -e 's/1m/2m/g; s/30s/60s/g; s/15s/30s/g' \
+ | oc replace -f -
+```
+
+we check the new values:
+
+```bash
+>  oc -n openshift-monitoring get servicemonitor -o jsonpath={.items[*].spec.endpoints[*].interval}
+60s 2m 2m 60s 60s 60s 60s 30s 2m 2m 60s 60s 60s 60s 60s
+```
+
+and lets take new measurements with the cluster burned:
+
+- CPU usage for prometheus pods
+  
+  - prometheus-k8s-0 
+  
+  - prometheus-k8s-1 
+
+- CPU usage of '/system/slice' and '/system/slice/kubelet.service' in seconds
+  
+  - '/system/slice' 
+  
+  - '/system/slice/kubelet.service' 
 
 # Hacking the monitoring stack to change scrap intervals
 
@@ -491,7 +564,6 @@ items:
       namespace: openshift-monitoring
       unmanaged: true
     upstream: https://api.openshift.com/api/upgrades_info/v1/graph
-
 ```
 
 And now we can scale down the two operators:
@@ -515,7 +587,9 @@ thanos-querier                2/2     2            2           25h
 
 ## Patching the monitoring stack
 
-With the two operators down. We can start patching and changing scraping interval. 
+### Patching the Prometheus configuration file
+
+With the two operators down. We can start patching and changing scraping interval.
 
 The different jobs and intervals for monitoring are stored on Secret called 'prometheus-k8s' and a fille called 'prometheus.yaml.gz'
 
@@ -626,9 +700,28 @@ Starting pod/prometheus-k8s-0-debug ...
 Removing debug pod ...
 ```
 
-A part from that, there is one ServiceMonitor:
+### Patching the different ServiceMonitor
+
+To make this patch, only the Monitoring Operator has to be down. The Prometheus Operator has to be up, to get the info from these ServiceMonitor into the Prometheus configuration file automatically.
+
+There are different ServiceMonitor:
 
 ```yaml
+> oc -n openshift-monitoring get ServiceMonitor
+NAME                          AGE
+cluster-monitoring-operator   14d
+etcd                          14d
+kube-state-metrics            14d
+kubelet                       14d
+node-exporter                 14d
+openshift-state-metrics       14d
+prometheus-adapter            14d
+prometheus-k8s                14d
+prometheus-operator           14d
+telemeter-client              14d
+thanos-querier                14d
+thanos-sidecar                14d
+
 > oc -n openshift-monitoring get servicemonitor prometheus-k8s -o yaml
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -669,7 +762,7 @@ spec:
       app.kubernetes.io/part-of: openshift-monitoring
 ```
 
-Changing this interval will affect the own Prometheus self-metrics. You can play with it, but it will end-up anyway on the prometheus.yaml.gz file as:
+You can play with the different intervals managed by this monitors. The changes will end-up  on the prometheus.yaml.gz (that we also manually changed on the previous section):
 
 ```yaml
 - job_name: serviceMonitor/openshift-monitoring/prometheus-k8s/0               
@@ -691,9 +784,7 @@ Changing this interval will affect the own Prometheus self-metrics. You can play
   relabel_configs:                                                             
 ```
 
-You have both ways to configure it.
-
-Now, we can configure our scrape intervals as we need for our experiments.
+You have both ways to change the intervals. Now, we can configure our scrape intervals as we need for our experiments.
 
 # Burning the cluster
 
