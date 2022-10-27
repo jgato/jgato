@@ -513,12 +513,20 @@ we check the new values:
 
 and lets take new measurements with the cluster burned.
 
+- CPU usage for prometheus pods
+  
+  - prometheus-k8s-0 20%
+  
+  - prometheus-k8s-1 20%
+  
+  ![](assets/2022-10-27-10-49-06-image.png)
+
 - CPU usage of '/system/slice' and '/system/slice/kubelet.service' in seconds
   
   - '/system/slice'  0.42 sec
   
   - '/system/slice/kubelet.service'  0.30 sec
-
+  
   ![](assets/2022-10-26-17-01-17-image.png)
 
 Makes sense to compare this to the default behavior of the Burn Cluster. To see how much impacted these concrete changes (based on the changes already introduced for SNOs).
@@ -533,7 +541,7 @@ With the experiment we can observe the expected to behavior:
 
 - Prometheus is mainly affected by how frequent it has to scrap metrics. So there is a direct relation on lowering CPU consumption when we scrap less frequent. Makes sense, Prometheus will take all of its configured jobs, and it will query about them based on the configured intervals. If the interval is higher, for the same number of jobs, makes queries less frequent.
   
-  **About 50% of reduction from the original consumption**
+  **About 30-50% of reduction from the original consumption, depending on how many intervals we change**
 
 - Kubelet/cAdvisory will be queried to retrieve metrics on the Kubernetes environment, pods, memory, etc. Therefore, when we burn the cluster, Kubelet consumption is highly increased. How much is this affected because of Prometheus scraping intervals? In the last (extra) experiment we change (x4) an scrap interval, which is actually, the one affecting how often Prometheus queries Kubelet. In this moment we see how this scrap interval is affecting to Kubelet/cAdvisory, specially on loaded environments.
   
