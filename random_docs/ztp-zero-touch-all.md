@@ -16,9 +16,11 @@ It is important to remark, these manifests are applied during installation. The 
 
 To extend any Siteconfig with extra configuration, you can create any directories with yamls including Resources to be added to the cluster during installation.
 
-For example, you can write some Node Resource to create some roles during installation:
+*Here I need a better example, this one dont works to label nodes during installation.*
 
-'cluster-extra-configs'
+~~For example, you can write some Node Resource to create some roles during installation:~~
+
+~~'cluster-extra-configs'~~
 
 ```yaml
 apiVersion: v1
@@ -45,7 +47,6 @@ metadata:
   name: "master-2.el8k-ztp-1.hpecloud.org"
   labels:
     node-role.kubernetes.io/role2: ""
-
 ```
 
 Then you can add this extra manifest to the siteconfig:
@@ -79,8 +80,6 @@ spec:
         role: "master"
         bmcAddress: "redfish-virtualmedia://10.19.1
 ```
-
-
 
 ## PolicyGenTemplates
 
