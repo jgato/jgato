@@ -1,60 +1,64 @@
-# Prometheus scrape intervals and performance
+# Openshift Monitoring stack: Playing with Prometheus performance and scraping intervals
 
-In this tutorial I will play with some tuning trying to get better performance on the Openshift monitoring stack. The experiment consists on lowering the scraping frequency  to make a less intensive work about collecting metrics from the different services. Special focus on how these intervals affect to 'Kubelet'. Kubelet/cAdvisor exposes metrics about Kubernetes resources usage. 
+In this tutorial we will play with some Prometheus configurations, trying to get better performance on the Openshift Monitoring stack. The experiment consists on lowering the scraping frequency  to make less intensive work collecting metrics. 
 
-This is just testing to dig into the Prometheus and Kubelet performance. It is nothing recommended/official/supported. Just a test experiment.
+Prometheus comes configured with different jobs, or metrics to be collected. Each of these jobs is configured about which service has to be queried, and an interval. Depending on your environment this can be configured/changed on different ways. In the case of an Openshift cluster, all these configurations are managed by the Monitoring (and Prometheus) operators. So, it would be not so easy to change it.
 
-The experiment will consist on getting the following metrics:
+*This is just testing/experiment to dig into the Prometheus and Kubelet performance. It is nothing recommended/official/supported by Red Hat.*
 
-* Get the pods more CPU consuming during the last 30m
+The experiment will work on getting the following metrics:
 
-* Get the '/system/slice' and '/system/slice/kubelet.service'. With this, we will know how much time 'Kubelet' is taking the CPU. But also, as reference with the whole time that '/system/slice' is consuming. Under this slice, we dont only have 'Kubelet' but other services as crio, sshd, etc. 
+* Get the CPU consumed by Prometheus Pods.
 
-We will take this metrics with:
+* Get the CPU consumed by Kubelet. 
 
-* A clean cluster and a cluster with a big number of pods running.
-  
-  * Default monitoring stack configuration
-  
-  * Double all the scraping times
+The metrics will be collected on different scenarios. A clean cluster ( with no extra workloads deployed) and a cluster with a big number of pods running. For each of these scenarios, the metrics will be collected with different scrape intervals configurations:
 
-Why we make special interest on  performance of Kubelet? [Kubelet/cAdvisor takes metrics](https://github.com/google/cadvisor/blob/master/docs/storage/prometheus.md) about Pods, Containers, Memory, CPU etc. Specially on environments very loaded, Kubelet CPU consumption would be very affected, it is been queried too frequent. 
+* Default monitoring stack scrape intervals.
+
+* Doubling the lowest scrape intervals, from 30sec to 60sec.
+
+* Doubling some scrape intervals in a more selected way. Changing the ones affecting more to Kubelet, or, changing the ones managed by Openshift Monitoring stack ServiceMonitors.
+
+The experiment will put special focus on how these intervals affect to Kubelet system's process and Prometheus Pods.
+
+Why we make special interest on  performance of Kubelet? [Kubelet/cAdvisor takes metrics](https://github.com/google/cadvisor/blob/master/docs/storage/prometheus.md) about Pods, Containers, Memory, CPU etc. Specially on environments very loaded, Kubelet CPU consumption would be very affected by a very low scraping interval. More Pods, more info to be gathered.
 
 Why we make special interest on performance of Prometheus? It is the core of all the monitoring stack. From Prometheus there are many different scrape_intervals, most of them set to 30s. Scraping more frequent should affect to CPU consumed. Scraping on loaded environments should affect also, because of more data is retrieved.
 
-To change scrape intervals  is not an easy task. This configuration is managed by operators. If you are using an OpenShift Red Hat supported environment, you cannot change that without breaking the support. Changing these intervals would affect other Openshift metrics/alarms and also the auto scaling feature. It is out of the scope of this tutorial to find out which value is better.
+This experiment dont collect enough information to conclude the best scrape intervals. Actually, this depends on many different scenarios and needs. It only shows how changing these intervals affects to the general performance.
 
-How we are burning the cluster? In a previous [tutorial](https://github.com/jgato/jgato/blob/main/random_docs/Debugging%20monitoring%20stack%20on%20Openshift.md) I explained how I use kube-burner.
+How we are burning the cluster in one of the scenarios? In a previous [tutorial](https://github.com/jgato/jgato/blob/main/random_docs/Debugging%20monitoring%20stack%20on%20Openshift.md) I explained how I used kube-burner for that.
 
-The infrastructure I am using for the experiment:
+The infrastructure we are using for the experiment:
 
 OCP Standard Cluster (baremetal) with 3 Master and 2 Workers
 
 ![](assets/2022-06-16-09-41-59-image.png)
 
-The workers, where I will take most of results, are just vms with 16 cores and 32.00 GiB, on a baremetal server.
+The workers, where we will take most of results, are just vms with 16 cores and 32.00 GiB, on a baremetal server.
 
-Following we show the results of the experiment. At the end of the document I show how I have managed to 'hack' the monitoring stack to change the metrics.
+Following we show the results of the experiment. At the end of the document it is explained how to 'hack' the monitoring stack to change the metrics.
 
 ## The experiment
 
 To take the measurements we will use Prometheus with the following queries:
 
-CPU usage for prometheus pods
+% of CPU usage for Prometheus pods 
 
 ```
 sort_desc(avg_over_time(pod:container_cpu_usage:sum{pod=~"prometheus-k8s-.*"}[30m]))
 ```
 
-CPU usage of '/system/slice' and '/system/slice/kubelet.service'
+Secs the CPU is used by '/system/slice' and '/system/slice/kubelet.service'
 
 ```
 sort_desc((rate(container_cpu_usage_seconds_total{id=~".*system.slice.*",node="worker-0.el8k-ztp-1.hpecloud.org"}[30m])))
 ```
 
-About this last query, it takes the CPU usage under '/system/slice' where you find 'kubelet', crio-o, etc. Some processes used support the Openshift platform.  When we burn the cluster, we create some loads but only on one of the workers (worker-0). So, the 'kubelet' consumption we are interested on, it is the one on that worker. Of course, in worker-1 we can compare 'kubelet is performing when no load is there.
+It will return values between 0 and 1, so it can be considered as % if you multiply the value by 100.
 
-With '/system/slice' we get the whole CPU consumption by these services, and we take also how much is consumed by 'kubelet', The difference between the '/system/slice' and 'kubelet is the CPU consumed by other services like: cri-o, ovs-*, sshd, etc. But we only need to know how much is consuming 'kubelet'. 
+About this last query, it takes the CPU usage under '/system/slice' where you find Kubelet, crio-o, etc. Some processes used support the Openshift platform.  When we burn the cluster, we create some loads but only on one of the workers (worker-0). So, the Kubelet consumption we are interested on, it is the one on that worker. Of course, in worker-1 we can compare Kubelet is performing when no load is there.
 
 Lets start the experiment.
 
@@ -108,7 +112,7 @@ Starting pod/prometheus-k8s-0-debug ...
 Removing debug pod ...
 ```
 
-* CPU usage for prometheus pods
+* CPU usage for Prometheus pods
   
   * prometheus-k8s-0  17%
   
@@ -126,11 +130,11 @@ Removing debug pod ...
 
 Quick conclusions: 
 
-In default and relaxed conditions, we can quickly observe how much 'kubelet' consumes from the total amount of /system/slice. Just 'kubelet' takes 50% of the total consumed by this 'slice'. In the total consumption of CPU, 10sec, is not very much. But it is half of what is happening under 'system/slice'.
+In default and relaxed conditions, we can quickly observe how much Kubelet consumes from the total amount of /system/slice. Just Kubelet takes 50% of the total consumed by this 'slice'. In the total consumption of CPU, 10sec, is not very much. But it is half of what is happening under 'system/slice'.
 
-Prometheus containers take about 17% of a single CPU which is not very much, but in this moment the cluster is not doing anything. 
+Prometheus containers take about 17% of a single CPU which is not very much, but in this moment the cluster is not doing very much work. 
 
-#### Double all the scraping times
+#### Doubling some scraping times
 
 We double the lower scraping times, all of them that were 30s are now 60s.
 
@@ -186,7 +190,7 @@ Starting pod/prometheus-k8s-0-debug ...
 Removing debug pod ...
 ```
 
-So, more or less are going to be around 60s. 
+
 
 * CPU usage for prometheus pods
   
@@ -204,15 +208,15 @@ So, more or less are going to be around 60s.
   
   ![](assets/2022-10-20-17-10-49-image.png)
 
-Quick conclusions: we see a good reduction on Prometheus consumption
+Quick conclusions: we see a good reduction on Prometheus consumption. But not very much affecting to Kubelet. 
 
 #### Conclusions
 
-In the first step the cluster is pretty relaxed, so the consumption is ok, but in some way high for a cluster without loads. 
+In the first step the cluster is pretty relaxed, so the consumption is ok. 
 
-For the second step we double most of the scraping times. We dont see improvements on Kubelet consumption. Kubelet can respond any query pretty fast. The cluster is not loaded, so Kubelet dont have to do a very consuming work about returning metrics.
+For the second step we double some of the scraping intervals. We dont see improvements on Kubelet consumption. The reason? We are doubling some intervals in indiscriminately. So, we dont know if this new intervals affect or not to Kubelet. We will see more about it below.
 
-Where we see a significant impact is on Prometheus performing. Prometheus is configured with many scraping jobs, and we have doubled most of them. So, Prometheus has to query less frequency and this impacts really significant on the CPU consumption. Going from about 20% of one CPU to about 12%. Almost half of CPU consumption.
+We see a significant impact on Prometheus performing. Prometheus is configured with many scraping jobs, and we have doubled many of them. So, Prometheus has to query less frequency and this impacts really significant on the CPU consumption. Going from about 20% of one CPU to about 12%. Almost half of CPU consumption.
 
 **Doubling scraping times on most of the intervals makes Prometheus to consume half of usual CPU consumption.**
 
@@ -220,7 +224,7 @@ Now we will burn the cluster, this will affect very much to Kubelet. Depending o
 
 ### Burn cluster
 
-The cluster is pretty much loaded of pods, not very much CPU consumed from these pods, but many pods. But more Pods are more info to get from Kubelet (cAdvisor), which is one of our main objectives. 
+The cluster is pretty much loaded of pods, not very much CPU consumed from these pods, but many pods. With more Pods, more info to get from Kubelet (cAdvisor), which is one of our main objectives. 
 
 ```bash
 sh-4.4# crictl ps | wc -l
@@ -285,9 +289,9 @@ Starting pod/prometheus-k8s-0-debug ...
   
   ![](assets/2022-10-21-09-13-28-image.png)
 
-Quick conclusion: as expected, in a loaded environment, scraping very frequent, has a big impact on the CPU consumed by Prometheus. Almost doubled. But the impact is even bigger on Kubelet, having to return metrics from Kubernetes resources, why now many Pods running. Almost 4 times more time CPU consumed in compared with the clean cluster.
+Quick conclusion: as expected, in a loaded environment, scraping very frequent, has a big impact on the CPU consumed by Prometheus. Almost doubled. But the impact is even bigger on Kubelet, having to return metrics from Kubernetes resources, now many Pods running. Almost 4 times more time CPU consumed in compared with the clean cluster.
 
-#### Double all the scraping times
+#### Doubling some scraping times
 
 We double the lower scraping times, all of them that were 30s are now 60s.
 
@@ -345,11 +349,11 @@ Starting pod/prometheus-k8s-0-debug ...
   
   ![](assets/2022-10-21-11-05-56-image.png)
 
-There is a high impact on Prometheus consumption caused by doubling most of the metrics.  We still dont see a high impact on Kubelet. 
+There is a high impact on Prometheus consumption caused by doubling most of the metrics.  We see an improvement on Kubelet, but not very much, considering all the intervals we changed. 
 
-#### Kubelet performance is not getting better
+#### Kubelet performance is not getting much better
 
-Digging into the different jobs we have in the 'Prometheus.yaml' configuration file (explained above how to get and set this file), we can find the following jobs:
+We have done a kind of "random" doubling of scrape intervals, from the many available. If we go a little bit deeper on Prometheus configuration, we can find which are the ones affecting only to Kubelet:
 
 ```bash
 > cat /tmp/file.yaml | grep 'serviceMonitor/openshift-monitoring/kubelet/'  -A 7 
@@ -393,7 +397,7 @@ Digging into the different jobs we have in the 'Prometheus.yaml' configuration f
 
 So these are the jobs which are scraping metrics from Kubelet.  We had already doubled them, but we will do it again up to 120s.
 
-#### (Extra) Changing the specific scraping intervals which affect Kubelet
+#### Changing the specific scraping intervals which affect Kubelet
 
 We have change these intervals to 2m (so double over the doubled, 4x, original 30sec)
 
@@ -444,13 +448,13 @@ and we observe the CPU consumption of Kubelet:
 
 ![](assets/2022-10-21-13-25-29-image.png)
 
-About 0.27sec compared to the previous 0.31 or the original 0.37.
+About 0.27sec compared to the previous 0.31 or the original 0.37. This can be considered as a good improvement.
 
-#### (Extra) The experiment as SNO
+#### The experiment as SNO
 
-We have been doing some tests based on "almost" doubling all the different jobs metrics captured by the Monitoring stack, or focusing on the jobs about 'kubelet'. 
+We have been doing some tests based on "almost" doubling all the different jobs metrics captured by the Monitoring stack, or focusing on the jobs about Kubelet. 
 
-Something similar to that, it has been already implemented when using Single Node Opensift. A kind of OCP cluster where the resources are more constrained to only one single node. This was included with [SNO 4.11](https://github.com/openshift/cluster-monitoring-operator/pull/1652/files). And officially supported.
+Something similar to that, it has been already implemented when using Single Node Opensift. A kind of OCP cluster where the resources are more constrained to only one single node. This was included with [SNO 4.11](https://github.com/openshift/cluster-monitoring-operator/pull/1652/files). And it is officially supported.
 
 To finish our tests, we will try to make the same for multinode. So, we will make a more concrete change on the scrape intervals. We will double the ones managed by ServiceMonitors:
 
@@ -471,16 +475,16 @@ thanos-querier                14d
 thanos-sidecar                14d
 ```
 
-In the sections bellow, it is explained how to hack/change these intervals. With the Monitoring Operator disabled, you can modify this ServiceMonitors, or to go directly to the 'prometheus.yaml.gz' secret file. The result is the same. If you change the ServiceMonitors, these are reflected on the configuration secret file. Or, you can just get this file, and manually modify one by one. The second is a little bit more complex, for this test. You have to be sure which metrics to double. So, it is better to make changes on the Service Monitor and let the stack reflect this on the configuration file.
+In the sections bellow, it is explained how to hack/change each job's interval. But also, how to change the ServiceMonitors. 
 
-In a default environment, with the Monitoring Operator enabled, we have this:
+In a default environment, with the Monitoring Operator enabled, we have these values for the intervals managed by a ServiceMonitor:
 
 ```bash
 $> oc -n openshift-monitoring get servicemonitor -o jsonpath={.items[*].spec.endpoints[*].interval} 
 30s 1m 1m 30s 30s 30s 30s 15s 2m 2m 30s 30s 30s 30s 30s
 ```
 
-We will make the following changes:
+We will make the following changes to try to replicate what it was officially implemented for SNOs:
 
 - Interval from 15s to 30s:
   
@@ -496,7 +500,7 @@ We will make the following changes:
 
 - We keep the ones currently at 2 minutes. The PR for SNO put the limit to 2m maximum.
 
-So, we disable the Monitoring Operator and we use the following:
+With the Monitoring Operator disabled (as explained below) we change the intervals:
 
 ```bash
 >  oc -n openshift-monitoring get servicemonitor  -o json  \
@@ -533,29 +537,25 @@ Makes sense to compare this to the default behavior of the Burn Cluster. To see 
 
 - Prometheus CPU consumption has not high impact, because there are many jobs we have not doubled the interval. We have changed only an small portion of them. The ones managed by ServiceMonitors
 
-- The 'kubelet' consumption goes from 0.37sec to 0.30. Like a 20% less, what is not bad considering the few changed we did.
+- The Kubelet consumption goes from 0.37sec to 0.30. Like a 20% less, what is not bad considering the few changed we did.
 
 ### Final conclusions
 
-With the experiment we can observe the expected to behavior:
+After all the experiments we can conclude:
 
 - Prometheus is mainly affected by how frequent it has to scrap metrics. So there is a direct relation on lowering CPU consumption when we scrap less frequent. Makes sense, Prometheus will take all of its configured jobs, and it will query about them based on the configured intervals. If the interval is higher, for the same number of jobs, makes queries less frequent.
   
-  **About 30-50% of reduction from the original consumption, depending on how many intervals we change**
-
-- Kubelet/cAdvisory will be queried to retrieve metrics on the Kubernetes environment, pods, memory, etc. Therefore, when we burn the cluster, Kubelet consumption is highly increased. How much is this affected because of Prometheus scraping intervals? In the last (extra) experiment we change (x4) an scrap interval, which is actually, the one affecting how often Prometheus queries Kubelet. In this moment we see how this scrap interval is affecting to Kubelet/cAdvisory, specially on loaded environments.
   
-  The following table we summarize how changing intervals affect to Kubelet. I dont show the results from "doubling almost everything". I prefer to focus on the ones related to Kubelet or on the ones implemented with the SNO solution. These re more meaningful. 
+
+- Kubelet/cAdvisory will be queried to retrieve metrics on the Kubernetes environment, pods, memory, etc. Therefore, when we burn the cluster, Kubelet consumption is highly increased. How much is this affected because of Prometheus scraping intervals? 
+  
+  The following table summarizes, in a loaded cluster, how changing intervals affect to Kubelet. We dont show the results from "doubling almost everything". Better to focus on the ones related to Kubelet or on the ones implemented with the SNO solution. These are more meaningful. 
 
 |                  | default intervals | changing kubelet intervals (4x) | doubling as an SNO, Kubelet ones (2x) |
 | ---------------- | ----------------- | ------------------------------- | ------------------------------------- |
 | kubelet/cAdvisor | 0.37sec           | 0.27                            | 0.30                                  |
 
-When working as the current SNO implementation, there are some intervals doubled, including the ones about Kubelet. When "changing kubelet intervals" we increased them 4x. So, here is the big difference. 
 
-* As much as we increase intervals about Kubelet, the consumption is better. But we have to find a good balance.
-
-* Maybe it is better to look on how it was changed on SNOs. Because, this is an official implementation, that can contain a good balance.
 
 # Hacking the monitoring stack to change scrap intervals
 
@@ -808,17 +808,4 @@ You can play with the different intervals managed by this monitors. The changes 
 
 You have both ways to change the intervals. Now, we can configure our scrape intervals as we need for our experiments.
 
-# Burning the cluster
-
-In the [previous tutorial](https://github.com/jgato/jgato/blob/main/random_docs/Debugging%20monitoring%20stack%20on%20Openshift.md) we have learn how to burn the cluster
-
-So we have the cluster as:
-
-```bash
-sh-4.4# crictl ps | wc -l
-268
-sh-4.4# crictl pods | wc -l
-239
-sh-4.4# ip link show 2>/dev/null | wc -l
-458
-```
+# 
