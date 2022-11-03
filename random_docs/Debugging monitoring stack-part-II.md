@@ -56,7 +56,7 @@ Secs the CPU is used by '/system/slice' and '/system/slice/kubelet.service'
 sort_desc((rate(container_cpu_usage_seconds_total{id=~".*system.slice.*",node="worker-0.el8k-ztp-1.hpecloud.org"}[30m])))
 ```
 
-It will return values between 0 and 1, so it can be considered as % if you multiply the value by 100.
+It will return values between 0 and 1, so it can be considered as % of CPU if you multiply the value by 100.
 
 About this last query, it takes the CPU usage under '/system/slice' where you find Kubelet, crio-o, etc. Some processes used support the Openshift platform.  When we burn the cluster, we create some loads but only on one of the workers (worker-0). So, the Kubelet consumption we are interested on, it is the one on that worker. Of course, in worker-1 we can compare Kubelet is performing when no load is there.
 
@@ -130,7 +130,7 @@ Removing debug pod ...
 
 Quick conclusions: 
 
-In default and relaxed conditions, we can quickly observe how much Kubelet consumes from the total amount of /system/slice. Just Kubelet takes 50% of the total consumed by this 'slice'. In the total consumption of CPU, 10sec, is not very much. But it is half of what is happening under 'system/slice'.
+In default and relaxed conditions, we can quickly observe how much Kubelet consumes from the total amount of /system/slice. Just Kubelet takes 50% of the total consumed by this 'slice'. In the total consumption of CPU, 0.10sec (or 10% of CPU), is not very much. But it is half of what is happening under 'system/slice'.
 
 Prometheus containers take about 17% of a single CPU which is not very much, but in this moment the cluster is not doing very much work. 
 
@@ -214,9 +214,9 @@ Quick conclusions: we see a good reduction on Prometheus consumption. But not ve
 
 In the first step the cluster is pretty relaxed, so the consumption is ok. 
 
-For the second step we double some of the scraping intervals. We dont see improvements on Kubelet consumption. The reason? We are doubling some intervals in indiscriminately. So, we dont know if this new intervals affect or not to Kubelet. We will see more about it below.
+For the second step we double some of the scraping intervals. We dont see improvements on Kubelet consumption. The reason? We are doubling some intervals  indiscriminately. So, we dont know if this new intervals affect or not to Kubelet. We will see more about it below.
 
-We see a significant impact on Prometheus performing. Prometheus is configured with many scraping jobs, and we have doubled many of them. So, Prometheus has to query less frequency and this impacts really significant on the CPU consumption. Going from about 20% of one CPU to about 12%. Almost half of CPU consumption.
+We see a significant impact on Prometheus performing. Prometheus is configured with many scraping jobs, and we have doubled many intervals. So, Prometheus has to query less frequency and this impacts really significantly on the CPU consumption. Going from about 20% of one CPU to about 12%. Almost half of CPU consumption.
 
 **Doubling scraping times on most of the intervals makes Prometheus to consume half of usual CPU consumption.**
 
@@ -807,5 +807,3 @@ You can play with the different intervals managed by this monitors. The changes 
 ```
 
 You have both ways to change the intervals. Now, we can configure our scrape intervals as we need for our experiments.
-
-# 
