@@ -20,12 +20,12 @@ For each of these catalogs, you can have the url where the repository is placed.
 registry.redhat.io/redhat/certified-operator-index:v4.9
 ```
 
-In order, to interact with the catalog you will need an authorization. Usually, it is called 'pull_secret', and you can get this from your Red Hat account [here](). Interacting with the catalog of an OCP installation would require more perms. So, it is recommended to use the 'pull_secret' used during the installation. 
+In order, to interact with the catalog you will need an authorization. Usually, it is called 'pull_secret', and you can get this from your Red Hat account [here](https://console.redhat.com/openshift/downloads#tool-pull-secret). Interacting with the catalog of an OCP installation would require more perms. So, it is recommended to use the 'pull_secret' used during the installation.
 
 In any case, you can check to which repository you 'pull_secret' has access, thanks to this [CLI pullsecret-validator](https://github.com/RHsyseng/pullsecret-validator-cli) created by [@alknopfler](https://github.com/alknopfler/alknopfler)
 
 ```bash
-> ./pullsecret-validator-cli -f ~/pull-secret.jgato 
+> ./pullsecret-validator-cli -f ~/pull-secret.jgato
 2022/05/11 09:48:21 Starting the Pull Secret file validation...It could take a time!
 ┌─────────────────────────────┬───────────────────────┬─────────────────────┐
 │ VALID AUTHS ENTRIES         │ EXPIRED AUTHS ENTRIES │ CONNECTION ISSUES   │
@@ -41,6 +41,7 @@ So I will have enough perms to interact with redhat official registries. And you
 
 *There is known bug with oc-mirror 4.10 that would make you copy the auth.json file on ~/.docker/config.json*
 
+Download the ['oc-mirror' tool](https://console.redhat.com/openshift/downloads#tool-oc-mirror-plugin) to better interact with the catalogue.
 You can search for Operators:
 
 ```bash
