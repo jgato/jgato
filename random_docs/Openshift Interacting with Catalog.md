@@ -51,6 +51,8 @@ sriov-network-operator  4.10     sriov-network-operator.4.10.0-202204211158
 sriov-network-operator  stable   sriov-network-operator.4.10.0-202204211158
 ```
 
+This previous query returns, only, the HEAD (last version) of each operator in each channel. 
+
 You can extend the search of an specific operator and a concrete channel to get all the available versions
 
 ```bash
@@ -97,6 +99,4 @@ VERSIONS
 1.2.3581-88b1c28
 1.1.12
 1.2.3179-0756b70e6
-
-
 ```
