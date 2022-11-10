@@ -16,70 +16,61 @@ It is important to remark, these manifests are applied during installation. The 
 
 To extend any Siteconfig with extra configuration, you can create any directories with yamls including Resources to be added to the cluster during installation.
 
-*Here I need a better example, this one dont works to label nodes during installation.*
+So first, we create a YAML with the resource you want to include during your cluster installation. In principle MachineConfigs, but others resources would also work.
 
-~~For example, you can write some Node Resource to create some roles during installation:~~
-
-~~'cluster-extra-configs'~~
+In this example, we create a MC that uses RHCOS Ignition to wipe some disks during the installation:
 
 ```yaml
-apiVersion: v1
-kind: Node
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
 metadata:
-  name: "master-0.el8k-ztp-1.hpecloud.org"
   labels:
-    node-role.kubernetes.io/role1: ""
-    node-role.kubernetes.io/master: ""                                         
-    node-role.kubernetes.io/worker: ""
----
-apiVersion: v1
-kind: Node
-metadata:
-  name: "master-1.el8k-ztp-1.hpecloud.org"
-  labels:
-    node-role.kubernetes.io/role1: ""
-    node-role.kubernetes.io/master: ""                                         
-    node-role.kubernetes.io/worker: ""
----
-apiVersion: v1
-kind: Node
-metadata:
-  name: "master-2.el8k-ztp-1.hpecloud.org"
-  labels:
-    node-role.kubernetes.io/role2: ""
+    machineconfiguration.openshift.io/role: master
+  name: 98-format-disks-master
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      disks:
+        - device: /dev/sdc
+          wipeTable: true
+
 ```
 
-Then you can add this extra manifest to the siteconfig:
+Just add the path to the directory containing your extra-manifests:
 
-'el8k-ztp-1.yaml Siteconfig'
+
 
 ```yaml
 apiVersion: ran.openshift.io/v1
 kind: SiteConfig
 metadata:
-  name: "el8k-ztp-1"
-  namespace: "el8k-ztp-1"
+  name: "intel-1-sno-1"
+  namespace: "intel-1-sno-1"
 spec:
-  baseDomain: "hpecloud.org"
+  baseDomain: "hubcluster-1.lab.eng.cert.redhat.com"
   pullSecretRef:
     name: "assisted-deployment-pull-secret"
-  clusterImageSetNameRef: "img4.10.10-x86-64-appsub"
-  sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCei2UnkBB9g9DPhu4fpMFKmrlhR9UIYYPet61WF3qr6Rp2LkxEhZtbRk6tZjaiVXo/Ff6rsayyoEy86bPCE+4/Kl+3V/KueKW2fgxz/tg1uLiDerWj8+J8KAGJ8TsBAl3cWYYQtHxlwCnyPSmspWB/UegNTd+0cHhkPiTYd6wylgmbBi9MWOAISkXOLWUjsOmKUKiTLkfX2VWqvkk8BH2/blHp0xCSZ2NWifc+VmCvz+M36mj0aRF5dEmfdy+wg7m9wi2/Hq59+NLGBef3kKjBnj0A/K0wFfT0ufi03OkztDOY7Y0xxIkl8Bi/Hof4rDlfKVKA9hcMSo3TY2o0asmTTXUhGZ/FVuZcIZpULOFMXKUR3oKeqnr/dff32IHVwgYb8n8C5zUepWu7tVUKnvxZ0Gwajy1Ru+xjrlROFT+761faJHmG5Ev/EdwKHkXHq5EMHgopyiYV7swJEnFzAUzaiu8DP1FYNJyocRvp6AZpbIlyFoabyq+o2yn2Fhny6gs= jgato@provisioner.el8k.hpecloud.org"
+  clusterImageSetNameRef: "img4.10.30-x86-64-appsub"
+  sshPublicKey: "ssh-rsa AAAAB3NzaC1y.....hny6gs= jgato@provisioner.el8k.hpecloud.org"
   clusters:
-  - clusterName: "el8k-ztp-1"
-    networkType: "OVNKubernetes"
+  - clusterName: "intel-1-sno-1"
     clusterLabels:
-      common-4-10: "true"
-      group-du-3node: ""
-      sites : "el8k-ztp-1-site"
+      common: "true"
+      du-profile-4.10: ""
+      sites : "intel-1-sno-1"
+    networkType: "OVNKubernetes"
 ...
+...
+    extraManifestPath: "extra-manifests/"
+
 ....
-    extraManifestPath: "extra-manifests/el8k-ztp-1-roles.yaml"
-    nodes:
-      - hostName: "master-0.el8k-ztp-1.hpecloud.org"
-        role: "master"
-        bmcAddress: "redfish-virtualmedia://10.19.1
+....
+
 ```
+
+In this case, '/dev/sdc' will be wiped-out during installation. But other MCs would make other different tasks.
 
 ## PolicyGenTemplates
 
@@ -202,6 +193,8 @@ If you need to create any Openshift/kubernetes Resource that is not managed by a
 
 How we inject our own files to be used by a PGT?
 
+
+
 First you create the yaml with the Resource you want to manage:
 
 ```yaml
@@ -241,7 +234,7 @@ And you can use it to create projects different than foo, when you reference one
         name: bar
 ```
 
-### Configuring with ACM Policies
+## Configuring with ACM Policies
 
 When there are no PGT templates, raw ACM Policies can be created. Actually, the PGT Templates are transformed into ACM Policies by one of the two Kustomize plugins.
 
