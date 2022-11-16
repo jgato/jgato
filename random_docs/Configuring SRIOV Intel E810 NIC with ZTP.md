@@ -16,9 +16,7 @@ The SNO deployment and configuration will be done using [Red Hat ZTP](https://ac
 
 Finally, with the SRIOV cards configured, we will run an example of using these cards with DPDK.
 
-**ToDo (requested by Arkady) more info about the different ports speeds.**
 
-**ToDo (requested by Arkady) more info about the needed SCC to run DKDK**
 
 # Deploy an SNO using ZTP SiteConfig
 
@@ -179,7 +177,7 @@ We need 8 Reserved CPU for regular processes. But having in mind, that we have t
   
   * From NUMA 1: CPUs 24 and 25 and their siblings 72,73
 
-All the other CPUs to the isolated.  This has the lowest latency. It would reach much higher DPDK zero packet loss bandwidth. That it is exactly what we need to run our tests on the SRIOV cards.
+All the other CPUs to the isolated. These have the lowest latency. Processes in this group have no interruptions and so can, for example, reach much higher DPDK zero packet loss bandwidth. We also disable IRQs on these CPUs with 'globallyDisableIrqLoadBalancing: true'
 
 In the PGT
 
@@ -200,7 +198,7 @@ In the PGT
         reserved: 0,1,24,25,48,49,72,73                                           
 # NUMA node0 CPU(s):   0-23,48-71                                                 
 # NUMA node1 CPU(s):   24-47,72-95                                                                                                                                                                                                                            
-      globallyDisableIrqLoadBalancing: false                                      
+      globallyDisableIrqLoadBalancing: true                                      
       hugepages:                                                                  
         defaultHugepagesSize: 1G                                                  
         pages:                                                                    
@@ -240,9 +238,7 @@ HugePages_Surp:        0
 # 
 ```
 
-## Configuring PTP
 
-[ToDo]
 
 ## Configuring SRIOV
 
@@ -635,7 +631,7 @@ spec:
       networkNamespace: testpmd
       resourceName: e810_ens4f0
       spoofChk: "off"
- 
+
   - fileName: SriovNetwork.yaml
     metadata:
       name: sriov-nw-du-test-pmd-e810-ens4f1
@@ -651,7 +647,6 @@ spec:
       networkNamespace: testpmd
       resourceName: e810_ens4f1
       spoofChk: "off"
-
 ```
 
 After ZTP does all the work, you will see the devices and networks created.
@@ -692,6 +687,8 @@ and more important, you can see the devices available in the node:
 ```
 
 These 'openshift.io/e810_*' resources will be requested later in the deployment of TestPMD and TRex.
+
+
 
 # Playing with DPDK
 
@@ -1332,8 +1329,6 @@ Ports count:      2 x 25.0Gbps @ Ethernet Adaptive Virtual Function
 -=TRex Console v3.0=-
 
 Type 'help' or '?' for supported actions
-
-
 ```
 
 Execute 'tui' command to enter in a visual/dashboard with statistics of what is happening on the ports. Not very much should be happening yet.
