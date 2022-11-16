@@ -1,22 +1,18 @@
 # Configuring SRIOV Intel E810 NIC with ZTP.
 
-In this tutorial we will see the different steps to use ZTP to configure Intel E810 NICs. It covers:
+In this tutorial we will see the different steps to use ZTP, to configure Intel E810 NICs from an Openshift cluster. It covers:
 
 * Deploy an Single Node Openshift with ZTP
 
 * Checking your E810 available cards and ports
 
-* Automatically configure your E810 cards with ZTP. Configuration about: PerformanceProfile and the SRIOV Operator. 
+* Automatically configure your E810 cards with ZTP. 
 
-We will use a server HPE DL380 with different Intel E810 cards.
-
-This tutorial makes special focus on configuring the SRIOV Operator, due to this server has 2 Intel E810 XXVDA and 2 Intel E810 CDA4. 
+As our SNO, we will use a server HPE DL380 with some Intel E810 cards. These are pretty new card, that for example, will need latest versions of the traffic simulator.
 
 The SNO deployment and configuration will be done using [Red Hat ZTP](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/scalability_and_performance/ztp-deploying-disconnected) (Zero Touch Provisioning). Which is based on ACM (Advanced Cluster Management), ArgoCD (to sync a git repository with an Openshift/Kubernetes cluster) and a set of tools called ZTP. These tools provide two new CRs, one for defining clusters (Siteconfig) and other for defining policies/configurations (PolicyGenTemplate)
 
-Finally, with the SRIOV cards configured, we will run an example of using these cards with DPDK.
-
-
+Finally, with the cluster deployed and the SRIOV cards configured, we will run some tests. 
 
 # Deploy an SNO using ZTP SiteConfig
 
@@ -696,7 +692,7 @@ In this section we will test a DPDK application using some of the configurations
 
 *We basically re-use the work done by @alosadagrande from [here](https://github.com/alosadagrande/openshift-telco/) and this [Red Hat Article](https://access.redhat.com/articles/6969629). *
 
-Important to notice, this time, I am using an Intel E810 (which is supported with Trex 3.0 used later). Previous articles would be using other SRIOV cards.
+**Important to notice, this time, I am using an Intel E810 (which is supported with Trex 3.0 used later). Previous articles would be using other SRIOV cards.**
 
 ![](assets/2022-11-16-12-51-50-image.png)
 
