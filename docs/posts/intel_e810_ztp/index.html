@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning :: Jose Gato Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="This document describe how to automatically configure SRIOV Intel E810 cards using Red Hat Gitops ZTP." />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://jgato.github.io/jgato/posts/intel_e810_ztp/" />
+
+
+
+
+<link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
+
+  <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/red.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://jgato.github.io/jgato/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://jgato.github.io/jgato/img/favicon/red.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="jgatoluis" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning">
+<meta property="og:description" content="This document describe how to automatically configure SRIOV Intel E810 cards using Red Hat Gitops ZTP." />
+<meta property="og:url" content="https://jgato.github.io/jgato/posts/intel_e810_ztp/" />
+<meta property="og:site_name" content="Jose Gato Blog" />
+
+  <meta property="og:image" content="https://jgato.github.io/jgato/">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-11-18 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="red">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://jgato.github.io/jgato/">
+  <div class="logo">
+    Jose Gato Blog
+  </div>
+</a>
+
+    </div>
+    
+  </div>
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://jgato.github.io/jgato/posts/intel_e810_ztp/">Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-11-18
+        
+      </span>
+    
+    
+      <span class="post-author">:: Jose Gato Luis</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://jgato.github.io/jgato/tags/ztp/">ztp</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/gitops/">gitops</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/sriov/">sriov</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/e810/">e810</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="/jgato/posts/intel_e810_ztp/cover.png"
+    class="post-cover"
+    alt="Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="configuring-sriov-intel-e810-nic-with-gitops-zero-touch-provisioning">Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning.<a href="#configuring-sriov-intel-e810-nic-with-gitops-zero-touch-provisioning" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance.
+The tutorial covers:</p>
+<ul>
+<li>
+<p>Deploy an Single Node Openshift with ZTP</p>
+</li>
+<li>
+<p>Checking your E810 available cards and ports</p>
+</li>
+<li>
+<p>Automatically configure your E810 cards with ZTP.</p>
+</li>
+</ul>
+<p>The SNO is an HPE DL380 server with different Intel E810 cards.</p>
+<p>We deploy the SNO using <a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/scalability_and_performance/ztp-deploying-disconnected">Red Hat ZTP</a> (Zero Touch Provisioning). Which is based on ACM (Advanced Cluster Management), ArgoCD (to sync a git repository with an Openshift/Kubernetes cluster) and a set of tools called ZTP. These tools provide two new CRs, in charge of defining deployments and configurations.</p>
+<p>Finally, with the cluster deployed and the SRIOV cards configured, we will run some tests.</p>
+<p>The tutorial is based on previous work done by <a href="https://github.com/alosadagrande/openshift-telco/">Alberto Losada</a> and this <a href="https://access.redhat.com/articles/6969629">Red Hat tutorial</a>. Here, the main differences are: the hardware used, and the Gitops ZTP workflow for deploying and configuring.</p>
+<h1 id="deploy-an-sno-using-ztp-siteconfig">Deploy an SNO using ZTP SiteConfig<a href="#deploy-an-sno-using-ztp-siteconfig" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>If you are familiar with ZTP, you will see that the SiteConfig is pretty usual. It just contains the basic configuration to deploy an SNO.</p>
+<p>If you are not familiar with ZTP, you will find more info <a href="https://docs.openshift.com/container-platform/4.10/scalability_and_performance/ztp-deploying-disconnected.html">here</a>. But basically, you can see that SiteConfig defines your cluster deployment. Later, ArgoCD and ACM will start the cluster deployment.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">ran.openshift.io/v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">SiteConfig</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;intel-1-sno-1&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#e6db74">&#34;intel-1-sno-1&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">baseDomain</span>: <span style="color:#e6db74">&#34;hubcluster-1.lab.eng.cert.redhat.com&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">pullSecretRef</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;assisted-deployment-pull-secret&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">clusterImageSetNameRef</span>: <span style="color:#e6db74">&#34;img4.10.30-x86-64-appsub&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">sshPublicKey</span>: <span style="color:#e6db74">&#34;ssh-rsa AAAAB3....gs= jgato@provisioner.el8k.hpecloud.org&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">clusters</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">clusterName</span>: <span style="color:#e6db74">&#34;intel-1-sno-1&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">clusterLabels</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">common</span>: <span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">du-profile-4.10</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">sites </span>: <span style="color:#e6db74">&#34;intel-1-sno-1&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networkType</span>: <span style="color:#e6db74">&#34;OVNKubernetes&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">clusterNetwork</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">cidr</span>: <span style="color:#ae81ff">10.136.0.0</span><span style="color:#ae81ff">/14</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">hostPrefix</span>: <span style="color:#ae81ff">23</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">machineNetwork</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">cidr</span>: <span style="color:#ae81ff">192.168.24.0</span><span style="color:#ae81ff">/25</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">serviceNetwork</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">172.31.0.0</span><span style="color:#ae81ff">/16</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">additionalNTPSources</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">192.168.24.80</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">nodes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">hostName</span>: <span style="color:#e6db74">&#34;intel-1-sno-1.hubcluster-1.lab.eng.cert.redhat.com&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">role</span>: <span style="color:#ae81ff">master</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">bmcAddress</span>: <span style="color:#ae81ff">redfish-virtualmedia://&lt;BMC_IP&gt;/redfish/v1/Systems/1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">bmcCredentialsName</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;intel-1-sno-1-bmc-secret&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">bootMACAddress</span>: <span style="color:#e6db74">&#34;94:40:c9:c1:eb:48&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">bootMode</span>: <span style="color:#e6db74">&#34;UEFI&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">rootDeviceHints</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">deviceName</span>: <span style="color:#ae81ff">/dev/sda</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">nodeNetwork</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">config</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">interfaces</span>:
+</span></span><span style="display:flex;"><span>              - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">eno5</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">type</span>: <span style="color:#ae81ff">ethernet</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">state</span>: <span style="color:#ae81ff">up</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">ipv4</span>:
+</span></span><span style="display:flex;"><span>                  <span style="color:#f92672">enabled</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#f92672">dhcp</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#f92672">address</span>:
+</span></span><span style="display:flex;"><span>                    - <span style="color:#f92672">ip</span>: <span style="color:#ae81ff">&lt;SERVER_IP&gt;</span>
+</span></span><span style="display:flex;"><span>                      <span style="color:#f92672">prefix-length</span>: <span style="color:#ae81ff">25</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">ipv6</span>:
+</span></span><span style="display:flex;"><span>                  <span style="color:#f92672">enabled</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">dns-resolver</span>:
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">config</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">server</span>:
+</span></span><span style="display:flex;"><span>                  - <span style="color:#ae81ff">&lt;DNS&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">routes</span>:
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">config</span>:
+</span></span><span style="display:flex;"><span>                - <span style="color:#f92672">destination</span>: <span style="color:#ae81ff">0.0.0.0</span><span style="color:#ae81ff">/0</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#f92672">next-hop-address</span>: <span style="color:#ae81ff">&lt;GATEWAY&gt;</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#f92672">next-hop-interface</span>: <span style="color:#ae81ff">eno5</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">interfaces</span>:
+</span></span><span style="display:flex;"><span>            - <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;eno5&#34;</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">macAddress</span>: <span style="color:#e6db74">&#34;94:40:c9:c1:eb:48&#34;</span>
+</span></span></code></pre></div><h1 id="configure-the-sno-using-ztp-policygentemplates">Configure the SNO using ZTP PolicyGenTemplates<a href="#configure-the-sno-using-ztp-policygentemplates" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>After deployment, ZTP uses PolicyGenTemplates (PGT) to make different configurations. Like installing different Operators and its configurations.</p>
+<p>Here an usual example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">ran.openshift.io/v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">PolicyGenTemplate</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;common-rangen-4.10&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#e6db74">&#34;ztp-common&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">bindingRules</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># These policies will correspond to all clusters with this label:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">common</span>: <span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">du-profile-4.10</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">sourceFiles</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Create operators policies that will be installed in all clusters</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">SriovSubscription.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">SriovSubscriptionNS.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">SriovSubscriptionOperGroup.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">PtpSubscription.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">PtpSubscriptionNS.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">PtpSubscriptionOperGroup.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">PaoSubscription.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">PaoSubscriptionNS.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">PaoSubscriptionOperGroup.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">ClusterLogNS.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">ClusterLogOperGroup.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">ClusterLogSubscription.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">StorageNS.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">StorageOperGroup.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">StorageSubscription.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;subscriptions-policy&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">ReduceMonitoringFootprint.yaml</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">policyName</span>: <span style="color:#e6db74">&#34;config-policy&#34;</span>
+</span></span></code></pre></div><p>In the following sections, we will show how to configure the PerformanceProfile and SRIOV operators. These are the keys to configure the server and the Intel E810 card, properly, to run the DPDK packet simulations.</p>
+<h2 id="configuring-performanceprofile">Configuring PerformanceProfile<a href="#configuring-performanceprofile" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Using this operator, we will configure a custom Performance Profile on the server. This profile covers some requirements we need, later, for our tests.</p>
+<ul>
+<li>
+<p>CPU Pinning: split CPUS for the platform and the workloads (our DPDK SRIOV Tests).</p>
+</li>
+<li>
+<p>Hugepages  configuration.</p>
+</li>
+</ul>
+<p>To configure the CPU Pinning, lets see our available CPUS in the server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; lscpu
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>NUMA node0 CPU<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>:   0-23,48-71
+</span></span><span style="display:flex;"><span>NUMA node1 CPU<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>:   24-47,72-95
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><p>The &lsquo;,&rsquo; separates the CPUS and the sibling. So, hyper threading is enabled. The sibling of each CPU can be obtained:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; cat /sys/devices/system/cpu/cpu0/topology/core_cpus_list
+</span></span><span style="display:flex;"><span>0,48
+</span></span><span style="display:flex;"><span>$&gt; cat /sys/devices/system/cpu/cpu4/topology/core_cpus_list
+</span></span><span style="display:flex;"><span>4,52
+</span></span><span style="display:flex;"><span>$&gt; cat /sys/devices/system/cpu/cpu12/topology/core_cpus_list
+</span></span><span style="display:flex;"><span>12,60
+</span></span></code></pre></div><p>We use 8 Reserved CPU for platform processes. But having in mind, that we have to pair also the siblings:</p>
+<ul>
+<li>
+<p>Take 2 from each NUMA:</p>
+<ul>
+<li>
+<p>From NUMA 0: CPUs 0 and 1, and their siblings 48, 49</p>
+</li>
+<li>
+<p>From NUMA 1: CPUs 24 and 25 and their siblings 72,73</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>All the other CPUs go to Isolated CPU pool. These have the lowest latency. Processes in this group have no interruptions and so can, for example, reach much higher DPDK zero packet loss bandwidth.</p>
+<p>We also need 32 Hugepages of 1G.</p>
+<p>The PGT to create the &lsquo;sno-perfprofile&rsquo;:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>  - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">PerformanceProfile.yaml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">annotations</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">kubeletconfig.experimental</span>: |<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          </span>          {<span style="color:#f92672">&#34;systemReserved&#34;: {&#34;memory&#34;: </span><span style="color:#e6db74">&#34;4Gi&#34;</span>}}
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">sno-perfprofile</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">policyName</span>: <span style="color:#ae81ff">perfprofile-policy</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">additionalKernelArgs</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">rcupdate.rcu_normal_after_boot=0</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">idle=poll</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">cpu</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">isolated</span>: <span style="color:#ae81ff">2-23</span>,<span style="color:#ae81ff">26-47</span>,<span style="color:#ae81ff">50-71</span>,<span style="color:#ae81ff">74-95</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">reserved</span>: <span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">24</span>,<span style="color:#ae81ff">25</span>,<span style="color:#ae81ff">48</span>,<span style="color:#ae81ff">49</span>,<span style="color:#ae81ff">72</span>,<span style="color:#ae81ff">73</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># NUMA node0 CPU(s):   0-23,48-71</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># NUMA node1 CPU(s):   24-47,72-95</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">globallyDisableIrqLoadBalancing</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">hugepages</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">defaultHugepagesSize</span>: <span style="color:#ae81ff">1G</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">pages</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">count</span>: <span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">size</span>: <span style="color:#ae81ff">1G</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">machineConfigPoolSelector</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">pools.operator.machineconfiguration.openshift.io/master</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">nodeSelector</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">node-role.kubernetes.io/master</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">numa</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">topologyPolicy</span>: <span style="color:#ae81ff">single-numa-node</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">realTimeKernel</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">enabled</span>: <span style="color:#66d9ef">true</span>
+</span></span></code></pre></div><p>Here the &lsquo;,&rsquo; in Isolated and Reserved are just enumerating CPUs.</p>
+<p>With the PGT applied, the server will be rebooted. Then, you can ssh the host to see the Performance Profile has been correctly configured:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># cat  /proc/cmdline</span>
+</span></span><span style="display:flex;"><span>BOOT_IMAGE<span style="color:#f92672">=(</span>hd0,gpt3<span style="color:#f92672">)</span>/ostree/rhcos-56fabc639a679b757ebae30e5f01b2ebd38e9fde9ecae91c41be41d3e89b37f8/vmlinuz-4.18.0-305.34.2.rt7.107.el8_4.x86_64 random.trust_cpu<span style="color:#f92672">=</span>on console<span style="color:#f92672">=</span>tty0 console<span style="color:#f92672">=</span>ttyS0,115200n8 ignition.platform.id<span style="color:#f92672">=</span>metal ostree<span style="color:#f92672">=</span>/ostree/boot.1/rhcos/56fabc639a679b757ebae30e5f01b2ebd38e9fde9ecae91c41be41d3e89b37f8/0 ip<span style="color:#f92672">=</span>eno5:dhcp root<span style="color:#f92672">=</span>UUID<span style="color:#f92672">=</span>1080762e-38cc-49d9-be5c-3b5e70a157ac rw rootflags<span style="color:#f92672">=</span>prjquota skew_tick<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> nohz<span style="color:#f92672">=</span>on
+</span></span><span style="display:flex;"><span>rcu_nocbs<span style="color:#f92672">=</span>2-23,26-47,50-71,74-95
+</span></span><span style="display:flex;"><span>tuned.non_isolcpus<span style="color:#f92672">=</span>00000300,00030000,03000003 intel_pstate<span style="color:#f92672">=</span>disable nosoftlockup tsc<span style="color:#f92672">=</span>nowatchdog intel_iommu<span style="color:#f92672">=</span>on iommu<span style="color:#f92672">=</span>pt
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>isolcpus<span style="color:#f92672">=</span>managed_irq,2-23,26-47,50-71,74-95
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>systemd.cpu_affinity<span style="color:#f92672">=</span>0,1,72,73,48,49,24,25
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>default_hugepagesz<span style="color:#f92672">=</span>1G hugepagesz<span style="color:#f92672">=</span>1G hugepages<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span> idle<span style="color:#f92672">=</span>poll rcupdate.rcu_normal_after_boot<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> nohz_full<span style="color:#f92672">=</span>4-31,36-95 crashkernel<span style="color:#f92672">=</span>512M
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#  grep HugePages_ /proc/meminfo</span>
+</span></span><span style="display:flex;"><span>HugePages_Total:      <span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>HugePages_Free:       <span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>HugePages_Rsvd:        <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>HugePages_Surp:        <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#</span>
+</span></span></code></pre></div><h2 id="configuring-sriov">Configuring SRIOV<a href="#configuring-sriov" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>With the Operator installed, we will use another PGT to configure our SRIOV Intel E810 cards.</p>
+<h3 id="checking--available-sriov-capable-nics">Checking  available SRIOV capable NICs<a href="#checking--available-sriov-capable-nics" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>When the SRIOV operator is installed, we can check the available NIC devices:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#ae81ff">$&gt; oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">items</span>:
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">sriovnetwork.openshift.io/v1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">SriovNetworkNodeState</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">creationTimestamp</span>: <span style="color:#e6db74">&#34;2022-08-04T13:25:08Z&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">generation</span>: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">intel-1-sno-1.hubcluster-1.lab.eng.cert.redhat.com</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">openshift-sriov-network-operator</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ownerReferences</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">sriovnetwork.openshift.io/v1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">blockOwnerDeletion</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">controller</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">SriovNetworkNodePolicy</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">default</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">uid</span>: <span style="color:#ae81ff">92af4999-d2ba-4348-b306-4ed164851cfd</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">resourceVersion</span>: <span style="color:#e6db74">&#34;43108570&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">uid</span>: <span style="color:#ae81ff">0c36b30e-0fbd-4602-bda8-9cf04aee97f0</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">status</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">interfaces</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1657&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">tg3</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:7a:f1:dc:08:54</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">eno1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#e6db74">&#34;0000:02:00.0&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;14e4&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1657&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">tg3</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:7a:f1:dc:08:55</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">eno2</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#e6db74">&#34;0000:02:00.1&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;14e4&#34;</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1593&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:a3:f2:c3</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens1f3</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#e6db74">&#34;0000:37:00.3&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1015&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">mlx5_core</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: <span style="color:#ae81ff">25000</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">94</span>:<span style="color:#ae81ff">40</span>:<span style="color:#ae81ff">c9:c1:eb:48</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">eno5</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#ae81ff">0000</span>:<span style="color:#ae81ff">5d:00.0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#ae81ff">15b3</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1015&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">mlx5_core</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: <span style="color:#ae81ff">25000</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">94</span>:<span style="color:#ae81ff">40</span>:<span style="color:#ae81ff">c9:c1:eb:49</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">eno6</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#ae81ff">0000</span>:<span style="color:#ae81ff">5d:00.1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#ae81ff">15b3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1593&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: <span style="color:#ae81ff">25000</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:a3:ef:e9</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens4f1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#ae81ff">0000</span>:<span style="color:#ae81ff">86</span>:<span style="color:#ae81ff">00.1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1592&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:ad:83:c1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens5f1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#ae81ff">0000</span>:<span style="color:#ae81ff">af:00.1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">syncStatus</span>: <span style="color:#ae81ff">Succeeded</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">List</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">resourceVersion</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">selfLink</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span></code></pre></div><p>We are only interested in Intel and E810 NIC Cards for this tutorial.</p>
+<p>Some IDs to locate the NICs in the Server:</p>
+<ul>
+<li>
+<p>Vendor: 8086 INTEL</p>
+</li>
+<li>
+<p>deviceID: 1889 VFS</p>
+</li>
+<li>
+<p>deviceID: 1593  Ethernet Controller E810-C for SFP (XXVDA4)</p>
+</li>
+<li>
+<p>deviceID: 1592  Ethernet Controller E810-C for QSFP (CQDA4)</p>
+</li>
+<li>
+<p>deviceID: 1657</p>
+</li>
+</ul>
+<p>You can get more about that on <a href="https://devicehunt.com/">devicehunt</a>.</p>
+<p>We see there are multiple interfaces. For example, in this server there are 8 interfaces for the Identifier 1593 (E810-C for SFP):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> | grep <span style="color:#ae81ff">1593</span> -A <span style="color:#ae81ff">9</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> | grep name
+</span></span><span style="display:flex;"><span>      name: ens1f0
+</span></span><span style="display:flex;"><span>      name: ens1f1
+</span></span><span style="display:flex;"><span>      name: ens1f2
+</span></span><span style="display:flex;"><span>      name: ens1f3
+</span></span><span style="display:flex;"><span>      name: ens4f0
+</span></span><span style="display:flex;"><span>      name: ens4f1
+</span></span><span style="display:flex;"><span>      name: ens4f2
+</span></span><span style="display:flex;"><span>      name: ens4f3
+</span></span></code></pre></div><p>So, there really exist 2 cards (ens1 and ens4) with 4 physical ports each. Therefore, it is like 8 different NICs with their own MACs and configurations. Each one, supporting different virtual ports/interfaces (vfs) to be attached to PODs:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> | grep <span style="color:#ae81ff">1593</span> -A <span style="color:#ae81ff">9</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> | grep <span style="color:#e6db74">&#39;name\|totalvfs&#39;</span>
+</span></span><span style="display:flex;"><span>      name: ens1f0
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      name: ens1f1
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      name: ens1f2
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      name: ens1f3
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      name: ens4f0
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      name: ens4f1
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      name: ens4f2
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      name: ens4f3
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">64</span>
+</span></span></code></pre></div><p>There are another 2 cards (en2 and ens5) for intel deviceID 1592, with 2 ports each.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>| grep <span style="color:#ae81ff">1592</span> -A <span style="color:#ae81ff">9</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>| grep name
+</span></span><span style="display:flex;"><span>      name: ens2f0
+</span></span><span style="display:flex;"><span>      name: ens2f1
+</span></span><span style="display:flex;"><span>      name: ens5f0
+</span></span><span style="display:flex;"><span>      name: ens5f1
+</span></span></code></pre></div><p>But, not all the ports are wired/connected in the 1593 card (linkSpeed -1)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1593&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:a3:ef:ea</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens4f2</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#ae81ff">0000</span>:<span style="color:#ae81ff">86</span>:<span style="color:#ae81ff">00.2</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1593&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:a3:f2:c3</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens1f3</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#e6db74">&#34;0000:37:00.3&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span></code></pre></div><p>But the first and second port are connected with 25000 Mb/s:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1593&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: <span style="color:#ae81ff">25000</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:a3:ef:e8</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens4f0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">numVfs</span>: <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#ae81ff">0000</span>:<span style="color:#ae81ff">86</span>:<span style="color:#ae81ff">00.0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1593&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: <span style="color:#ae81ff">25000</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:a3:ef:e9</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens4f1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#ae81ff">0000</span>:<span style="color:#ae81ff">86</span>:<span style="color:#ae81ff">00.1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span></code></pre></div><p>We can do the same for the other Intel Card with id 1592:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml | grep <span style="color:#ae81ff">1592</span> -A <span style="color:#ae81ff">9</span> | grep <span style="color:#e6db74">&#39;name\|totalvfs&#39;</span>
+</span></span><span style="display:flex;"><span>      name: ens2f0
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span>      name: ens2f1
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span>      name: ens5f0
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span>      name: ens5f1
+</span></span><span style="display:flex;"><span>      totalvfs: <span style="color:#ae81ff">128</span>
+</span></span></code></pre></div><p>In this case, we have two cards (ens2 and ens5) with two ports each.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1592&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:a4:0a:78</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens2f0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#e6db74">&#34;0000:12:00.0&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1592&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:a4:0a:79</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens2f1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#e6db74">&#34;0000:12:00.1&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1592&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:ad:83:c0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens5f0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#ae81ff">0000</span>:<span style="color:#ae81ff">af:00.0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1592&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">ice</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkSpeed</span>: -<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">Mb/s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">linkType</span>: <span style="color:#ae81ff">ETH</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mac</span>: <span style="color:#ae81ff">b4:96:91:ad:83:c1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mtu</span>: <span style="color:#ae81ff">1500</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ens5f1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pciAddress</span>: <span style="color:#ae81ff">0000</span>:<span style="color:#ae81ff">af:00.1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">totalvfs</span>: <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span></code></pre></div><p>In this case, the 4 ports are disconnected. At this moment, we cannot use that card.</p>
+<h3 id="creating-pgt-for-virtual-devices-and-networks">Creating PGT for virtual devices and networks<a href="#creating-pgt-for-virtual-devices-and-networks" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Now we have a clear picture of the available NICs. Summary:</p>
+<ul>
+<li>
+<p>(1592 CQDA4) Ethernet Controller E810-C for QSFP</p>
+<ul>
+<li>ens2 and ens5 with all the ports disconnected</li>
+</ul>
+</li>
+<li>
+<p>(1593 XXVDA4) Intel Ethernet Controller E810-C for SFP</p>
+<ul>
+<li>
+<p>ens1f0 connected</p>
+</li>
+<li>
+<p>ens4f0 connected</p>
+</li>
+<li>
+<p>ens4f1 connected</p>
+</li>
+<li>
+<p>ens4f2 disconnected</p>
+</li>
+<li>
+<p>ens4f3 disconnected</p>
+</li>
+<li>
+<p>ens1f1 connected</p>
+</li>
+<li>
+<p>ens1f2 disconnected</p>
+</li>
+<li>
+<p>ens1f3 disconnected</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>We only have 4 available NICs, but we can use SRIOV and VFS to split these cards into multiple network interfaces. These VFs are exposed to be used by PODs with a network attached.</p>
+<p>Following, we show an example to get some VFs from ens4f0/ens4f1 and create two networks. These will be the interfaces and networks used in our testing example.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">ran.openshift.io/v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">PolicyGenTemplate</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">intel-1-sno-1-test-dpdk</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">ztp-site</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">bindingRules</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">intel-1-sno-1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mcp</span>: <span style="color:#ae81ff">master</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">sourceFiles</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">SriovNetworkNodePolicy.yaml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">e810-ens4f0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">policyName</span>: <span style="color:#ae81ff">sriov-netdevice-policy</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">deviceType</span>: <span style="color:#ae81ff">vfio-pci</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">nicSelector</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1593&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">pfNames</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#ae81ff">ens4f0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">numVfs</span>: <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">resourceName</span>: <span style="color:#ae81ff">e810_ens4f0</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">SriovNetworkNodePolicy.yaml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">e810-ens4f1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">policyName</span>: <span style="color:#ae81ff">sriov-netdevice-policy</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">deviceType</span>: <span style="color:#ae81ff">vfio-pci</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">nicSelector</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">deviceID</span>: <span style="color:#e6db74">&#34;1593&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">pfNames</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#ae81ff">ens4f1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">vendor</span>: <span style="color:#e6db74">&#34;8086&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">numVfs</span>: <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">resourceName</span>: <span style="color:#ae81ff">e810_ens4f1</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">SriovNetwork.yaml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">sriov-nw-du-test-pmd-e810-ens4f0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">policyName</span>: <span style="color:#ae81ff">sriov-nw-test-pmd-policy</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ipam</span>: |-<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;type&#34;: &#34;host-local&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;ranges&#34;: [[{&#34;subnet&#34;: &#34;10.0.30.0/24&#34;}]],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;dataDir&#34;:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            &#34;/run/my-orchestrator/container-ipam-state-1&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        }</span>        
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">networkNamespace</span>: <span style="color:#ae81ff">testpmd</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">resourceName</span>: <span style="color:#ae81ff">e810_ens4f0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">spoofChk</span>: <span style="color:#e6db74">&#34;off&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">fileName</span>: <span style="color:#ae81ff">SriovNetwork.yaml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">sriov-nw-du-test-pmd-e810-ens4f1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">policyName</span>: <span style="color:#ae81ff">sriov-nw-test-pmd-policy</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ipam</span>: |-<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;type&#34;: &#34;host-local&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;ranges&#34;: [[{&#34;subnet&#34;: &#34;10.0.40.0/24&#34;}]],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;dataDir&#34;:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            &#34;/run/my-orchestrator/container-ipam-state-1&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        }</span>        
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">networkNamespace</span>: <span style="color:#ae81ff">testpmd</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">resourceName</span>: <span style="color:#ae81ff">e810_ens4f1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">spoofChk</span>: <span style="color:#e6db74">&#34;off&#34;</span>
+</span></span></code></pre></div><p>After ZTP does all the work, you will see the devices and networks created.</p>
+<p>Network devices:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc -n openshift-sriov-network-operator get sriovnetworknodepolicies.sriovnetwork.openshift.io
+</span></span><span style="display:flex;"><span>NAME          AGE
+</span></span><span style="display:flex;"><span>default       7d1h
+</span></span><span style="display:flex;"><span>e810-ens4f0   20m
+</span></span><span style="display:flex;"><span>e810-ens4f1   20m
+</span></span></code></pre></div><p>The created networks:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc -n openshift-sriov-network-operator get sriovnetwork
+</span></span><span style="display:flex;"><span>NAME                               AGE
+</span></span><span style="display:flex;"><span>sriov-nw-du-test-pmd-e810-ens4f0   38m
+</span></span><span style="display:flex;"><span>sriov-nw-du-test-pmd-e810-ens4f1   38m
+</span></span></code></pre></div><p>and more important, you can see the devices available in the node:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc get node master-0.intel-1-sno-1.hubcluster-1.lab.eng.cert.redhat.com <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -o jsonpath<span style="color:#f92672">={</span>.status.allocatable<span style="color:#f92672">}</span> | jq
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;cpu&#34;</span>: <span style="color:#e6db74">&#34;88&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;ephemeral-storage&#34;</span>: <span style="color:#e6db74">&#34;468283204Ki&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;hugepages-1Gi&#34;</span>: <span style="color:#e6db74">&#34;32Gi&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;hugepages-2Mi&#34;</span>: <span style="color:#e6db74">&#34;0&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;memory&#34;</span>: <span style="color:#e6db74">&#34;157779140Ki&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;openshift.io/e810_ens4f0&#34;</span>: <span style="color:#e6db74">&#34;8&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;openshift.io/e810_ens4f1&#34;</span>: <span style="color:#e6db74">&#34;8&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;pods&#34;</span>: <span style="color:#e6db74">&#34;250&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>These &lsquo;openshift.io/e810_*&rsquo; resources will be requested later in the deployment of TestPMD and TRex (our tests).</p>
+<h1 id="playing-with-dpdk">Playing with DPDK<a href="#playing-with-dpdk" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>In this section we will test a DPDK application using some of the configurations created in the previous sections. We will use TRex to generate traffic to a test dpdk (testpmd) application.</p>
+<p>*We basically re-use the work done by @alosadagrande from <a href="https://github.com/alosadagrande/openshift-telco/">here</a> and this <a href="https://access.redhat.com/articles/6969629">Red Hat Article</a>. *</p>
+<p><strong>Important to notice, this time, I am using an Intel E810 (which is supported with Trex 3.0 used later). Previous articles would be using other SRIOV cards.</strong></p>
+<p><img src="assets/2022-11-16-12-51-50-image.png" alt=""></p>
+<p>According to the picture, we need 4 different ports. These ports will not be real physical ones, these will be 4 VFS from SRIOV NICs. We have already configured this environment, and the needed VFs and Networks in a section above.</p>
+<p>Traffic Generator will send packets from VF0 and this will be received by Testpmd VF1. Then Testpmd will forward packets to the VF2, and from there, it will reach back to Trex on the VF3.</p>
+<p>First of all, lets download the deployments for the TestPMD and the Traffic Generator:</p>
+<p>We clone the repository:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; git clone https://github.com/jgato/openshift-telco.git
+</span></span><span style="display:flex;"><span>$&gt; cd openshift-telco/
+</span></span></code></pre></div><p><em>I am using a forked repository, where I have done some modifications adapted to this tutorial.</em></p>
+<h2 id="running-testpmd">Running TestPMD<a href="#running-testpmd" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><em><a href="https://doc.dpdk.org/guides/testpmd_app_ug/">testPMD</a> is an application used to test DPDK in a packet forwarding mode and also to access NIC hardware features such as Flow Director.</em> In our case, TestPMD will basically forward packets between two ports.</p>
+<p>Some pre-requirements:</p>
+<ul>
+<li>
+<p>PAO configuration: testPMD requires hugepages and guranteed POD.</p>
+</li>
+<li>
+<p>SRIOV configuration:</p>
+<ul>
+<li>
+<p>Two SRIOV interfaces</p>
+</li>
+<li>
+<p>Two networks</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>All these requirements have been fulfilled with the PGTs created in the previous versions.</p>
+<p>Lets, edit the TestPMD deployment according to our previous configuration:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; cd test-pmd/
+</span></span><span style="display:flex;"><span>$&gt; vim manifests/deployment-testpmd-rhel.yaml
+</span></span></code></pre></div><p>Configure the yaml to use one VF from ens4f0 and another from ens4f1. We also attach the pods to the previously created networks for these devices (&lsquo;k8s.v1.cni.cncf.io/networks&rsquo;).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">labels</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">testpmd</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">app.kubernetes.io/component</span>: <span style="color:#ae81ff">testpmd</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">app.kubernetes.io/instance</span>: <span style="color:#ae81ff">testpmd</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">testpmd-rhel</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">testpmd</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">revisionHistoryLimit</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">selector</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">matchLabels</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">app</span>: <span style="color:#ae81ff">testpmd</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">template</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">app</span>: <span style="color:#ae81ff">testpmd</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">annotations</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">k8s.v1.cni.cncf.io/networks</span>: <span style="color:#ae81ff">openshift-sriov-network-operator/sriov-nw-du-test-pmd-e810-ens4f0, openshift-sriov-network-operator/sriov-nw-du-test-pmd-e810-ens4f1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">irq-load-balancing.crio.io</span>: <span style="color:#e6db74">&#34;disable&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">cpu-load-balancing.crio.io</span>: <span style="color:#e6db74">&#34;disable&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">runtimeClassName</span>: <span style="color:#e6db74">&#34;performance-performance-sno&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">serviceAccount</span>: <span style="color:#ae81ff">deployer</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">serviceAccountName</span>: <span style="color:#ae81ff">deployer</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">securityContext</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">runAsUser</span>: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">containers</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">image</span>: <span style="color:#ae81ff">registry.redhat.io/openshift4/dpdk-base-rhel8</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">command</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">/bin/bash</span>
+</span></span><span style="display:flex;"><span>          - -<span style="color:#ae81ff">c</span>
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">sleep INF</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">securityContext</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">runAsUser</span>: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">capabilities</span>:
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">add</span>: [<span style="color:#e6db74">&#34;IPC_LOCK&#34;</span>,<span style="color:#e6db74">&#34;SYS_RESOURCE&#34;</span>,<span style="color:#e6db74">&#34;NET_RAW&#34;</span>,<span style="color:#e6db74">&#34;NET_ADMIN&#34;</span>]
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">imagePullPolicy</span>: <span style="color:#ae81ff">Always</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">env</span>:
+</span></span><span style="display:flex;"><span>            - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">RUN_TYPE</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#34;testpmd&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">name</span>: <span style="color:#ae81ff">testpmd</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">terminationMessagePath</span>: <span style="color:#ae81ff">/dev/termination-log</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">terminationMessagePolicy</span>: <span style="color:#ae81ff">File</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">resources</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">limits</span>:
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">cpu</span>: <span style="color:#e6db74">&#34;16&#34;</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">hugepages-1Gi</span>: <span style="color:#ae81ff">8Gi</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">memory</span>: <span style="color:#ae81ff">2Gi</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">openshift.io/e810-ens4f0</span>: <span style="color:#e6db74">&#34;1&#34;</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">openshift.io/e810-ens4f1</span>: <span style="color:#e6db74">&#34;1&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">requests</span>:
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">cpu</span>: <span style="color:#e6db74">&#34;16&#34;</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">hugepages-1Gi</span>: <span style="color:#ae81ff">8Gi</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">memory</span>: <span style="color:#ae81ff">2Gi</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">openshift.io/e810-ens4f0</span>: <span style="color:#e6db74">&#34;1&#34;</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">openshift.io/e810-ens4f1</span>: <span style="color:#e6db74">&#34;1&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">volumeMounts</span>:
+</span></span><span style="display:flex;"><span>            - <span style="color:#f92672">mountPath</span>: <span style="color:#ae81ff">/mnt/huge</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#f92672">name</span>: <span style="color:#ae81ff">hugepage</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">dnsPolicy</span>: <span style="color:#ae81ff">ClusterFirst</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">hugepage</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">emptyDir</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">medium</span>: <span style="color:#ae81ff">HugePages</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restartPolicy</span>: <span style="color:#ae81ff">Always</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">test</span>: <span style="color:#66d9ef">false</span>
+</span></span></code></pre></div><p>With this configuration, the POD will be connected to three networks and three network devices. Two of these devices are the SRIOV VFs on different ports of the card: &lsquo;&ldquo;pci-address&rdquo;: &ldquo;0000:86:09.2&rdquo;&rsquo; and &lsquo;&ldquo;pci-address&rdquo;: &ldquo;0000:86:01.5&rdquo;&rsquo;</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">annotations</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">irq-load-balancing.crio.io</span>: <span style="color:#ae81ff">disable</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">k8s.ovn.org/pod-networks</span>: <span style="color:#e6db74">&#39;{&#34;default&#34;:{&#34;ip_addresses&#34;:[&#34;10.136.0.252/23&#34;],&#34;mac_address&#34;:&#34;0a:58:0a:88:00:fc&#34;,&#34;gateway_ips&#34;:[&#34;10.136.0.1&#34;],&#34;ip_address&#34;:&#34;10.136.0.252/23&#34;,&#34;gateway_ip&#34;:&#34;10.136.0.1&#34;}}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">k8s.v1.cni.cncf.io/network-status</span>: |-<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      [{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;name&#34;: &#34;ovn-kubernetes&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;interface&#34;: &#34;eth0&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;ips&#34;: [
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              &#34;10.136.0.252&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          ],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;mac&#34;: &#34;0a:58:0a:88:00:fc&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;default&#34;: true,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;dns&#34;: {}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      },{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;name&#34;: &#34;testpmd/sriov-nw-du-test-pmd-e810-ens4f0&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;interface&#34;: &#34;net1&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;ips&#34;: [
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              &#34;10.0.30.8&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          ],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;dns&#34;: {},
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;device-info&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              &#34;type&#34;: &#34;pci&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              &#34;version&#34;: &#34;1.0.0&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              &#34;pci&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  &#34;pci-address&#34;: &#34;0000:86:01.5&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      },{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;name&#34;: &#34;testpmd/sriov-nw-du-test-pmd-e810-ens4f1&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;interface&#34;: &#34;net2&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;ips&#34;: [
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              &#34;10.0.40.8&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          ],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;dns&#34;: {},
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;device-info&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              &#34;type&#34;: &#34;pci&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              &#34;version&#34;: &#34;1.0.0&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              &#34;pci&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  &#34;pci-address&#34;: &#34;0000:86:09.2&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      }]</span>      
+</span></span></code></pre></div><p>The Deployment will create a Pod with the tools to use a DPDK test application. This test application will just forward what it receives by its Port 0 to its Port 1. Port 0 and 1 are the VFS 1 and 2 in the figure above.</p>
+<p>The test application will also collect metrics about the packets received/transmitted.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc apply -f manifests/deployment-testpmd-rhel.yaml
+</span></span><span style="display:flex;"><span>deployment.apps/testpmd-rhel created
+</span></span></code></pre></div><p>The Deployment would take some time, in order to create the &rsquo;network-attachment-definitions&rsquo;. These are created because of the &lsquo;SriovNetwork&rsquo; created previously. These were configured to point to the &rsquo;testpmd&rsquo; namespace.</p>
+<p>Once the Deployment is created, we can rsh there.</p>
+<p>To run the testpmd is important to define two different peers. It will forward only what it came from peer 50:00:00:00:00:01 to peer 50:00:00:00:00:02. Later, we will configure TREX Ports with these MAC addresses:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; oc rsh testpmd-rhel-6789767d85-tx4z8
+</span></span><span style="display:flex;"><span>sh-4.4# export CPU<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>cat /sys/fs/cgroup/cpuset/cpuset.cpus<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>sh-4.4# testpmd -l <span style="color:#e6db74">${</span>CPU<span style="color:#e6db74">}</span> -a <span style="color:#e6db74">${</span>PCIDEVICE_OPENSHIFT_IO_E810_ENS4F0<span style="color:#e6db74">}</span> -a <span style="color:#e6db74">${</span>PCIDEVICE_OPENSHIFT_IO_E810_ENS4F1<span style="color:#e6db74">}</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>-n <span style="color:#ae81ff">4</span> -- -i --nb-cores<span style="color:#f92672">=</span><span style="color:#ae81ff">15</span> --rxd<span style="color:#f92672">=</span><span style="color:#ae81ff">4096</span> --txd<span style="color:#f92672">=</span><span style="color:#ae81ff">4096</span> --rxq<span style="color:#f92672">=</span><span style="color:#ae81ff">7</span> --txq<span style="color:#f92672">=</span><span style="color:#ae81ff">7</span> --forward-mode<span style="color:#f92672">=</span>mac <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>--eth-peer<span style="color:#f92672">=</span>0,50:00:00:00:00:01 --eth-peer<span style="color:#f92672">=</span>1,50:00:00:00:00:02
+</span></span><span style="display:flex;"><span>EAL: Detected <span style="color:#ae81ff">96</span> lcore<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>EAL: Detected <span style="color:#ae81ff">2</span> NUMA nodes
+</span></span><span style="display:flex;"><span>EAL: Multi-process socket /var/run/dpdk/rte/mp_socket
+</span></span><span style="display:flex;"><span>EAL: Selected IOVA mode <span style="color:#e6db74">&#39;VA&#39;</span>
+</span></span><span style="display:flex;"><span>EAL: No available hugepages reported in hugepages-2048kB
+</span></span><span style="display:flex;"><span>EAL: Probing VFIO support...
+</span></span><span style="display:flex;"><span>EAL: VFIO support initialized
+</span></span><span style="display:flex;"><span>EAL:   using IOMMU type <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>Type 1<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>EAL: Probe PCI driver: net_iavf <span style="color:#f92672">(</span>8086:1889<span style="color:#f92672">)</span> device: 0000:37:01.2 <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>EAL: Probe PCI driver: net_iavf <span style="color:#f92672">(</span>8086:1889<span style="color:#f92672">)</span> device: 0000:37:09.2 <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>EAL: No legacy callbacks, legacy socket not created
+</span></span><span style="display:flex;"><span>Interactive-mode selected
+</span></span><span style="display:flex;"><span>Set mac packet forwarding mode
+</span></span><span style="display:flex;"><span>testpmd: create a new mbuf pool &lt;mb_pool_0&gt;: n<span style="color:#f92672">=</span>267456, size<span style="color:#f92672">=</span>2176, socket<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>testpmd: preferred mempool ops selected: ring_mp_mc
+</span></span><span style="display:flex;"><span>Configuring Port <span style="color:#ae81ff">0</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>2<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>3<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>4<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>5<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>6<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 0: link state change event
+</span></span><span style="display:flex;"><span>Port 0: 62:B9:05:82:48:DB
+</span></span><span style="display:flex;"><span>Configuring Port <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>2<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>3<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>4<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>5<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>iavf_configure_queues<span style="color:#f92672">()</span>: RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> is not supported, request default RXDID<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> in Queue<span style="color:#f92672">[</span>6<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Port 1: link state change event
+</span></span><span style="display:flex;"><span>Port 1: 4E:88:D9:B9:80:31
+</span></span><span style="display:flex;"><span>Checking link statuses...
+</span></span><span style="display:flex;"><span>Done
+</span></span><span style="display:flex;"><span>testpmd&gt;
+</span></span></code></pre></div><p>Set promiscuous mode off:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>testpmd&gt; set promisc all off
+</span></span></code></pre></div><p>Everything seems ok. But no many traffic there yet:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>testpmd&gt; start
+</span></span><span style="display:flex;"><span>mac packet forwarding - ports<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> - cores<span style="color:#f92672">=</span><span style="color:#ae81ff">14</span> - streams<span style="color:#f92672">=</span><span style="color:#ae81ff">14</span> - NUMA support enabled, MP allocation mode: native
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">5</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:02
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">6</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:01
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">7</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:02
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">8</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:01
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">9</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:02
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">10</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:01
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">11</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:02
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">52</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:01
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">53</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:02
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">54</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:01
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">55</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:02
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">56</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:01
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">57</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">6</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">6</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:02
+</span></span><span style="display:flex;"><span>Logical Core <span style="color:#ae81ff">58</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> forwards packets on <span style="color:#ae81ff">1</span> streams:
+</span></span><span style="display:flex;"><span>  RX P<span style="color:#f92672">=</span>1/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">6</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> -&gt; TX P<span style="color:#f92672">=</span>0/Q<span style="color:#f92672">=</span><span style="color:#ae81ff">6</span> <span style="color:#f92672">(</span>socket 0<span style="color:#f92672">)</span> peer<span style="color:#f92672">=</span>50:00:00:00:00:01
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  mac packet forwarding packets/burst<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>  nb forwarding cores<span style="color:#f92672">=</span><span style="color:#ae81ff">15</span> - nb forwarding ports<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>  port 0: RX queue number: <span style="color:#ae81ff">7</span> Tx queue number: <span style="color:#ae81ff">7</span>
+</span></span><span style="display:flex;"><span>    Rx offloads<span style="color:#f92672">=</span>0x0 Tx offloads<span style="color:#f92672">=</span>0x10000
+</span></span><span style="display:flex;"><span>    RX queue: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>      RX desc<span style="color:#f92672">=</span><span style="color:#ae81ff">4096</span> - RX free threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>      RX threshold registers: pthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> hthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>  wthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>      RX Offloads<span style="color:#f92672">=</span>0x0
+</span></span><span style="display:flex;"><span>    TX queue: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>      TX desc<span style="color:#f92672">=</span><span style="color:#ae81ff">4096</span> - TX free threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>      TX threshold registers: pthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> hthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>  wthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>      TX offloads<span style="color:#f92672">=</span>0x10000 - TX RS bit threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>  port 1: RX queue number: <span style="color:#ae81ff">7</span> Tx queue number: <span style="color:#ae81ff">7</span>
+</span></span><span style="display:flex;"><span>    Rx offloads<span style="color:#f92672">=</span>0x0 Tx offloads<span style="color:#f92672">=</span>0x10000
+</span></span><span style="display:flex;"><span>    RX queue: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>      RX desc<span style="color:#f92672">=</span><span style="color:#ae81ff">4096</span> - RX free threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>      RX threshold registers: pthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> hthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>  wthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>      RX Offloads<span style="color:#f92672">=</span>0x0
+</span></span><span style="display:flex;"><span>    TX queue: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>      TX desc<span style="color:#f92672">=</span><span style="color:#ae81ff">4096</span> - TX free threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>      TX threshold registers: pthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> hthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>  wthresh<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>      TX offloads<span style="color:#f92672">=</span>0x10000 - TX RS bit threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>testpmd&gt; show port stats all
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">######################## NIC statistics for port 0  ########################</span>
+</span></span><span style="display:flex;"><span>  RX-packets: <span style="color:#ae81ff">258</span>        RX-missed: <span style="color:#ae81ff">0</span>          RX-bytes:  <span style="color:#ae81ff">24666</span>
+</span></span><span style="display:flex;"><span>  RX-errors: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  RX-nombuf:  <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  TX-packets: <span style="color:#ae81ff">7</span>          TX-errors: <span style="color:#ae81ff">0</span>          TX-bytes:  <span style="color:#ae81ff">2292</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  Throughput <span style="color:#f92672">(</span>since last show<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  Rx-pps:            <span style="color:#ae81ff">0</span>          Rx-bps:            <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  Tx-pps:            <span style="color:#ae81ff">0</span>          Tx-bps:            <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">############################################################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">######################## NIC statistics for port 1  ########################</span>
+</span></span><span style="display:flex;"><span>  RX-packets: <span style="color:#ae81ff">258</span>        RX-missed: <span style="color:#ae81ff">0</span>          RX-bytes:  <span style="color:#ae81ff">24666</span>
+</span></span><span style="display:flex;"><span>  RX-errors: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  RX-nombuf:  <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  TX-packets: <span style="color:#ae81ff">7</span>          TX-errors: <span style="color:#ae81ff">0</span>          TX-bytes:  <span style="color:#ae81ff">2292</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  Throughput <span style="color:#f92672">(</span>since last show<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  Rx-pps:            <span style="color:#ae81ff">0</span>          Rx-bps:            <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  Tx-pps:            <span style="color:#ae81ff">0</span>          Tx-bps:            <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">############################################################################</span>
+</span></span></code></pre></div><p>We need to initiate the Traffic Generator to see how packets are received and forwarded.</p>
+<h2 id="running-trex">Running Trex<a href="#running-trex" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>We use <a href="https://trex-tgn.cisco.com/">TRex</a> as a traffic generator.</p>
+<p>From the previous cloned git repository:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; cd trex
+</span></span><span style="display:flex;"><span>$&gt; vim pods/trex.yaml
+</span></span></code></pre></div><p>and edit the &rsquo;trex.yaml&rsquo; to configure the traffic generator</p>
+<p>It is important to configure the Networks according to the peers (MAC addresses) configured on the Testpmd.
+&rsquo;trex.yaml`</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">annotations</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">k8s.v1.cni.cncf.io/networks</span>: <span style="color:#e6db74">&#39;[
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       &#34;name&#34;: &#34;sriov-nw-du-test-pmd-e810-ens4f0&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       &#34;mac&#34;: &#34;50:00:00:00:00:01&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       &#34;namespace&#34;: &#34;testpmd&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      },
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       &#34;name&#34;: &#34;sriov-nw-du-test-pmd-e810-ens4f1&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       &#34;mac&#34;: &#34;50:00:00:00:00:02&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       &#34;namespace&#34;: &#34;testpmd&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    ]&#39;</span>
+</span></span></code></pre></div><p>The &lsquo;mac_telc0&rsquo; and &lsquo;mac_telco1&rsquo; variables on the part of the script &rsquo;testpmd_addr.py&rsquo; , again, with the proper MAC addresses.</p>
+<p>IPs are not important here, we are only using MACs</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">testpmd_addr.py</span>: |<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    # wild second XL710 mac
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    mac_telco0 = &#39;50:00:00:00:00:01&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    # we don’t care of the IP in this phase
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    ip_telco0  = &#39;10.0.0.1&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    # wild first XL710 mac
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    mac_telco1 = &#39;50:00:00:00:00:02&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    ip_telco1 = &#39;10.1.1.1&#39;</span>    
+</span></span></code></pre></div><p>With everything configured, create the trex deployment:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; oc -n testpmd apply -f pods/trex.yaml
+</span></span><span style="display:flex;"><span>configmap/trex-info-for-config created
+</span></span><span style="display:flex;"><span>configmap/trex-config-template created
+</span></span><span style="display:flex;"><span>configmap/trex-tests created
+</span></span><span style="display:flex;"><span>pod/trex created
+</span></span></code></pre></div><p>Now, we will configure the &lsquo;/etc/trex_cfg.yaml&rsquo;.</p>
+<blockquote>
+<p>Together with the deployment there is on script trying to make configuration automatically. But it seems is failing about detecting the &rsquo;latency_thread&rsquo;, the socket and interfaces.
+So, double-check everything manually.</p>
+</blockquote>
+<p>Mainly we need info about the CPUS and the Network interfaces:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; oc -n testpmd rsh trex
+</span></span><span style="display:flex;"><span>sh-5.1# echo $PCIDEVICE_OPENSHIFT_IO_E810_ENS4F0
+</span></span><span style="display:flex;"><span>0000:86:01.5
+</span></span><span style="display:flex;"><span>sh-5.1# echo $PCIDEVICE_OPENSHIFT_IO_E810_ENS4F1
+</span></span><span style="display:flex;"><span>0000:86:09.6
+</span></span><span style="display:flex;"><span>sh-5.1# cat /sys/fs/cgroup/cpuset/cpuset.cpus
+</span></span><span style="display:flex;"><span>26-33,74-81
+</span></span></code></pre></div><p>Use this information to double-check &lsquo;/etc/trex_cfg.yaml&rsquo;:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#ae81ff">sh-4.4# cat /etc/trex_cfg.yaml</span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">port_limit</span>: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">version</span>: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">interfaces</span>: [<span style="color:#e6db74">&#34;0000:86:09.6&#34;</span>,<span style="color:#e6db74">&#34;0000:86:01.5&#34;</span>]
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">port_bandwidth_gb</span>: <span style="color:#ae81ff">25</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">port_info</span>:
+</span></span><span style="display:flex;"><span>   - <span style="color:#f92672">ip</span>: <span style="color:#ae81ff">10.10.10.2</span>
+</span></span><span style="display:flex;"><span>     <span style="color:#f92672">default_gw</span>: <span style="color:#ae81ff">10.10.10.1</span>
+</span></span><span style="display:flex;"><span>   - <span style="color:#f92672">ip</span>: <span style="color:#ae81ff">10.10.20.2</span>
+</span></span><span style="display:flex;"><span>     <span style="color:#f92672">default_gw</span>: <span style="color:#ae81ff">10.10.20.1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">platform</span>:
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">master_thread_id</span>: <span style="color:#ae81ff">26</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">latency_thread_id</span>: <span style="color:#ae81ff">74</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">dual_if</span>:
+</span></span><span style="display:flex;"><span>     - <span style="color:#f92672">socket</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>       <span style="color:#f92672">threads</span>: [<span style="color:#ae81ff">27</span>,<span style="color:#ae81ff">28</span>,<span style="color:#ae81ff">29</span>,<span style="color:#ae81ff">30</span>,<span style="color:#ae81ff">31</span>,<span style="color:#ae81ff">32</span>,<span style="color:#ae81ff">33</span>,<span style="color:#ae81ff">75</span>,<span style="color:#ae81ff">76</span>,<span style="color:#ae81ff">77</span>,<span style="color:#ae81ff">78</span>,<span style="color:#ae81ff">79</span>,<span style="color:#ae81ff">80</span>,<span style="color:#ae81ff">81</span>]
+</span></span></code></pre></div><p>Check the interfaces belongs to the PCI addressees of our VFs.</p>
+<p>From the list of CPUs assigned to the Pod, we get the first CPU (26) and its sibling (74) as master/latency threads. We put these two CPUs out of the thread list.</p>
+<p>Siblings can be obtained from inside the pod:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sh-5.1# cat /sys/devices/system/cpu/cpu26/topology/core_cpus_list
+</span></span><span style="display:flex;"><span>26,74
+</span></span></code></pre></div><p>Important: Check the socket used by the CPUs and Network interfaces. In this example, all belong to socket: 1.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sh-5.1# lscpu -e
+</span></span><span style="display:flex;"><span>CPU NODE SOCKET CORE L1d:L1i:L2:L3 ONLINE
+</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">0</span>    <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>    <span style="color:#ae81ff">0</span> 0:0:0:0          yes
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">24</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">24</span> 32:32:32:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">25</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">25</span> 33:33:33:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">26</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">26</span> 34:34:34:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">27</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">27</span> 35:35:35:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">28</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">28</span> 36:36:36:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">29</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">29</span> 37:37:37:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">30</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">30</span> 38:38:38:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">31</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">31</span> 41:41:41:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">32</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">32</span> 42:42:42:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">33</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">33</span> 43:43:43:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">34</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">34</span> 44:44:44:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">35</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">35</span> 45:45:45:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">36</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">36</span> 48:48:48:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">37</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">37</span> 49:49:49:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">38</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">38</span> 50:50:50:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">39</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">39</span> 51:51:51:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">40</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">40</span> 52:52:52:1       yes
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">94</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">46</span> 60:60:60:1       yes
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">95</span>    <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">1</span>   <span style="color:#ae81ff">47</span> 61:61:61:1       yes
+</span></span><span style="display:flex;"><span>sh-5.1#
+</span></span><span style="display:flex;"><span>sh-5.1#  lspci -v -nn -mm -k -s <span style="color:#e6db74">${</span>PCIDEVICE_OPENSHIFT_IO_E810_ENS4F0<span style="color:#e6db74">}</span>
+</span></span><span style="display:flex;"><span>Slot:    86:01.5
+</span></span><span style="display:flex;"><span>Class:    Ethernet controller <span style="color:#f92672">[</span>0200<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Vendor:    Intel Corporation <span style="color:#f92672">[</span>8086<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Device:    Ethernet Adaptive Virtual Function <span style="color:#f92672">[</span>1889<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>SVendor:    Intel Corporation <span style="color:#f92672">[</span>8086<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>SDevice:    Device <span style="color:#f92672">[</span>0000<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Rev:    <span style="color:#ae81ff">02</span>
+</span></span><span style="display:flex;"><span>Driver:    vfio-pci
+</span></span><span style="display:flex;"><span>Module:    iavf
+</span></span><span style="display:flex;"><span>NUMANode:    <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>IOMMUGroup:    <span style="color:#ae81ff">192</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>sh-5.1#  lspci -v -nn -mm -k -s <span style="color:#e6db74">${</span>PCIDEVICE_OPENSHIFT_IO_E810_ENS4F1<span style="color:#e6db74">}</span>
+</span></span><span style="display:flex;"><span>Slot:    86:09.6
+</span></span><span style="display:flex;"><span>Class:    Ethernet controller <span style="color:#f92672">[</span>0200<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Vendor:    Intel Corporation <span style="color:#f92672">[</span>8086<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Device:    Ethernet Adaptive Virtual Function <span style="color:#f92672">[</span>1889<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>SVendor:    Intel Corporation <span style="color:#f92672">[</span>8086<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>SDevice:    Device <span style="color:#f92672">[</span>0000<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Rev:    <span style="color:#ae81ff">02</span>
+</span></span><span style="display:flex;"><span>Driver:    vfio-pci
+</span></span><span style="display:flex;"><span>Module:    iavf
+</span></span><span style="display:flex;"><span>NUMANode:    <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>IOMMUGroup:    <span style="color:#ae81ff">201</span>
+</span></span></code></pre></div><p>With everything configured, lets run trex server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sh-5.1# ./t-rex-64 --no-ofed-check --no-hw-flow-stat -i -c <span style="color:#ae81ff">14</span>
+</span></span><span style="display:flex;"><span>Starting Scapy server..... Scapy server is started
+</span></span><span style="display:flex;"><span>The ports are bound/configured.
+</span></span><span style="display:flex;"><span>Starting  TRex v3.00 please wait  ...
+</span></span><span style="display:flex;"><span>iavf_execute_vf_cmd<span style="color:#f92672">()</span>: Cmd <span style="color:#ae81ff">26</span> not supported
+</span></span><span style="display:flex;"><span>iavf_set_hena<span style="color:#f92672">()</span>: Failed to execute command of OP_SET_RSS_HENA
+</span></span><span style="display:flex;"><span>iavf_execute_vf_cmd<span style="color:#f92672">()</span>: Cmd <span style="color:#ae81ff">26</span> not supported
+</span></span><span style="display:flex;"><span>iavf_set_hena<span style="color:#f92672">()</span>: Failed to execute command of OP_SET_RSS_HENA
+</span></span><span style="display:flex;"><span> set driver name net_iavf
+</span></span><span style="display:flex;"><span> driver capability  : TCP_UDP_OFFLOAD  TSO  SLRO
+</span></span><span style="display:flex;"><span> set dpdk queues mode to MULTI_QUE
+</span></span><span style="display:flex;"><span> Number of ports found: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>zmq publisher at: tcp://*:4500
+</span></span><span style="display:flex;"><span> wait <span style="color:#ae81ff">1</span> sec .
+</span></span><span style="display:flex;"><span>port : <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>------------
+</span></span><span style="display:flex;"><span>link         :  link : Link Up - speed <span style="color:#ae81ff">25000</span> Mbps - full-duplex
+</span></span><span style="display:flex;"><span>promiscuous  : <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>port : <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>------------
+</span></span><span style="display:flex;"><span>link         :  link : Link Up - speed <span style="color:#ae81ff">25000</span> Mbps - full-duplex
+</span></span><span style="display:flex;"><span>promiscuous  : <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span> number of ports         : <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span> max cores <span style="color:#66d9ef">for</span> <span style="color:#ae81ff">2</span> ports   : <span style="color:#ae81ff">14</span>
+</span></span><span style="display:flex;"><span> tx queues per port      : <span style="color:#ae81ff">16</span>
+</span></span><span style="display:flex;"><span> -------------------------------
+</span></span><span style="display:flex;"><span>RX core uses TX queue number <span style="color:#ae81ff">65535</span> on all ports
+</span></span><span style="display:flex;"><span> core, c-port, c-queue, s-port, s-queue, lat-queue
+</span></span><span style="display:flex;"><span> ------------------------------------------
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">1</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">2</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">1</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">3</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">2</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">2</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">4</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">3</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">3</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">5</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">4</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">4</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">6</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">5</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">5</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">7</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">6</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">6</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">8</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">7</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">7</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">9</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">8</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">8</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">10</span>        <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">9</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">9</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">11</span>        <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">10</span>       <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">10</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">12</span>        <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">11</span>       <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">11</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">13</span>        <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">12</span>       <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">12</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> <span style="color:#ae81ff">14</span>        <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">13</span>       <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">13</span>    <span style="color:#ae81ff">255</span>
+</span></span><span style="display:flex;"><span> -------------------------------
+</span></span></code></pre></div><p>after some secs you will see something like:</p>
+<p><img src="assets/2022-11-15-13-36-47-image.png" alt=""></p>
+<p>Now, it is time to open a new console to run some packet&rsquo;s simulation:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc rsh trex
+</span></span><span style="display:flex;"><span>sh-5.1#  ./trex-console
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Using <span style="color:#e6db74">&#39;python3&#39;</span> as Python interpeter
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Connecting to RPC server on localhost:4501                   <span style="color:#f92672">[</span>SUCCESS<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Connecting to publisher server on localhost:4500             <span style="color:#f92672">[</span>SUCCESS<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Acquiring ports <span style="color:#f92672">[</span>0, 1<span style="color:#f92672">]</span>:                                      <span style="color:#f92672">[</span>SUCCESS<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*** Warning - Port <span style="color:#ae81ff">0</span> destination is unresolved ***
+</span></span><span style="display:flex;"><span>*** Warning - Port <span style="color:#ae81ff">1</span> destination is unresolved ***
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Server Info:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Server version:   v3.00 @ STL
+</span></span><span style="display:flex;"><span>Server mode:      Stateless
+</span></span><span style="display:flex;"><span>Server CPU:       <span style="color:#ae81ff">14</span> x Intel<span style="color:#f92672">(</span>R<span style="color:#f92672">)</span> Xeon<span style="color:#f92672">(</span>R<span style="color:#f92672">)</span> Gold 5220R CPU @ 2.20GHz
+</span></span><span style="display:flex;"><span>Ports count:      <span style="color:#ae81ff">2</span> x 25.0Gbps @ Ethernet Adaptive Virtual Function
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-<span style="color:#f92672">=</span>TRex Console v3.0<span style="color:#f92672">=</span>-
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Type <span style="color:#e6db74">&#39;help&#39;</span> or <span style="color:#e6db74">&#39;?&#39;</span> <span style="color:#66d9ef">for</span> supported actions
+</span></span></code></pre></div><p>Execute &rsquo;tui&rsquo; command to enter in a visual/dashboard with statistics of what is happening on the ports. Not very much should be happening yet.</p>
+<p>Together with the deployment, it was included a python application that will make a packet simulation. Lets run the packet simulation on port 0, sending 1 million packets per second.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>tui&gt; start -f /opt/tests/testpmd.py -m 1mpps -p0
+</span></span></code></pre></div><p>What is happening now?</p>
+<p>The test application is sending packets through Trex Port 0, which is sending the packages to Testpmd Port 0. Then, Testpmd is configured to forward everything to Testpmd Port 1. From there, the packages are received by Trex Port 1.</p>
+<p><img src="assets/2022-11-16-12-31-41-output.gif" alt=""></p>
+<p>You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd seems to be doing ports forward correctly.</p>
+<p>We can see something similar if we go back to testpmd to check its statistics:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>testpmd&gt; show port stats all
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">######################## NIC statistics for port 0  ########################</span>
+</span></span><span style="display:flex;"><span>  RX-packets: <span style="color:#ae81ff">156912848</span>  RX-missed: <span style="color:#ae81ff">0</span>          RX-bytes:  <span style="color:#ae81ff">8787319976</span>
+</span></span><span style="display:flex;"><span>  RX-errors: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  RX-nombuf:  <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  TX-packets: <span style="color:#ae81ff">840</span>        TX-errors: <span style="color:#ae81ff">0</span>          TX-bytes:  <span style="color:#ae81ff">245942</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  Throughput <span style="color:#f92672">(</span>since last show<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  Rx-pps:            <span style="color:#ae81ff">0</span>          Rx-bps:          <span style="color:#ae81ff">672</span>
+</span></span><span style="display:flex;"><span>  Tx-pps:            <span style="color:#ae81ff">0</span>          Tx-bps:          <span style="color:#ae81ff">672</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">############################################################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">######################## NIC statistics for port 1  ########################</span>
+</span></span><span style="display:flex;"><span>  RX-packets: <span style="color:#ae81ff">848</span>        RX-missed: <span style="color:#ae81ff">0</span>          RX-bytes:  <span style="color:#ae81ff">247976</span>
+</span></span><span style="display:flex;"><span>  RX-errors: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  RX-nombuf:  <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  TX-packets: <span style="color:#ae81ff">156912840</span>  TX-errors: <span style="color:#ae81ff">0</span>          TX-bytes:  <span style="color:#ae81ff">9414965942</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  Throughput <span style="color:#f92672">(</span>since last show<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  Rx-pps:            <span style="color:#ae81ff">0</span>          Rx-bps:          <span style="color:#ae81ff">672</span>
+</span></span><span style="display:flex;"><span>  Tx-pps:            <span style="color:#ae81ff">0</span>          Tx-bps:          <span style="color:#ae81ff">672</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">############################################################################</span>
+</span></span></code></pre></div><p>Here, Port 0 RX-packets and  Port 1 TX-packets are mostly the same.</p>
+<h1 id="todo-and-future-work">ToDo and future work<a href="#todo-and-future-work" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>In a second tutorial, we will go further about the different SCCs needed for running DPDK, and we will play with the different speeds of the card.</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://jgato.github.io/jgato/posts/redfish-sushy/">
+                <span class="button__text">Sushy tools and Redfish tutorial </span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://jgato.github.io/jgato/assets/main.js"></script>
+<script src="https://jgato.github.io/jgato/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

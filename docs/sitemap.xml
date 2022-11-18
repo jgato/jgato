@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://jgato.github.io/jgato/posts/intel_e810_ztp/</loc>
+    <lastmod>2022-11-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/e810/</loc>
+    <lastmod>2022-11-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/gitops/</loc>
+    <lastmod>2022-11-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/posts/</loc>
+    <lastmod>2022-11-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/sriov/</loc>
+    <lastmod>2022-11-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/</loc>
+    <lastmod>2022-11-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/ztp/</loc>
+    <lastmod>2022-11-18T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://jgato.github.io/jgato/</loc>
     <lastmod>2022-09-16T11:19:12+02:00</lastmod>
   </url><url>
@@ -11,9 +32,6 @@
     <loc>https://jgato.github.io/jgato/tags/kcli/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://jgato.github.io/jgato/posts/</loc>
-    <lastmod>2022-09-16T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://jgato.github.io/jgato/tags/redfish/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
@@ -21,9 +39,6 @@
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jgato.github.io/jgato/posts/redfish-sushy/</loc>
-    <lastmod>2022-09-16T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://jgato.github.io/jgato/tags/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jgato.github.io/jgato/tags/ipv6/</loc>
