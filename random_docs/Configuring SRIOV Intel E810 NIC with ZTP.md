@@ -1,6 +1,7 @@
-# Configuring SRIOV Intel E810 NIC with ZTP.
+# Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning.
 
-In this tutorial we will see the different steps to use ZTP, to configure Intel E810 NICs from an Openshift cluster. It covers:
+In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance.
+The tutorial covers:
 
 * Deploy an Single Node Openshift with ZTP
 
@@ -8,15 +9,19 @@ In this tutorial we will see the different steps to use ZTP, to configure Intel 
 
 * Automatically configure your E810 cards with ZTP. 
 
-As our SNO, we will use a server HPE DL380 with some Intel E810 cards. These are pretty new card, that for example, will need latest versions of the traffic simulator.
+The SNO is an HPE DL380 server with different Intel E810 cards.
 
-The SNO deployment and configuration will be done using [Red Hat ZTP](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/scalability_and_performance/ztp-deploying-disconnected) (Zero Touch Provisioning). Which is based on ACM (Advanced Cluster Management), ArgoCD (to sync a git repository with an Openshift/Kubernetes cluster) and a set of tools called ZTP. These tools provide two new CRs, one for defining clusters (Siteconfig) and other for defining policies/configurations (PolicyGenTemplate)
+We deploy the SNO using [Red Hat ZTP](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/scalability_and_performance/ztp-deploying-disconnected) (Zero Touch Provisioning). Which is based on ACM (Advanced Cluster Management), ArgoCD (to sync a git repository with an Openshift/Kubernetes cluster) and a set of tools called ZTP. These tools provide two new CRs, in charge of defining deployments and configurations.
 
 Finally, with the cluster deployed and the SRIOV cards configured, we will run some tests. 
 
+The tutorial is based on previous work done by [Alberto Losada](https://github.com/alosadagrande/openshift-telco/) and this [Red Hat tutorial](https://access.redhat.com/articles/6969629). Here, the main differences are: the hardware used, and the Gitops ZTP workflow for deploying and configuring. 
+
 # Deploy an SNO using ZTP SiteConfig
 
-If you are familiar with ZTP, there is nothing special here. We define the SNO with a ZTP SiteConfig. If you want to learn more about ZTP you will find more info [here](https://docs.openshift.com/container-platform/4.10/scalability_and_performance/ztp-deploying-disconnected.html)
+If you are familiar with ZTP, you will see that the SiteConfig is pretty usual. It just contains the basic configuration to deploy an SNO.
+
+If you are not familiar with ZTP, you will find more info [here](https://docs.openshift.com/container-platform/4.10/scalability_and_performance/ztp-deploying-disconnected.html). But basically, you can see that SiteConfig defines your cluster deployment. Later, ArgoCD and ACM will start the cluster deployment. 
 
 ```yaml
 ---
@@ -88,9 +93,9 @@ spec:
 
 # Configure the SNO using ZTP PolicyGenTemplates
 
-ZTP makes uses of PolicyGenTemplates to make different configurations. Like installing different Operators and its configurations. 
+After deployment, ZTP uses PolicyGenTemplates (PGT) to make different configurations. Like installing different Operators and its configurations. 
 
-When installing a RAN server using ZTP, we usually use a kind of common PGT (PolicyGenTemplate) which installs different common operators:
+Here an usual example:
 
 ```yaml
 apiVersion: ran.openshift.io/v1
@@ -141,17 +146,26 @@ spec:
       policyName: "config-policy"
 ```
 
-This PGT install many different operators, including the SRIOV one. Following PGTs will configure these operators. Some of these operators will be slightly covered on this tutorial. But, we will focus on the part of SRIOV.
+In the following sections, we will show how to configure the PerformanceProfile and SRIOV operators. These are the keys to configure the server and the Intel E810 card, properly, to run the DPDK packet simulations.
 
 ## Configuring PerformanceProfile
 
-We will use the PerformanceProfile Operator to configure the PerformanceProfile for the server. We need to set which CPUS are going to be used by the platform, and which ones we keep for the workloads (our DPDK SRIOV Tests). We will also need to have Hugepages configured for later workloads. 
+Using this operator, we will configure a custom Performance Profile on the server. This profile covers some requirements we need, later, for our tests. 
 
-According lcpu 
+* CPU Pinning: split CPUS for the platform and the workloads (our DPDK SRIOV Tests). 
 
-```
+* Hugepages  configuration.
+
+To configure the CPU Pinning, lets see our available CPUS in the server:
+
+```bash
+$> lscpu
+...
+...
 NUMA node0 CPU(s):   0-23,48-71
 NUMA node1 CPU(s):   24-47,72-95
+...
+...
 ```
 
 The ',' separates the CPUS and the sibling. So, hyper threading is enabled. The sibling of each CPU can be obtained:
@@ -165,7 +179,7 @@ $> cat /sys/devices/system/cpu/cpu12/topology/core_cpus_list
 12,60
 ```
 
-We need 8 Reserved CPU for regular processes. But having in mind, that we have to pair also the siblings. So:
+We use 8 Reserved CPU for platform processes. But having in mind, that we have to pair also the siblings:
 
 * Take 2 from each NUMA:  
   
@@ -173,9 +187,11 @@ We need 8 Reserved CPU for regular processes. But having in mind, that we have t
   
   * From NUMA 1: CPUs 24 and 25 and their siblings 72,73
 
-All the other CPUs to the isolated. These have the lowest latency. Processes in this group have no interruptions and so can, for example, reach much higher DPDK zero packet loss bandwidth. We also disable IRQs on these CPUs with 'globallyDisableIrqLoadBalancing: true'
+All the other CPUs go to Isolated CPU pool. These have the lowest latency. Processes in this group have no interruptions and so can, for example, reach much higher DPDK zero packet loss bandwidth.
 
-In the PGT
+We also need 32 Hugepages of 1G. 
+
+The PGT to create the 'sno-perfprofile':
 
 ```yaml
   - fileName: PerformanceProfile.yaml                                             
@@ -210,9 +226,9 @@ In the PGT
         enabled: true                   
 ```
 
-Here the ',' in isolated and reserved are just enumerating CPUs. 
+Here the ',' in Isolated and Reserved are just enumerating CPUs. 
 
-you can check that ssh into the node:
+With the PGT applied, the server will be rebooted. Then, you can ssh the host to see the Performance Profile has been correctly configured:
 
 ```bash
 # cat  /proc/cmdline
@@ -238,7 +254,9 @@ HugePages_Surp:        0
 
 ## Configuring SRIOV
 
-### Understanding server SRIOV NIC configuration
+With the Operator installed, we will use another PGT to configure our SRIOV Intel E810 cards.
+
+### Checking  available SRIOV capable NICs
 
 When the SRIOV operator is installed, we can check the available NIC devices:
 
@@ -344,7 +362,7 @@ metadata:
   selfLink: ""
 ```
 
-We are only interested on Intel and E810 NIC Cards for this tutorial.
+We are only interested in Intel and E810 NIC Cards for this tutorial.
 
 Some IDs to locate the NICs in the Server:
 
@@ -360,10 +378,12 @@ Some IDs to locate the NICs in the Server:
 
 You can get more about that on [devicehunt](https://devicehunt.com/).
 
-We see there are multiple interfaces. For example, in this server there are 8 interfaces for the Intel and Identifier 1593: 
+We see there are multiple interfaces. For example, in this server there are 8 interfaces for the Identifier 1593 (E810-C for SFP): 
 
 ```bash
-$> oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml | grep 1593 -A 9 | grep name 
+$> oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml \
+ | grep 1593 -A 9 \
+ | grep name
       name: ens1f0
       name: ens1f1
       name: ens1f2
@@ -374,10 +394,12 @@ $> oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-ne
       name: ens4f3
 ```
 
-So, there really exists 2 cards (ens1 and ens4) with 4 physical ports each. Therefore, it is like 8 different NICs with their own MACs and configurations. Each one, supporting different virtual ports/interfaces (vfs) to be attached to PODs:
+So, there really exist 2 cards (ens1 and ens4) with 4 physical ports each. Therefore, it is like 8 different NICs with their own MACs and configurations. Each one, supporting different virtual ports/interfaces (vfs) to be attached to PODs:
 
 ```bash
-$> oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml | grep 1593 -A 9 | grep 'name\|totalvfs'
+$> oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml \
+ | grep 1593 -A 9 \
+ | grep 'name\|totalvfs'
       name: ens1f0
       totalvfs: 64
       name: ens1f1
@@ -399,7 +421,9 @@ $> oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-ne
 There are another 2 cards (en2 and ens5) for intel deviceID 1592, with 2 ports each.
 
 ```bash
-$> oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml | grep 1592 -A 9 | grep name 
+$> oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml \
+| grep 1592 -A 9 \
+| grep name 
       name: ens2f0
       name: ens2f1
       name: ens5f0
@@ -516,41 +540,15 @@ In this case, we have two cards (ens2 and ens5) with two ports each.
       vendor: "8086"
 ```
 
-In this case, the 4 ports are disconnected. In this moment, we cannot use/configure that card.
-
-Other way of inspecting the server. You can connect/ssh there and:
-
-```bash
-# lspci -nnvv | grep  8086:1592
-12:00.0 Ethernet controller [0200]: Intel Corporation Ethernet Controller E810-C for QSFP [8086:1592] (rev 02)
-12:00.1 Ethernet controller [0200]: Intel Corporation Ethernet Controller E810-C for QSFP [8086:1592] (rev 02)
-af:00.0 Ethernet controller [0200]: Intel Corporation Ethernet Controller E810-C for QSFP [8086:1592] (rev 02)
-af:00.1 Ethernet controller [0200]: Intel Corporation Ethernet Controller E810-C for QSFP [8086:1592] (rev 02)
-
-# ip a s | grep 'ens4\|ens1\|ens2\|ens5'
-6: ens2f0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-7: ens2f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-10: ens1f0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
-11: ens1f1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
-12: ens1f2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-13: ens1f3: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-14: ens4f0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
-15: ens4f1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
-16: ens4f2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-17: ens4f3: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-18: ens5f0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-19: ens5f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-```
-
-you can use ip command to see which interfaces are connected or not (UP or DOWN)
+In this case, the 4 ports are disconnected. At this moment, we cannot use that card.
 
 ### Creating PGT for virtual devices and networks
 
-Now we have a clear picture of the server NICs. Summary:
+Now we have a clear picture of the available NICs. Summary:
 
 - (1592 CQDA4) Ethernet Controller E810-C for QSFP
   
-  - ens2 and ens5 both ports disconnected
+  - ens2 and ens5 with all the ports disconnected
 
 - (1593 XXVDA4) Intel Ethernet Controller E810-C for SFP
   
@@ -570,9 +568,9 @@ Now we have a clear picture of the server NICs. Summary:
   
   - ens1f3 disconnected
 
-We only have 4 available NICs, but we can use SRIOV and VFS to split this cards into multiple network interface. Each virtual network interface is assigned with a number of VFS. And each one exposed to be used by PODs with a network attached.
+We only have 4 available NICs, but we can use SRIOV and VFS to split these cards into multiple network interfaces. These VFs are exposed to be used by PODs with a network attached.
 
-With all these devices we could create different network devices and networks. Following, we show an example to get some VFs from ens4f0/ens4f1 and creating two networks. This will be used later in the example 'Playing with DPDK'. 
+Following, we show an example to get some VFs from ens4f0/ens4f1 and create two networks. These will be the interfaces and networks used in our testing example. 
 
 ```yaml
 ---
@@ -650,7 +648,7 @@ After ZTP does all the work, you will see the devices and networks created.
 Network devices:
 
 ```bash
-> oc -n openshift-sriov-network-operator   get sriovnetworknodepolicies.sriovnetwork.openshift.io 
+> oc -n openshift-sriov-network-operator get sriovnetworknodepolicies.sriovnetwork.openshift.io 
 NAME          AGE
 default       7d1h
 e810-ens4f0   20m
@@ -660,7 +658,7 @@ e810-ens4f1   20m
 The created networks:
 
 ```bash
-> oc -n openshift-sriov-network-operator   get sriovnetwork 
+> oc -n openshift-sriov-network-operator get sriovnetwork 
 NAME                               AGE
 sriov-nw-du-test-pmd-e810-ens4f0   38m
 sriov-nw-du-test-pmd-e810-ens4f1   38m
@@ -669,7 +667,8 @@ sriov-nw-du-test-pmd-e810-ens4f1   38m
 and more important, you can see the devices available in the node:
 
 ```bash
-> oc get node master-0.intel-1-sno-1.hubcluster-1.lab.eng.cert.redhat.com  -o jsonpath={.status.allocatable} | jq
+> oc get node master-0.intel-1-sno-1.hubcluster-1.lab.eng.cert.redhat.com \
+  -o jsonpath={.status.allocatable} | jq
 {
   "cpu": "88",
   "ephemeral-storage": "468283204Ki",
@@ -682,7 +681,7 @@ and more important, you can see the devices available in the node:
 }
 ```
 
-These 'openshift.io/e810_*' resources will be requested later in the deployment of TestPMD and TRex.
+These 'openshift.io/e810_*' resources will be requested later in the deployment of TestPMD and TRex (our tests).
 
 
 
@@ -696,11 +695,9 @@ In this section we will test a DPDK application using some of the configurations
 
 ![](assets/2022-11-16-12-51-50-image.png)
 
-According to pic/architecture, we need 4 different ports. These ports will not be real physical ones, these will be 4 VFS from SRIOV NICs. We have already configured this environment and the needed VFs and Networks in a section above.
+According to the picture, we need 4 different ports. These ports will not be real physical ones, these will be 4 VFS from SRIOV NICs. We have already configured this environment, and the needed VFs and Networks in a section above.
 
 Traffic Generator will send packets from VF0 and this will be received by Testpmd VF1. Then Testpmd will forward packets to the VF2, and from there, it will reach back to Trex on the VF3.
-
-We are using an SNO, so everything remains in the same server.
 
 First of all, lets download the deployments for the TestPMD and the Traffic Generator:
 
@@ -711,11 +708,11 @@ $> git clone https://github.com/jgato/openshift-telco.git
 $> cd openshift-telco/
 ```
 
-I am using a fork repository, where I have done some modifications adapted to this tutorial.
+*I am using a forked repository, where I have done some modifications adapted to this tutorial.*
 
 ## Running TestPMD
 
-*[testPMD](https://doc.dpdk.org/guides/testpmd_app_ug/) is an application used to test DPDK in a packet forwarding mode and also to access NIC hardware features such as Flow Director.*
+*[testPMD](https://doc.dpdk.org/guides/testpmd_app_ug/) is an application used to test DPDK in a packet forwarding mode and also to access NIC hardware features such as Flow Director.* In our case, TestPMD will basically forward packets between two ports.
 
 Some pre-requirements:
 
@@ -727,19 +724,7 @@ Some pre-requirements:
   
   * Two networks
 
-All these requirements have be fulfilled with the PGTs created in the previous versions.
-
-Other deployment requirements:
-
-* SCC requirements:
-  
-  * serviceaccount with SCC 'privileged'
-
-* Deployment capabilities:
-  
-  * RunAsRoot
-  
-  * ["IPC_LOCK","SYS_RESOURCE","NET_RAW","NET_ADMIN"]
+All these requirements have been fulfilled with the PGTs created in the previous versions.
 
 Lets, edit the TestPMD deployment according to our previous configuration:
 
@@ -748,7 +733,7 @@ $> cd test-pmd/
 $> vim manifests/deployment-testpmd-rhel.yaml
 ```
 
-And configure to use one VF from ens4f0 and other from ens4f1. We also attach the pods to the previously created networks for these devices. 
+Configure the yaml to use one VF from ens4f0 and another from ens4f1. We also attach the pods to the previously created networks for these devices ('k8s.v1.cni.cncf.io/networks'). 
 
 ```yaml
 apiVersion: apps/v1
@@ -822,7 +807,7 @@ spec:
   test: false
 ```
 
-With this configuration, the POD will be connected to three networks and three network devices. Two of these devices are the SRIOV VFs on different ports of the card.
+With this configuration, the POD will be connected to three networks and three network devices. Two of these devices are the SRIOV VFs on different ports of the card: '"pci-address": "0000:86:09.2"' and '"pci-address": "0000:86:01.5"'
 
 ```yaml
 metadata:
@@ -870,30 +855,26 @@ metadata:
       }]
 ```
 
-The pod has assigned two pci-address that correspond to the VFs of each card/port. You can dig more about this with:
 
-```bash
-> oc get sriovnetworknodestates.sriovnetwork.openshift.io -n openshift-sriov-network-operator  -o yaml
-```
 
-The Deployment will create a Pod with the tools to lunch a DPDK test application. This test application will just forward what it receives by its Port 0 to the its Port 1. Port 0 and 1 are the VFS 1 and 2 in the figure. 
+The Deployment will create a Pod with the tools to use a DPDK test application. This test application will just forward what it receives by its Port 0 to its Port 1. Port 0 and 1 are the VFS 1 and 2 in the figure above.
 
-The test application will collect also metrics about the packets received/transmitted. 
+The test application will also collect metrics about the packets received/transmitted. 
 
 ```bash
 > oc apply -f manifests/deployment-testpmd-rhel.yaml 
 deployment.apps/testpmd-rhel created
 ```
 
-The deployment would take some time, when it creates the NS, the previously create sriovNetwoks (field networkNamespace: testpmd)  will create network-attachment-definitions in the NS.
+The Deployment would take some time, in order to create the 'network-attachment-definitions'. These are created because of the 'SriovNetwork' created previously. These were configured to point to the 'testpmd' namespace. 
+
+Once the Deployment is created, we can rsh there. 
 
 To run the testpmd is important to define two different peers. It will forward only what it came from peer 50:00:00:00:00:01 to peer 50:00:00:00:00:02. Later, we will configure TREX Ports with these MAC addresses:
 
-```
+```bash
 $> oc rsh testpmd-rhel-6789767d85-tx4z8
 sh-4.4# export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
-sh-4.4# echo ${CPU}
-4-11,52-59
 sh-4.4# testpmd -l ${CPU} -a ${PCIDEVICE_OPENSHIFT_IO_E810_ENS4F0} -a ${PCIDEVICE_OPENSHIFT_IO_E810_ENS4F1} \
 -n 4 -- -i --nb-cores=15 --rxd=4096 --txd=4096 --rxq=7 --txq=7 --forward-mode=mac \
 --eth-peer=0,50:00:00:00:00:01 --eth-peer=1,50:00:00:00:00:02
@@ -997,7 +978,7 @@ Set promiscuous mode off:
 testpmd> set promisc all off
 ```
 
-Everything seems ok. But nothing there yet:
+Everything seems ok. But no many traffic there yet:
 
 ```bash
 testpmd> start
@@ -1082,6 +1063,8 @@ We need to initiate the Traffic Generator to see how packets are received and fo
 
 ## Running Trex
 
+We use [TRex](https://trex-tgn.cisco.com/) as a traffic generator.
+
 From the previous cloned git repository:
 
 ```bash
@@ -1113,7 +1096,7 @@ metadata:
     ]' 
 ```
 
-The 'mac_telc0' and 'mac_telco1' variables on the part of the script 'testpmd_addr.py' with the proper MAC addresses. 
+The 'mac_telc0' and 'mac_telco1' variables on the part of the script 'testpmd_addr.py' , again, with the proper MAC addresses. 
 
 IPs are not important here, we are only using MACs
 
@@ -1142,6 +1125,8 @@ Now, we will configure the '/etc/trex_cfg.yaml'.
 
 > Together with the deployment there is on script trying to make configuration automatically. But it seems is failing about detecting the 'latency_thread', the socket and interfaces.
 > So, double-check everything manually.
+
+Mainly we need info about the CPUS and the Network interfaces:
 
 ```bash
 $> oc -n testpmd rsh trex
@@ -1337,11 +1322,11 @@ tui> start -f /opt/tests/testpmd.py -m 1mpps -p0
 
 What is happening now?
 
-The test application is sending packets through Trex Port 0, which is sending the packages to Testpmd Port 0. Then Testpmd is configured to forward everything Testpmd Port 1. From there, the packages are received by Trex Port 1.
+The test application is sending packets through Trex Port 0, which is sending the packages to Testpmd Port 0. Then, Testpmd is configured to forward everything to Testpmd Port 1. From there, the packages are received by Trex Port 1.
 
 ![](assets/2022-11-16-12-31-41-output.gif)
 
-You can see how Port 0 outpackets and Port 1 inputpackets are mostly the same. 
+You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd seems to be doing ports forward correctly.
 
 We can see something similar if we go back to testpmd to check its statistics:
 
@@ -1375,6 +1360,4 @@ Here, Port 0 RX-packets and  Port 1 TX-packets are mostly the same.
 
 # ToDo and future work
 
-Extend the tutorial about the SCCs needed for running DPDK and play with the different speeds of the ports.
-
-Maybe, I will cover this on a continuation tutorial.
+In a second tutorial, we will go further about the different SCCs needed for running DPDK, and we will play with the different speeds of the card.
