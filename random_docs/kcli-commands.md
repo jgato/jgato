@@ -53,8 +53,12 @@ $ kcli delete disk sno7_1.img
 and recreate it:
 
 ```bash
-$ kcli create disk -s 250 sno7
+$ kcli create disk --pool home-jgato -s 250 sno7
 ```
+
+optionally, I am using a not default pool
+
+
 
 ## Moving disks
 
@@ -66,7 +70,6 @@ Stop the VM
 [jgato@provisioner ~]$ kcli stop vm sno7
 Stopping vm sno7 in local...
 sno7 stopped
-
 ```
 
 Get the disk from your VM:
@@ -84,7 +87,6 @@ cpus: 16
 memory: 32768
 net interface: eth0 mac: 52:54:00:ff:b8:57 net: baremetal type: bridge
 diskname: vda disksize: 250GB diskformat: virtio type: qcow2 path: /var/lib/libvirt/images/sno7_0.img
-
 ```
 
 In principle we the disk, but you can move also the iso.
@@ -92,7 +94,6 @@ In principle we the disk, but you can move also the iso.
 ```bash
 [jgato@provisioner ~]$ sudo mv /var/lib/libvirt/images/sno7_0.img libvirt/pool/images/
 [sudo] password for jgato: 
-
 ```
 
 I move it to my '/home' because I have more room there.
@@ -116,8 +117,6 @@ Now edit the VM to change the disk location:
 ```
 
 Start the VM again.
-
-
 
 ## Create different configuration clients
 
