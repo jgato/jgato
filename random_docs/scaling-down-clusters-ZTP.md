@@ -46,7 +46,7 @@ In principle, if you delete a host in the SiteConfig, this will delete its corre
 
 Following some tests of what is happening when try to delete an object.
 
-### Deleting the BMH
+### Trying to delete a host
 
 In this example we can see a cluster with 3 masters and two workers, and the corresponding Agents and BMHs:
 
@@ -67,8 +67,6 @@ baremetalhost.metal3.io/worker-0.el8k-ztp-1.hpecloud.org   provisioned          
 baremetalhost.metal3.io/worker-1.el8k-ztp-1.hpecloud.org   provisioned              true             43m
 
 ```
-
-
 
 You can see the same from the GUI:
 
@@ -158,6 +156,12 @@ worker-1.el8k-ztp-1.hpecloud.org   Ready    worker          13m   v1.23.12+8a6bf
 
 Neither the Assisted Installer (controlling the Agent), nor the BareMetalOperator (controlling the BMH) really deleted, or removed, the host from the cluster.
 
+**[ToDo] maybe some logs from the BMO to see what is happening*
+
+### Automated Cleaning Mode on BMH
+
+*[Todo] to look about this feature, disabled by default on ZTP*
+
 
 
 ### Deleting hosts with ZTP
@@ -169,6 +173,14 @@ As explained above, ZTP and Gitops are only controlling AgentClusterInstall, BMH
 
 
 
+
+
+
+## Scaling down clusters with ZTP
+
+As explained above, there are still some [missing features](https://issues.redhat.com/browse/RFE-3431) that allows us a better removing, re-provisioning or scaling down of clusters. But some of our partners needs this functionality. Meanwhile, we can use ZTP, Policies and some manual work as a workaround.
+
+**[ToDo] Write the WA**
 
 
 
