@@ -182,6 +182,139 @@ As explained above, there are still some [missing features](https://issues.redha
 
 **[ToDo] Write the WA**
 
+We will create two Policies into our ZTP GitOps, and the corresponding Rules and Bindings. Something more about how ACM Works [here](https://github.com/jgato/jgato/blob/main/random_docs/ztp-zero-touch-all.md#configuring-with-acm-policies)
+
+The idea is to first taint the node (ideally should be drained) and then delete. Notice the deletion rule has less priority. So we ensure first to make it unschedulable:
+
+```yaml
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  annotations:
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    ran.openshift.io/ztp-deploy-wave: "22"
+  name: node-drain
+  namespace: policies-site
+spec:
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: node-drain-configurationpolicy
+      spec:
+        namespaceselector:
+          exclude:
+          - kube-*
+          include:
+          - '*'
+        object-templates:
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: v1
+            kind: Node
+            metadata:
+              name: worker-0.el8k-ztp-1.hpecloud.org
+            spec:
+              taints:
+              - effect: NoSchedule
+                key: node.kubernetes.io/unschedulable
+              unschedulable: true
+        remediationAction: inform
+        severity: low
+  remediationAction: inform
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  annotations:
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    ran.openshift.io/ztp-deploy-wave: "20"
+  name: node-remove
+  namespace: policies-site
+spec:
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: node-remove-configurationpolicy
+      spec:
+        namespaceselector:
+          exclude:
+          - kube-*
+          include:
+          - '*'
+        object-templates:
+        - complianceType: mustnothave
+          objectDefinition:
+            apiVersion: v1
+            kind: Node
+            metadata:
+              name: worker-0.el8k-ztp-1.hpecloud.org
+        remediationAction: inform
+        severity: low
+  remediationAction: inform
+
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: node-drain-remove-placementrules
+  namespace: policies-site
+spec:
+  clusterSelector:
+    matchExpressions:
+      - key: name
+        operator: In
+        values:
+          - el8k-ztp-1
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: node-drain-remove-placementbinding
+  namespace: policies-site
+placementRef:
+  apiGroup: apps.open-cluster-management.io
+  kind: PlacementRule
+  name: node-drain-remove-placementrules
+subjects:
+  - apiGroup: policy.open-cluster-management.io
+    kind: Policy
+    name: node-drain
+  - apiGroup: policy.open-cluster-management.io
+    kind: Policy
+    name: node-remove
+
+```
+
+
+
+This is working to delete the node, but is is not a very safe procedure. This Policy dont make the node drained before deleting. It just make it unschedulable. Also, after deleting the Node, the first Policy that keep it unschedulable will fail. Because, it tries to keep a non existing Node unschedulable. If we cannot drain it, maybe makes sense to just delete it. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
