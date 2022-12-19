@@ -138,7 +138,10 @@ The tutorial covers:</p>
 <p>Checking your E810 available cards and ports</p>
 </li>
 <li>
-<p>Automatically configure your E810 cards with ZTP.</p>
+<p>Automatically configure your SNO. Specially, the E810 cards with ZTP</p>
+</li>
+<li>
+<p>Testing the E810 card</p>
 </li>
 </ul>
 <p>The SNO is an HPE DL380 server with different Intel E810 cards.</p>
@@ -744,8 +747,8 @@ The tutorial covers:</p>
 </span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;pods&#34;</span>: <span style="color:#e6db74">&#34;250&#34;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
 </span></span></code></pre></div><p>These &lsquo;openshift.io/e810_*&rsquo; resources will be requested later in the deployment of TestPMD and TRex (our tests).</p>
-<h1 id="playing-with-dpdk">Playing with DPDK<a href="#playing-with-dpdk" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
-<p>In this section we will test a DPDK application using some of the configurations created in the previous sections. We will use TRex to generate traffic to a test dpdk (testpmd) application.</p>
+<h1 id="testing-configured-e810-cards">Testing configured E810 cards<a href="#testing-configured-e810-cards" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>In this section, we will use a DPDK test application with the configurations created in the previous sections. We will use TRex to generate traffic to a test dpdk (testpmd) application.</p>
 <p>*We basically re-use the work done by @alosadagrande from <a href="https://github.com/alosadagrande/openshift-telco/">here</a> and this <a href="https://access.redhat.com/articles/6969629">Red Hat Article</a>. *</p>
 <p><strong>Important to notice, this time, I am using an Intel E810 (which is supported with Trex 3.0 used later). Previous articles would be using other SRIOV cards.</strong></p>
 <p><img src="assets/2022-11-16-12-51-50-image.png" alt=""></p>
@@ -756,7 +759,7 @@ The tutorial covers:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; git clone https://github.com/jgato/openshift-telco.git
 </span></span><span style="display:flex;"><span>$&gt; cd openshift-telco/
 </span></span></code></pre></div><p><em>I am using a forked repository, where I have done some modifications adapted to this tutorial.</em></p>
-<h2 id="running-testpmd">Running TestPMD<a href="#running-testpmd" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<h2 id="running-testpmd-to-forward-packages">Running TestPMD to forward packages<a href="#running-testpmd-to-forward-packages" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p><em><a href="https://doc.dpdk.org/guides/testpmd_app_ug/">testPMD</a> is an application used to test DPDK in a packet forwarding mode and also to access NIC hardware features such as Flow Director.</em> In our case, TestPMD will basically forward packets between two ports.</p>
 <p>Some pre-requirements:</p>
 <ul>
@@ -776,7 +779,7 @@ The tutorial covers:</p>
 </li>
 </ul>
 <p>All these requirements have been fulfilled with the PGTs created in the previous versions.</p>
-<p>Lets, edit the TestPMD deployment according to our previous configuration:</p>
+<p>Lets,edit the TestPMD deployment according to our previous configuration:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; cd test-pmd/
 </span></span><span style="display:flex;"><span>$&gt; vim manifests/deployment-testpmd-rhel.yaml
 </span></span></code></pre></div><p>Configure the yaml to use one VF from ens4f0 and another from ens4f1. We also attach the pods to the previously created networks for these devices (&lsquo;k8s.v1.cni.cncf.io/networks&rsquo;).</p>
@@ -1077,7 +1080,7 @@ The tutorial covers:</p>
 </span></span><span style="display:flex;"><span>  Tx-pps:            <span style="color:#ae81ff">0</span>          Tx-bps:            <span style="color:#ae81ff">0</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">############################################################################</span>
 </span></span></code></pre></div><p>We need to initiate the Traffic Generator to see how packets are received and forwarded.</p>
-<h2 id="running-trex">Running Trex<a href="#running-trex" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<h2 id="running-trex-to-create-some-traffic">Running Trex to create some traffic<a href="#running-trex-to-create-some-traffic" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>We use <a href="https://trex-tgn.cisco.com/">TRex</a> as a traffic generator.</p>
 <p>From the previous cloned git repository:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; cd trex
@@ -1286,32 +1289,13 @@ So, double-check everything manually.</p>
 </span></span></code></pre></div><p>What is happening now?</p>
 <p>The test application is sending packets through Trex Port 0, which is sending the packages to Testpmd Port 0. Then, Testpmd is configured to forward everything to Testpmd Port 1. From there, the packages are received by Trex Port 1.</p>
 <p><img src="assets/2022-11-16-12-31-41-output.gif" alt=""></p>
-<p>You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd seems to be doing ports forward correctly.</p>
-<p>We can see something similar if we go back to testpmd to check its statistics:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>testpmd&gt; show port stats all
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">######################## NIC statistics for port 0  ########################</span>
-</span></span><span style="display:flex;"><span>  RX-packets: <span style="color:#ae81ff">156912848</span>  RX-missed: <span style="color:#ae81ff">0</span>          RX-bytes:  <span style="color:#ae81ff">8787319976</span>
-</span></span><span style="display:flex;"><span>  RX-errors: <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>  RX-nombuf:  <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>  TX-packets: <span style="color:#ae81ff">840</span>        TX-errors: <span style="color:#ae81ff">0</span>          TX-bytes:  <span style="color:#ae81ff">245942</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  Throughput <span style="color:#f92672">(</span>since last show<span style="color:#f92672">)</span>
-</span></span><span style="display:flex;"><span>  Rx-pps:            <span style="color:#ae81ff">0</span>          Rx-bps:          <span style="color:#ae81ff">672</span>
-</span></span><span style="display:flex;"><span>  Tx-pps:            <span style="color:#ae81ff">0</span>          Tx-bps:          <span style="color:#ae81ff">672</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">############################################################################</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">######################## NIC statistics for port 1  ########################</span>
-</span></span><span style="display:flex;"><span>  RX-packets: <span style="color:#ae81ff">848</span>        RX-missed: <span style="color:#ae81ff">0</span>          RX-bytes:  <span style="color:#ae81ff">247976</span>
-</span></span><span style="display:flex;"><span>  RX-errors: <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>  RX-nombuf:  <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>  TX-packets: <span style="color:#ae81ff">156912840</span>  TX-errors: <span style="color:#ae81ff">0</span>          TX-bytes:  <span style="color:#ae81ff">9414965942</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  Throughput <span style="color:#f92672">(</span>since last show<span style="color:#f92672">)</span>
-</span></span><span style="display:flex;"><span>  Rx-pps:            <span style="color:#ae81ff">0</span>          Rx-bps:          <span style="color:#ae81ff">672</span>
-</span></span><span style="display:flex;"><span>  Tx-pps:            <span style="color:#ae81ff">0</span>          Tx-bps:          <span style="color:#ae81ff">672</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">############################################################################</span>
-</span></span></code></pre></div><p>Here, Port 0 RX-packets and  Port 1 TX-packets are mostly the same.</p>
+<p>You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd is doing ports forward correctly and the card seems to be working at the expected speed: 25Gb/s.</p>
+<h1 id="summary">Summary<a href="#summary" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>For this tutorial, we have been working with the Intel E810 card. Pretty new card, which would not be compatible yet with all the environments. Using SNO4.10 and TRex 3.0 seems to be working properly. But it is important to notice, here, we only did a packets simulation (testing). All the real capabilities would not be supported.</p>
+<p>To deploy and configure an SNO server, to run 5G RAN workloads, can be complex, specially the first time until you reach the proper configuration. Without a tool/methodology like ZTP GitOps this is not only complex, it would be difficult to use at scale.</p>
+<p>In this tutorial, we have show an example to configure and have the server Ready to run DPDK applications (base for 5G RAN vDUs). After the testing, the configuration can be replicable and scalable in any number of different servers.</p>
+<p>Once that you have a Siteconfig defining your first SNO, this can be replicated in your GitOps repo. Just needing to adapt the different IPs,MACs, and nodes naming. After that, the tuned PolicyGenTemplates will be applied configuring all the SNO.</p>
+<p>In day-2 operations, if the configurations needs to be updated, this can be also done with the ZTP GitOps approach. Just making a change on a PolicyGenTemplate definition, it will automatically make the changes on all the selected servers. Modifying hundreds of servers is just a matter of making a new commit.</p>
 <h1 id="todo-and-future-work">ToDo and future work<a href="#todo-and-future-work" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
 <p>In a second tutorial, we will go further about the different SCCs needed for running DPDK, and we will play with the different speeds of the card.</p>
 
