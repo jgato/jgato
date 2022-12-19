@@ -12,7 +12,6 @@ readingTime = false
 hideComments = false
 +++
 
-
 # Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning.
 
 In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance.
@@ -22,7 +21,9 @@ The tutorial covers:
 
 * Checking your E810 available cards and ports
 
-* Automatically configure your E810 cards with ZTP.
+* Automatically configure your SNO. Specially, the E810 cards with ZTP
+
+* Testing the E810 card
 
 The SNO is an HPE DL380 server with different Intel E810 cards.
 
@@ -194,9 +195,9 @@ $> cat /sys/devices/system/cpu/cpu12/topology/core_cpus_list
 We use 8 Reserved CPU for platform processes. But having in mind, that we have to pair also the siblings:
 
 * Take 2 from each NUMA:
-
+  
   * From NUMA 0: CPUs 0 and 1, and their siblings 48, 49
-
+  
   * From NUMA 1: CPUs 24 and 25 and their siblings 72,73
 
 All the other CPUs go to Isolated CPU pool. These have the lowest latency. Processes in this group have no interruptions and so can, for example, reach much higher DPDK zero packet loss bandwidth.
@@ -261,8 +262,6 @@ HugePages_Rsvd:        0
 HugePages_Surp:        0
 #
 ```
-
-
 
 ## Configuring SRIOV
 
@@ -559,25 +558,25 @@ In this case, the 4 ports are disconnected. At this moment, we cannot use that c
 Now we have a clear picture of the available NICs. Summary:
 
 - (1592 CQDA4) Ethernet Controller E810-C for QSFP
-
+  
   - ens2 and ens5 with all the ports disconnected
 
 - (1593 XXVDA4) Intel Ethernet Controller E810-C for SFP
-
+  
   - ens1f0 connected
-
+  
   - ens4f0 connected
-
+  
   - ens4f1 connected
-
+  
   - ens4f2 disconnected
-
+  
   - ens4f3 disconnected
-
+  
   - ens1f1 connected
-
+  
   - ens1f2 disconnected
-
+  
   - ens1f3 disconnected
 
 We only have 4 available NICs, but we can use SRIOV and VFS to split these cards into multiple network interfaces. These VFs are exposed to be used by PODs with a network attached.
@@ -695,11 +694,9 @@ and more important, you can see the devices available in the node:
 
 These 'openshift.io/e810_*' resources will be requested later in the deployment of TestPMD and TRex (our tests).
 
+# Testing configured E810 cards
 
-
-# Playing with DPDK
-
-In this section we will test a DPDK application using some of the configurations created in the previous sections. We will use TRex to generate traffic to a test dpdk (testpmd) application.
+In this section, we will use a DPDK test application with the configurations created in the previous sections. We will use TRex to generate traffic to a test dpdk (testpmd) application.
 
 *We basically re-use the work done by @alosadagrande from [here](https://github.com/alosadagrande/openshift-telco/) and this [Red Hat Article](https://access.redhat.com/articles/6969629). *
 
@@ -722,7 +719,7 @@ $> cd openshift-telco/
 
 *I am using a forked repository, where I have done some modifications adapted to this tutorial.*
 
-## Running TestPMD
+## Running TestPMD to forward packages
 
 *[testPMD](https://doc.dpdk.org/guides/testpmd_app_ug/) is an application used to test DPDK in a packet forwarding mode and also to access NIC hardware features such as Flow Director.* In our case, TestPMD will basically forward packets between two ports.
 
@@ -731,14 +728,14 @@ Some pre-requirements:
 * PAO configuration: testPMD requires hugepages and guranteed POD.
 
 * SRIOV configuration:
-
+  
   * Two SRIOV interfaces
-
+  
   * Two networks
 
 All these requirements have been fulfilled with the PGTs created in the previous versions.
 
-Lets, edit the TestPMD deployment according to our previous configuration:
+Lets,edit the TestPMD deployment according to our previous configuration:
 
 ```bash
 $> cd test-pmd/
@@ -866,8 +863,6 @@ metadata:
           }
       }]
 ```
-
-
 
 The Deployment will create a Pod with the tools to use a DPDK test application. This test application will just forward what it receives by its Port 0 to its Port 1. Port 0 and 1 are the VFS 1 and 2 in the figure above.
 
@@ -1073,7 +1068,7 @@ testpmd> show port stats all
 
 We need to initiate the Traffic Generator to see how packets are received and forwarded.
 
-## Running Trex
+## Running Trex to create some traffic
 
 We use [TRex](https://trex-tgn.cisco.com/) as a traffic generator.
 
@@ -1338,37 +1333,21 @@ The test application is sending packets through Trex Port 0, which is sending th
 
 ![](assets/2022-11-16-12-31-41-output.gif)
 
-You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd seems to be doing ports forward correctly.
+You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd is doing ports forward correctly and the card seems to be working at the expected speed: 25Gb/s.
 
-We can see something similar if we go back to testpmd to check its statistics:
+# Summary
 
-```bash
-testpmd> show port stats all
+For this tutorial, we have been working with the Intel E810 card. Pretty new card, which would not be compatible yet with all the environments. Using SNO4.10 and TRex 3.0 seems to be working properly. But it is important to notice, here, we only did a packets simulation (testing). All the real capabilities would not be supported.
 
-  ######################## NIC statistics for port 0  ########################
-  RX-packets: 156912848  RX-missed: 0          RX-bytes:  8787319976
-  RX-errors: 0
-  RX-nombuf:  0
-  TX-packets: 840        TX-errors: 0          TX-bytes:  245942
+To deploy and configure an SNO server, to run 5G RAN workloads, can be complex, specially the first time until you reach the proper configuration. Without a tool/methodology like ZTP GitOps this is not only complex, it would be difficult to use at scale. 
 
-  Throughput (since last show)
-  Rx-pps:            0          Rx-bps:          672
-  Tx-pps:            0          Tx-bps:          672
-  ############################################################################
+In this tutorial, we have show an example to configure and have the server Ready to run DPDK applications (base for 5G RAN vDUs). After the testing, the configuration can be replicable and scalable in any number of different servers. 
 
-  ######################## NIC statistics for port 1  ########################
-  RX-packets: 848        RX-missed: 0          RX-bytes:  247976
-  RX-errors: 0
-  RX-nombuf:  0
-  TX-packets: 156912840  TX-errors: 0          TX-bytes:  9414965942
+Once that you have a Siteconfig defining your first SNO, this can be replicated in your GitOps repo. Just needing to adapt the different IPs,MACs, and nodes naming. After that, the tuned PolicyGenTemplates will be applied configuring all the SNO.
 
-  Throughput (since last show)
-  Rx-pps:            0          Rx-bps:          672
-  Tx-pps:            0          Tx-bps:          672
-  ############################################################################
-```
+In day-2 operations, if the configurations needs to be updated, this can be also done with the ZTP GitOps approach. Just making a change on a PolicyGenTemplate definition, it will automatically make the changes on all the selected servers. Modifying hundreds of servers is just a matter of making a new commit. 
 
-Here, Port 0 RX-packets and  Port 1 TX-packets are mostly the same.
+
 
 # ToDo and future work
 
