@@ -13,7 +13,7 @@ For this experiment, our main focus will be node_exporter, which is more affecte
 
 We are trying to simulate a Telco/RAN environment, where optimizing the platform is really important.  
 
-> These systems need to optimize platform at maximum. Only an small set of CPUs are assigned for platform (OS, Openshift, etc) and the others are used by the user to run client's workloads. In these scenarios, optimizing each component of Openshif is very important, to have more CPUs for the Telco client's workloads.
+> These systems need to optimize platform at maximum. Only an small set of CPUs are assigned for platform (OS, Openshift, etc) and the others are used by the user to run client's workloads. In these scenarios, optimizing each component of Openshift is very important, to have more CPUs for the Telco client's workloads.
 
 The tutorial will cover 3 different steps
 
@@ -225,9 +225,9 @@ This amount of Network Interfaces would be problematic, with node_exporter willi
 
 Now, that we are consuming the resources that were the objective of this experiment, we can observe the behaviour of the monitoring stack:
 
-* Prometheus, which is gathering metrics.
+* Prometheus, which is gathering metrics, evaluating both recording and alerting rules.
 
-* node_exporter which provides metrics from node physical resources, like devices, cpu, etc
+* node_exporter which provides metrics from hardware resources, such as CPU, memory, network interfaces, etc
 
 * kubelet which provides some Kubernetes metrics (like pods) with the cAdvisor
 
@@ -270,7 +270,17 @@ And the output will be opened on the webwroser
 
 ## CPU Profile interpretation
 
-[ToDo]
+From the diagrams above, we can see Node Export spends most of its CPU time in collecting metrics by netClass and netDev collector.
+Especially in the netclass collector, the performance is dragged back by excessive file operations.
+
+The netclass collector walks in each directory in the sysfs mount point /sys/net/class/, read files and parse the content to numbers.
+As for network devices, reading some properties requires locking the RTNL lock in the Linux kernel, which competes for control over the network stack with kubelet that is busy setting up network for pods. 
+The busier the network stack is, the worse the performance for both node exporter and kubelet will become.
+
+The second CPU time consumer is netdev collector. In recent versions of Node Exporter, it is using the netlink interface to communicate with kernel for network device statistics. 
+Unlike ready the files in sysfs, communicating over netlink socket is processed asynchronically in the kernel, that does not interrupt kernel's current process to satisfy a syscall immediately. So we can see it  consumes less time than netclass collector.
+
+[An issue](https://github.com/prometheus/node_exporter/issues/2477) has been raised to the node exporter maintainer with [a proposed new collector](https://github.com/prometheus/node_exporter/pull/2492#issuecomment-1278188530) replacing the netclass and netdev collector using netlink interface for better performance.
 
 ## Delete the node-burner jobs
 
