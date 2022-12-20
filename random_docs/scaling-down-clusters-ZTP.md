@@ -366,3 +366,13 @@ This is working to delete the node, but is is not a very safe procedure. This Po
 When you delete the host from the Siteconfig, automatically the BMH will be deleted. After that, you will have to manually delete the corresponding Agent.
 
 [ToDo] Script to facilitate knowing which agent to delete
+
+
+
+# Scaling down in the future
+
+Now, the AI is taking the control over BMH to avoid some limitations about which ISOs can be used to let BMO/Ironic to boot the server for installation. This makes some BMO/Ironic features not available. In the future, there is a convergence flow to be implemented. BMO/Ironic will be configured to boot with an ISO that allows the discovering. Then the AI and the Agent will take again the responsibility of making the installation. When finishing, BMO/Ironic will recover the control.
+
+So, there will be better alignment and "collaboration" between both controllers. 
+
+More about the convergence flow [here](https://github.com/openshift/assisted-service/tree/master/docs/hive-integration#bare-metal-operator-integration-using-the-converged-flow) and [here](https://github.com/openshift/enhancements/blob/master/enhancements/baremetal/ztp-metal3.md)
