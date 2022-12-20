@@ -173,13 +173,20 @@ Also, in the cluster we dont see that worker-0:
 
 ![](assets/2022-12-15-18-20-35-image.png)
 
-It has been removed from cluster, but from the GUI, the host still cannot be deleted.  Not sure of the reason. Maybe because of the way of ZTP creating the relations between BMHs, Infraenv and AgentClusterInstall. This would be avoiding the proper unbind process. Actually, If we check the unbound BMH:
+It has been removed from cluster, but from the GUI, the host still cannot be deleted.  Not sure of the reason. Maybe because of the way of ZTP creating the relations between BMHs, Infraenv and AgentClusterInstall. This would be avoiding the proper unbind process. Actually, If we check the unbound BMH's Agent:
 
 ```yaml
+  conditions:
+  - lastTransitionTime: "2022-12-20T15:39:40Z"
+    message: 'The Spec could not be synced due to an input error: Cannot unbind Host
+      2f03b103-596c-4736-aeed-289e590a8bb0. InfraEnv 47b3b2cd-7a6e-408e-a82a-ad5e5104f349
+      is bound to Cluster 3d845309-03c7-4a35-9a94-1b0d4f57ff3c'
 
 ```
 
-The GUI only allows us to unbind/unregister from cluster. Which seems to be failing.  We still see the worker as part of the Infraenv. In theory, unbound, and ready to be re-used. But we cannot delete the host (BMH).
+The GUI only allows us to unbind/unregister from cluster. Which seems to be failing.  We still see the worker as part of the Infraenv. In theory, unbound, and ready to be re-used. But still we cannot delete the host (BMH).
+
+This error would be not happening above ACM2.6. But, so maybe after unbind the host would be deleted. In any case, nothing meaningful would happen, as we will see in the next example. We will force the deletion of the BMH and the Agent.
 
 ### Tryng to delete a host from spoke (client)
 
