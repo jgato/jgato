@@ -248,6 +248,59 @@ We really delete the host resources from ACM, not released to be reused. Because
 
 We will create two Policies into our ZTP GitOps, and the corresponding Rules and Bindings. Something more about how ACM Works [here](https://github.com/jgato/jgato/blob/main/random_docs/ztp-zero-touch-all.md#configuring-with-acm-policies)
 
+The Policy should consider:
+
+* Drain the node
+
+* Cordon the node
+
+* Delete the node
+
+This is usually done by `oc adm drain node`  and `oc delete node node`.
+
+According to the [Machine API](https://docs.openshift.com/container-platform/4.11/machine_management/deleting-machine.html) we could get that deleting the Machine Object of the Node to be deleted. 
+
+> By default, the machine controller tries to drain the node that is backed by the machine until it succeeds. In some situations, such as with a misconfigured pod disruption budget, the drain operation might not be able to succeed in preventing the machine from being deleted. You can skip draining the node by annotating "machine.openshift.io/exclude-node-draining" in a specific machine
+
+So it tries to drain the node, and then it deletes it. If the Node cannot be drained, our Policy should annotate the node to ignore this. This will delete the node but it is not safest way.
+
+We create a simple Deployment to deploy a Pod. Pods which are not controlled by Replicaset, Statefulset, Deployment are not drained. Well, it would be drained, but nothing will re-created them. 
+
+In this example, we have a Pod (managed by a Deployment) on worker-0:
+
+```bash
+─> oc get pods nginx-deployment-589b4ffbf8-w24t7 -o yaml | grep nodeName
+  nodeName: worker-0.el8k-ztp-1.hpecloud.org
+
+```
+
+If we delete the Machine object of worker-0, this pod should be drained (evicted):
+
+```bash
+> oc -n openshift-machine-api delete machine el8k-ztp-1-worker-0.el8k-ztp-1.hpecloud.org
+```
+
+Now the Pod is running on: 
+
+```bash
+> oc get pods nginx-deployment-589b4ffbf8-wzqnq -o yaml | grep nodeName
+  nodeName: master-0.el8k-ztp-1.hpecloud.org
+
+```
+
+And the node has been deleted:
+
+```bash
+> oc get nodes
+NAME                               STATUS   ROLES           AGE    VERSION
+master-0.el8k-ztp-1.hpecloud.org   Ready    master,worker   6d3h   v1.23.12+8a6bfe4
+master-1.el8k-ztp-1.hpecloud.org   Ready    master,worker   6d3h   v1.23.12+8a6bfe4
+master-2.el8k-ztp-1.hpecloud.org   Ready    master,worker   6d3h   v1.23.12+8a6bfe4
+
+```
+
+
+
 The idea is to first taint the node (ideally should be drained) and then delete. Notice the deletion rule has less priority. So we ensure first to make it unschedulable:
 
 ```yaml
