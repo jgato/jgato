@@ -30,7 +30,7 @@ About the workers:
 
 * worker-1: has been installed correctly. So its BMH is now managed by the AI:
 
-```json
+```bash
 > oc -n el8k-ztp-1 get bmh worker-1.el8k-ztp-1.hpecloud.org -o jsonpath={.metadata.annotations} | jq
 {
   "argocd.argoproj.io/sync-wave": "1",
@@ -50,11 +50,11 @@ Delete the Siteconfig, and ArgoCD will look out of synch. But this time, we will
 
 With the NS not marked to be synch, this is neither deleted or marked to be deleted:
 
-![](/home/jgato/.var/app/com.github.marktext.marktext/config/marktext/images/2022-12-22-11-52-09-image.png)
+![](assets/2022-12-22-11-52-09-image.png)
 
 And the BMHO of worker-0 is still taking time:
 
-![](/home/jgato/.var/app/com.github.marktext.marktext/config/marktext/images/2022-12-22-11-51-47-image.png)
+![](assets/2022-12-22-11-51-47-image.png)
 
 The BMH is trying to be deleted, and it is taking some time. But the NS is still there and it can continue working.
 
