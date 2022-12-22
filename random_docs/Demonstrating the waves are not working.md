@@ -24,7 +24,7 @@ This test will  do:
 
 ## The environment
 
-![](assets/5d077fb4d3589647f36c9a4e38956a9e73f36c51.png)
+![](assets/2022-12-22-11-41-09-image.png)
 
 About the workers:
 
