@@ -1,20 +1,26 @@
-# Going further about Zero Touch with ZTP Gitop tools
+# Going further about Zero Touch with ZTP Gitops tools
 
 [WIP]
 
-## Siteconfigs
+[Zero Touch Provisioning Gitops way](https://docs.openshift.com/container-platform/4.11/scalability_and_performance/ztp_far_edge/ztp-deploying-far-edge-clusters-at-scale.html mainly exposes the creation of clusters with **Siteconfigs**, and the configuration/upgrade with **PolicyGenTemplates**.
 
-Siteconfig is the template for making your cluster's deployment. It is related to day-0 and it includes some pre-configuration or RAN profile. This profile includes some extra configurations related to telco RAN infrastructures.
+In this document, we will go further about how to configure your cluster, during deployment/installation. And also, how to configure/upgrade your cluster in a more advanced way, than just using the usual PolicyGenTemplates. 
 
-The different configurations of this profile can be enabled or disabled.
+## Siteconfigs: allowed configurations during deployments
 
-But also, the profile can be extended with the usage of extra-manifest according to each environment needs.
+Siteconfig is the template for making your cluster's deployment. It is related to day-0 and it includes some pre-configuration or RAN profile. This profile includes some extra configurations related to telco RAN infrastructures. 
 
-It is important to remark, these manifests are applied during installation. The advantage of applying here is, that you have your cluster up and configured at the same time. Not having to apply policies on day-2 operations. Some of these Policies would require to reboot nodes to be applied. Something, sometimes, would be not desired or allowed. 
+Apart from these included configurations, the profile can be extended with the usage of extra-manifests: [mainly Machineconfigs](https://github.com/openshift/machine-config-operator), but other Openshift/Kubernetes Resources would be included.
+
+It is important to remark these manifests are applied during installation. The advantage of applying here is, that you have your cluster created and configured at the same time. Not having to apply policies on day-2 operations. 
+
+So, Siteconfigs are mainly intended to create/deploy your clusters. But,  there is room for some extra configurations. These configurations are applied once, later, these are out of the control of the GitOps flow. 
 
 ### Using extra-manifests
 
-To extend any Siteconfig with extra configuration, you can create any directories with yamls including Resources to be added to the cluster during installation.
+To extend any Siteconfig with extra configuration, you can create any directoy with yamls including Openshift/Kubernetes Resources to be added to the cluster during installation. Then, you can point to this directory from the 'Siteconfig.spec.extra-manifests' attribute.
+
+#### Example: extra-manifest to wipe disks during installation
 
 So first, we create a YAML with the resource you want to include during your cluster installation. In principle MachineConfigs, but others resources would also work.
 
@@ -35,12 +41,9 @@ spec:
       disks:
         - device: /dev/sdc
           wipeTable: true
-
 ```
 
 Just add the path to the directory containing your extra-manifests:
-
-
 
 ```yaml
 apiVersion: ran.openshift.io/v1
@@ -67,16 +70,27 @@ spec:
 
 ....
 ....
-
 ```
 
 In this case, '/dev/sdc' will be wiped-out during installation. But other MCs would make other different tasks.
 
+### Disabling default configurations from a RAN profile
+
+[ToDo] But this is very simple
+
+
+
 ## PolicyGenTemplates
 
-PolicyGenTemplate is a CRD by ZTP tools. It allows you to use some pre-existing templates that will generate ACM Policies related to Telco RAN usual activities. It can be seen as a set of pre-created helpers, that can make same upgrade/configuration of Telco RAN activities easier. For example: deploying RAN operators, configuring SRIOV interfaces, configuring PTP, etc
+PolicyGenTemplate (PGT) is a CRD exposed by ZTP GitOps. It allows you to use some [pre-existing templates](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs) that will generate ACM Policies related to Telco RAN usual activities. It can be seen as a set of pre-created helpers, that can make same upgrade/configuration of Telco RAN activities easier. For example: deploying RAN operators, configuring SRIOV interfaces, configuring PTP, etc
 
-When you need to make more generic configurations, like RBAC, Users, Projects, etc, you can still combine your GitOps/ArgoCD pipelines but directly using ACM Policies. ACM Policies would be a little bit more complex, than just using a PGT, but are much more flexible. Actually, these Policies can desired status of whatever existing resource on an Openshift/Kubernetes cluster.
+What happens when you need to make configurations out of the scope of these [pre-existing templates](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs)? 
+
+* You can create and include your own templates. That can be referenced from the PGTs. [See Injecting and creating your own PolicyGenTemplates](# Injecting-and-creating-your-own-PolicyGenTemplates)
+
+* Instead of using PGT, as helpers, you can directly add any ACM Policy to your GitOps repo. [See section Configuring with ACM Policies](# Configuring-with-ACM-Policies)
+
+
 
 ### Configuring/Upgrading with exiting PolicyGenTemplates
 
@@ -84,7 +98,7 @@ The list of templates that can be references from a PGT can be found [here](http
 
 From there we will find different templates that can be easily used from a PGT for making new configurations
 
-#### Disabling CatalogesSources from an OperatorHub
+#### Example: Disabling CatalogesSources from an OperatorHub
 
 There exists a [template for managing the OperatorHub](https://github.com/openshift-kni/cnf-features-deploy/blob/release-4.10/ztp/source-crs/OperatorHub.yaml). It is designed to disable the pre-configured CatalogesSources that came, by default, with Openshift:
 
@@ -139,7 +153,7 @@ NAMESPACE               NAME               DISPLAY             TYPE   PUBLISHER 
 openshift-marketplace   redhat-operators   Red Hat Operators   grpc   Red Hat     17d
 ```
 
-### Injecting/Creating your own PolicyGenTemplates
+### Injecting and creating your own PolicyGenTemplates
 
 In the previous section we have used PGTs with existing templates to facilitate configurations and upgrades. When you are using a PGT to create a Policy you will have some of these references to other existing yamls.
 
@@ -175,7 +189,7 @@ status:
   state: AtLatestKnown
 ```
 
-Internally, ZTP tools will create the proper Policies (Based on these resources) and will make the need it bindings according to your PGT rules:
+Internally, ZTP tools will create the proper Policies (based on these resources) and will make the needed bindings according to your PGT rules:
 
 ```yaml
 apiVersion: ran.openshift.io/v1
@@ -189,11 +203,9 @@ spec:
     du-profile: "v4.9"
 ```
 
-If you need to create any Openshift/kubernetes Resource that is not managed by any of these pre-existing files, you can inject your own ones. Or you can just use raw ACM Policies, as it is explained in the next section.
+If you need to manage the desired status of any Openshift/kubernetes Resource, that is not managed by any of these pre-existing files, you can inject your own ones templates.
 
 How we inject our own files to be used by a PGT?
-
-
 
 First you create the yaml with the Resource you want to manage:
 
@@ -224,7 +236,7 @@ Now it can be referenced from a PGT:
       policyName: "projects-policy"
 ```
 
-And you can use it to create projects different than foo, when you reference one resource, you can override whatever attribute in the CRD.
+Finally, you can use it to create projects any Project.  You have to reference the template, and override the needed attributes. In this case, the Project name.
 
 ```yaml
  sourceFiles:
@@ -234,9 +246,15 @@ And you can use it to create projects different than foo, when you reference one
         name: bar
 ```
 
+[ToDo] When injecting the templates into the Pods, these will be lost after Pod restarts. But, you can create your own ztp-site-generate Container Image including them.
+
+
+
 ## Configuring with ACM Policies
 
-When there are no PGT templates, raw ACM Policies can be created. Actually, the PGT Templates are transformed into ACM Policies by one of the two Kustomize plugins.
+When there are no PGT templates, raw ACM Policies can be created. Actually, the PGT Templates are transformed into ACM Policies by one of the ZTP GitOps tools.
+
+When you need to make more generic configurations, like RBAC, Users, Projects, etc, you can still combine your GitOps pipelines but directly using ACM Policies. ACM Policies would be a little bit more complex, than just using a PGT, but are much more flexible. Actually, these Policies can act on the desired status of any Openshift/Kubernetes Resource.
 
 An ACM Policy is composed by a Policy with the desired status, and a set of roles and bindings to select which cluster will be affected. More in concrete, these are the needed objects:
 
@@ -295,7 +313,9 @@ In this example:
 
 * Name: I have put a prefix 'extra-' to the name. Just to differentiate this Policy from the ones created by ZTP Tooling using PGTs. But it is just a suggestion or a personal convention. 
 
-* Objective: it will create a Project called 'foo'. 
+* complianceType: the object musthave or mustnothave the objectDefinition.
+
+* objectDefinition: it will create a Project called 'foo'. 
   
   ```yaml
   apiVersion: project.openshift.io/v1
@@ -306,17 +326,13 @@ In this example:
     phase: Active
   ```
 
-* About the Namespace: As a suggestion, use different Namespaces from the usual ztp ones (ztp-site, ztp-common, ztp.group. The name should be allowed by your ArgoCD Project:
-  
-  ![](assets/2022-09-19-15-56-37-image.png)
-
 * remediationAction: from ZTP4.10, all the Policies are created with remediation Inform. This is hidden inside the existing PGT templates. When you create raw ACM Policies, you have to set it to Inform. Later, TALM will manage when to Enforce the Policies
 
 * severity is just informational
 
 #### Making the match between policies and clusters
 
-ZTP Gitops Tooling proposes 3 kind of PGT about which clusters are affected. And these is managed by their own convencion about labeling clusters on Siteconfigs:
+ZTP Gitops Tooling proposes 3 kind of PGT about which clusters are affected. And these are managed by a convencion about labeling clusters on Siteconfigs:
 
 * SiteSpecific Policies. Labeling clusters on the way of:  'name: "CLUSTER_NAME"'
 
@@ -330,7 +346,7 @@ Then ZTP Tooling will configure the different PlacementRule/PlacementBinding. Wh
 
 With the above Policy created, we have to match the PlacementRule/PlacementBinding to be applied to an specific site. Consider we have one cluster which is called 'intel-1-sno-1'. This match will fire the configuration only on this cluster.
 
-`PlacementBinding:'
+`PlacementRule:' to an specific site
 
 ```yaml
 apiVersion: apps.open-cluster-management.io/v1
@@ -347,9 +363,9 @@ spec:
           - intel-1-sno-1
 ```
 
-You are just creating a link called 'extra-intel-1-sno-1-placementrules' with the cluster 'intel-1-sno-1'. 
+You are just creating a link, called 'extra-intel-1-sno-1-placementrules', with the cluster 'intel-1-sno-1'. 
 
-`PlacementRule:' it will relate a policy (or a a list of policies) with a 'PlacementRule'
+`PlacementBinding:' it will relate a policy (or a a list of policies) with a 'PlacementRule'
 
 ```yaml
 apiVersion: policy.open-cluster-management.io/v1
@@ -367,30 +383,17 @@ subjects:
     name: extra-project-create
 ```
 
-Here we are linking the previous selected cluster on (PlacementRule for extra-intel-1-sno-1-placementrules) and the Policy called site-project.
+Here we are linking the previous selected cluster and the Policy called site-project.
 
 With all these objects created, you will see how the Policy is created on ACM but affecting only one cluster.
 
 ##### Applying Policies to Groups
 
-We can use the same previous created Policy, but this time we configure the PlacementRule/PlacementBinding to match a group of clusters. The Policy should be placed on a Namespace called policies-group, or similar.
+We can use the same previous created Policy, but this time we configure the PlacementRule/PlacementBinding to match a group of clusters. 
 
-```yaml
-apiVersion: policy.open-cluster-management.io/v1
-kind: Policy
-metadata:
-...
-...
-  name: extra-project-create
-  namespace: policies-group
-spec:
-...
-...
-```
+A group of clusters, according to ZTP Tooling convention, means clusters labeled in the way of: '<GROUP_POLICY_NAME>: ""'
 
-A group of clusters according to ZTP Tooling convention means, clusters labeled in the way of: '<GROUP_POLICY_NAME>: ""'
-
-Main changes happens PlacementRule. This time, it will match clusters with the label 'group-du=""'
+`PlacementRule:' to match clusters with the label group-du=""'
 
 ```yaml
 apiVersion: apps.open-cluster-management.io/v1                                   
@@ -427,11 +430,9 @@ subjects:
 
 We can use the same previous created Policy, but this time we configure the PlacementRule/PlacementBinding to match a Common Policy. 
 
-A Common Policy according to ZTP Tooling convention means, clusters labeled in the way of:  '<COMMON_POLICY_NAME>: "true"'
+A Common Policy, according to ZTP Tooling convention, means clusters labeled in the way of:  '<COMMON_POLICY_NAME>: "true"'
 
-Again, the Policy dont need to be changed. But, it should be placed on a proper Namespace like policies-common.
-
-Main changes happens PlacementRule. This time, it will match clusters with the label 'common="true"'
+`PlacementRule:' to match clusters with the label 'common="true"'
 
 ```yaml
 apiVersion: apps.open-cluster-management.io/v1
