@@ -248,6 +248,12 @@ Finally, you can use it to create projects any Project.  You have to reference t
 
 [ToDo] When injecting the templates into the Pods, these will be lost after Pod restarts. But, you can create your own ztp-site-generate Container Image including them.
 
+### Hub cluster templates
+
+[Hub cluster template](https://open-cluster-management.io/concepts/policy/#policy-templates) is an advanced feature of ACM to customize your Policies. But, this can be also used at PGT level.
+
+[ToDo] Include documentation from @aidan
+
 
 
 ## Configuring with ACM Policies
@@ -342,7 +348,7 @@ ZTP Gitops Tooling proposes 3 kind of PGT about which clusters are affected. And
 
 Then ZTP Tooling will configure the different PlacementRule/PlacementBinding. When using raw ACM Policies, you have to create PlacementRule/PlacementBinding manually together with the Policy.
 
-##### Applying Policies to SiteSpecific
+##### Applying Policies to Site Specific
 
 With the above Policy created, we have to match the PlacementRule/PlacementBinding to be applied to an specific site. Consider we have one cluster which is called 'intel-1-sno-1'. This match will fire the configuration only on this cluster.
 
@@ -466,3 +472,17 @@ subjects:
     kind: Policy                                                                  
     name: extra-project-create  
 ```
+
+### Hub cluster templates
+
+[Hub cluster templates](https://open-cluster-management.io/concepts/policy/#policy-templates) for Policies are good option to better customize your desired status. This is a more advanced option, that provides a great level of flexibility. A Policy about configuring networks, would template the configuration parameters depending, for example, on each node. 
+
+It is mainly based on the usage of the delimiter {{hub … hub}} and Golang text template specifications.
+
+# Some advanced examples
+
+Following, a list of advanced configuration examples, based on the previous explained options.
+
+
+
+## Node labeling (ACM Policies with hub cluster templates)
