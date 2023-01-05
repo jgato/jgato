@@ -110,7 +110,9 @@ worker-1.el8k-ztp-1.hpecloud.org   Ready    worker          114m   v1.23.12+8a6b
 
 Here you can just 'oc drain and oc delete' the node. Or you can use a ZTP Policy to delete the host with the usual ZTP GitOps flow.
 
-The first option is pretty easy and straightforward, as long as you have Admin access to the cluster. If instead of that, you dont have that access, or you want to control this with your usual ZTP flows.
+The first option is pretty easy and straightforward, as long as you have Admin access to the Spoke cluster. More details [here](https://access.redhat.com/solutions/4976801) or [here](https://docs.openshift.com/container-platform/4.10/machine_management/deleting-machine.html). Both ways will be oka.
+
+If instead of that, you dont have that access, and ZTP is your point of truth about the Cluster status, you can create an ACM Policy inside your GitOps flow.
 
 #### Using an ACM Policy
 
