@@ -1,8 +1,6 @@
 # Going further about Zero Touch with ZTP Gitops tools
 
-[WIP]
-
-[Zero Touch Provisioning Gitops way](https://docs.openshift.com/container-platform/4.11/scalability_and_performance/ztp_far_edge/ztp-deploying-far-edge-clusters-at-scale.html mainly exposes the creation of clusters with **Siteconfigs**, and the configuration/upgrade with **PolicyGenTemplates**.
+[Zero Touch Provisioning Gitops way](https://docs.openshift.com/container-platform/4.11/scalability_and_performance/ztp_far_edge/ztp-deploying-far-edge-clusters-at-scale.html) mainly exposes the creation of clusters with **Siteconfigs**, and the configuration/upgrade with **PolicyGenTemplates**.
 
 In this document, we will go further about how to configure your cluster, during deployment/installation. And also, how to configure/upgrade your cluster in a more advanced way, than just using the usual PolicyGenTemplates. 
 
@@ -473,7 +471,7 @@ subjects:
 
 It is mainly based on the usage of the delimiter {{hub … hub}} and Golang text template specifications.
 
-# Some advanced examples
+# Some more examples
 
 Following, a list of advanced configuration examples, based on the previous explained options.
 
@@ -484,3 +482,43 @@ I am not including the PlacementBinding/PlacementRule to facilitate the readines
 ## Deleting a Node from a cluster (ACM Policies)
 
 This is a pretty straight forward example, just based on ACM Policy for Site Specific.
+
+```yaml
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  annotations:
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    ran.openshift.io/ztp-deploy-wave: "20"
+  name: node-drain-remove
+  namespace: ztp-site
+spec:
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: node-drain-remove-configurationpolicy
+      spec:
+        namespaceselector:
+          exclude:
+          - kube-*
+          include:
+          - '*'
+        object-templates:
+        - complianceType: mustnothave
+          objectDefinition:
+            apiVersion: machine.openshift.io/v1beta1
+            kind: Machine
+            metadata:
+              name: el8k-ztp-1-worker-1.el8k-ztp-1.hpecloud.org
+              namespace: openshift-machine-api
+        remediationAction: inform
+        severity: low
+  remediationAction: inform
+
+```
