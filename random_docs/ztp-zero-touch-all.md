@@ -78,8 +78,6 @@ In this case, '/dev/sdc' will be wiped-out during installation. But other MCs wo
 
 [ToDo] But this is very simple
 
-
-
 ## PolicyGenTemplates
 
 PolicyGenTemplate (PGT) is a CRD exposed by ZTP GitOps. It allows you to use some [pre-existing templates](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs) that will generate ACM Policies related to Telco RAN usual activities. It can be seen as a set of pre-created helpers, that can make same upgrade/configuration of Telco RAN activities easier. For example: deploying RAN operators, configuring SRIOV interfaces, configuring PTP, etc
@@ -89,8 +87,6 @@ What happens when you need to make configurations out of the scope of these [pre
 * You can create and include your own templates. That can be referenced from the PGTs. [See Injecting and creating your own PolicyGenTemplates](# Injecting-and-creating-your-own-PolicyGenTemplates)
 
 * Instead of using PGT, as helpers, you can directly add any ACM Policy to your GitOps repo. [See section Configuring with ACM Policies](# Configuring-with-ACM-Policies)
-
-
 
 ### Configuring/Upgrading with exiting PolicyGenTemplates
 
@@ -253,8 +249,6 @@ Finally, you can use it to create projects any Project.  You have to reference t
 [Hub cluster template](https://open-cluster-management.io/concepts/policy/#policy-templates) is an advanced feature of ACM to customize your Policies. But, this can be also used at PGT level.
 
 [ToDo] Include documentation from @aidan
-
-
 
 ## Configuring with ACM Policies
 
@@ -483,6 +477,10 @@ It is mainly based on the usage of the delimiter {{hub … hub}} and Golang text
 
 Following, a list of advanced configuration examples, based on the previous explained options.
 
-
+I am not including the PlacementBinding/PlacementRule to facilitate the readiness. But it is just a matter of making each policy to match clusters or groups. Explained above.
 
 ## Node labeling (ACM Policies with hub cluster templates)
+
+## Deleting a Node from a cluster (ACM Policies)
+
+This is a pretty straight forward example, just based on ACM Policy for Site Specific.
