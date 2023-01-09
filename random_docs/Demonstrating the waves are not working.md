@@ -66,7 +66,7 @@ The deletion is taking some time. Actually, like 10-15min. We can check some err
 {"level":"error","ts":1671706496.2856994,"logger":"controller.baremetalhost","msg":"Reconciler error","reconciler group":"metal3.io","reconciler kind":"BareMetalHost","name":"worker-0.el8k-ztp-1.hpecloud.org","namespace":"el8k-ztp-1","error":"action \"deleting\" failed: failed to remove finalizer: Operation cannot be fulfilled on baremetalhosts.metal3.io \"worker-0.el8k-ztp-1.hpecloud.org\": StorageError: invalid object, Code: 4, Key: /kubernetes.io/metal3.io/baremetalhosts/el8k-ztp-1/worker-0.el8k-ztp-1.hpecloud.org, ResourceVersion: 0, AdditionalErrorMsg: Precondition failed: UID in precondition: f8feab9f-784a-4f5b-a95d-c483bf417f57, UID in object meta: ","errorVerbose":"Operation cannot be fulfilled on baremetalhosts.metal3.io \"worker-0.el8k-ztp-1.hpecloud.org\": StorageError: invalid object, Code: 4, Key: /kubernetes.io/metal3.io/baremetalhosts/el8k-ztp-1/worker-0.el8k-ztp-1.hpecloud.org, ResourceVersion: 0, AdditionalErrorMsg: Precondition failed: UID in precondition: f8feab9f-784a-4f5b-a95d-c483bf417f57, UID in object meta: \nfailed to remove finalizer\ngithub.com/metal3-io/baremetal-operator/controllers/metal3%2eio.(*BareMetalHostReconciler).actionDeleting\n\t/go/src/github.com/metal3-io/baremetal-operator/controllers/metal3.io/baremetalhost_controller.go:542\ngithub.com/metal3-io/baremetal-operator/controllers/metal3%2eio.(*hostStateMachine).handleDeleting\n\t/go/src/github.com/metal3-io/baremetal-operator/controllers/metal3.io/host_state_machine.go:538\ngithub.com/metal3-io/baremetal-operator/controllers/metal3%2eio.(*hostStateMachine).ReconcileState\n\t/go/src/github.com/metal3-io/baremetal-operator/controllers/metal3.io/host_state_machine.go:199\ngithub.com/metal3-io/baremetal-operator/controllers/metal3%2eio.(*BareMetalHostReconciler).Reconcile\n\t/go/src/github.com/metal3-io/baremetal-operator/controllers/metal3.io/baremetalhost_controller.go:247\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/go/src/github.com/metal3-io/baremetal-operator/vendor/sigs.k8s.io/controller-runtime/pkg/internal/controller/controller.go:298\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/go/src/github.com/metal3-io/baremetal-operator/vendor/sigs.k8s.io/controller-runtime/pkg/internal/controller/controller.go:253\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2\n\t/go/src/github.com/metal3-io/baremetal-operator/vendor/sigs.k8s.io/controller-runtime/pkg/internal/controller/controller.go:214\nruntime.goexit\n\t/usr/lib/golang/src/runtime/asm_amd64.s:1581\naction \"deleting\" failed\ngithub.com/metal3-io/baremetal-operator/controllers/metal3%2eio.(*BareMetalHostReconciler).Reconcile\n\t/go/src/github.com/metal3-io/baremetal-operator/controllers/metal3.io/baremetalhost_controller.go:251\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/go/src/github.com/metal3-io/baremetal-operator/vendor/sigs.k8s.io/controller-runtime/pkg/internal/controller/controller.go:298\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/go/src/github.com/metal3-io/baremetal-operator/vendor/sigs.k8s.io/controller-runtime/pkg/internal/controller/controller.go:253\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2\n\t/go/src/github.com/metal3-io/baremetal-operator/vendor/sigs.k8s.io/controller-runtime/pkg/internal/controller/controller.go:214\nruntime.goexit\n\t/usr/lib/golang/src/runtime/asm_amd64.s:1581","stacktrace":"sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2\n\t/go/src/github.com/metal3-io/baremetal-operator/vendor/sigs.k8s.io/controller-runtime/pkg/internal/controller/controller.go:214"}
 ```
 
-The error seems to be something about the storate. We forced to fail the installation, actually, because of a wrong storage. So, maybe makes sense this take time. Anyway, in some moment it will time out, or it will give up, and the object will be deleted:
+The error seems to be something about the storage. We forced to fail the installation, actually, because of a wrong storage. So, maybe makes sense this take time. Anyway, in some moment it will time out, or it will give up, and the object will be deleted:
 
 ![](assets/2022-12-22-12-04-54-image.png)
 
@@ -92,4 +92,35 @@ Error from server (NotFound): namespaces "el8k-ztp-1" not found
 
 * The BMO is taking very much time to delete the BMH. But this would be the expected behavior.
 
-* Why the NS was deleted 
+* Why the NS was deleted automatically? 
+
+
+
+# Possible solution
+
+To use the sync option [prune last](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/#prune-last) at NS resource
+
+> This feature is to allow the ability for resource pruning to happen as a final, implicit wave of a sync operation, 
+> after the other resources have been deployed and become healthy, and after all other waves completed successfully.
+
+So our NS is created with this annotation:
+
+```yaml
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: PruneLast=true
+```
+
+Without modifying the ZTP Container Image we can test that.
+
+In this new environment:
+
+![](assets/2022-12-23-09-42-36-image.png)
+
+Similar to previous one, but this time the installation not even happened. The worker-0 is anyway the one that will be problematic.
+
+We modify, manually, the NS Manifest to include that annotation.
+
+![](assets/2022-12-23-09-44-43-image.png)
+
+And proceed with the Siteconfig deletion. Now, right after deleting , the NS is not deleted. It waits all the objects to finish.
