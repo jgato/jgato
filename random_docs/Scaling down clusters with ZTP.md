@@ -26,6 +26,10 @@ We will need three main steps:
 
 From the three steps, ideally, only the first one should be needed. This is expected to happen when the functionality has been implemented
 
+
+
+
+
 ### Using ZTP to delete the host
 
 In this stage you should be familiar about how Siteconfig works. You will have something like this:
@@ -75,7 +79,7 @@ The cluster has 3 master and two workers. We will delete the worker-1. Delete th
 
 ![](assets/2023-01-05-15-37-37-image.png)
 
-From deleting the host, the Resources that are going to be deleted are a BMH and a NMStateconfig. Also, a Secrete will be deleted. This Secret is not under the control of the GitOps (as it can be seen in the image, not out-synch icon, because it is not controlled by ArgoCD). Anywayt it will be deleted, because it is referenced from the BMH.
+From deleting the host, the Resources that are going to be deleted are a BMH and a NMStateconfig. Also, a Secrete will be deleted. This Secret is not under the control of the GitOps (as it can be seen in the image, not out-synch icon, because it is not controlled by ArgoCD). Anyway, it will be deleted, because it is referenced from the BMH.
 
 ### Manually delete the Agent object
 
@@ -108,13 +112,19 @@ worker-0.el8k-ztp-1.hpecloud.org   Ready    worker          112m   v1.23.12+8a6b
 worker-1.el8k-ztp-1.hpecloud.org   Ready    worker          114m   v1.23.12+8a6bfe4
 ```
 
-Here you can just 'oc drain and oc delete' the node. Or you can use a ZTP Policy to delete the host with the usual ZTP GitOps flow.
+To delete the Node you can use your oc client or create an ACM Policy
 
-The first option is pretty easy and straightforward, as long as you have Admin access to the Spoke cluster. More details [here](https://access.redhat.com/solutions/4976801) or [here](https://docs.openshift.com/container-platform/4.10/machine_management/deleting-machine.html). Both ways will be oka.
+#### Using 'oc client'
 
-If instead of that, you dont have that access, and ZTP is your point of truth about the Cluster status, you can create an ACM Policy inside your GitOps flow.
+This option is pretty easy and straightforward.  But you need Admin access to the Spoke cluster. Something that would not happen on a GitOps scenario. Where your only way of connecting the cluster is with you Git Repository.
+
+You only have to oc drain and oc delete the node. More details [here](https://access.redhat.com/solutions/4976801) or [here](https://docs.openshift.com/container-platform/4.10/machine_management/deleting-machine.html). Both ways will be oka.
+
+When each host is deployed, it is also created a BMH object for each one, in the Spoke cluster. In the previous step we deleted the BMH from the Hub cluster. Now, we have to do the same in the spoke.  Using 'oc -n openshift-machine-api get bmh' you can get the list of BMH, delete the one corresponding the node deleted.
 
 #### Using an ACM Policy
+
+If you are using a GitOps approach, maybe you dont have Admin access to Spoke cluster. Also, ZTP is your point of truth about the Cluster status. So, you can create an ACM Policy inside your GitOps flow, that marks this host to be deleted.
 
 > Here we dont cover details about creating Policies, or how to use CGU to enforce them. It is expected you have some minimum knowledge about how to use ZTP
 
@@ -156,10 +166,16 @@ spec:
             metadata:
               name: el8k-ztp-1-worker-1.el8k-ztp-1.hpecloud.org
               namespace: openshift-machine-api
+        - complianceType: mustnothave
+          objectDefinition:
+            apiVersion: metal3.io/v1alpha1
+            kind: BareMetalHost
+            metadata:
+              name: worker-1.el8k-ztp-1.hpecloud.org
+              namespace: openshift-machine-api
         remediationAction: inform
         severity: low
   remediationAction: inform
-
 ```
 
 Get the proper name for the Machine (Spoke cluster):
@@ -173,7 +189,6 @@ el8k-ztp-1-2bjf2-master-2                     Running                           
 el8k-ztp-1-worker-0.el8k-ztp-1.hpecloud.org   Running                              120m
 el8k-ztp-1-worker-1.el8k-ztp-1.hpecloud.org   Running                              127m
 ```
-
 
 And here the Placements to match the Policy and the Cluster where the host was created:
 
@@ -205,7 +220,6 @@ subjects:
   - apiGroup: policy.open-cluster-management.io
     kind: Policy
     name: node-drain-remove
-
 ```
 
 Push the changes to create the Policy on ACM:
@@ -214,7 +228,7 @@ The Policy is not-compliant because the desired status points to not have that h
 
 ![](assets/2023-01-05-16-02-37-image.png)
 
-and of course:
+and the Node is gone from the Spoke cluster:
 
 ```bash
 > oc get nodes
@@ -225,6 +239,16 @@ master-2.el8k-ztp-1.hpecloud.org   Ready    master,worker   2d5h   v1.23.12+8a6b
 worker-0.el8k-ztp-1.hpecloud.org   Ready    worker          125m   v1.23.12+8a6bfe4
 ```
 
-The worker-1 has gone.
+After that, the host should be switched off.
+
+
+
+### Decommisioning the node
+
+After finishing the procedure the host will be off. You cannot re-start the host,  or
+
+it will re-join the cluster. This happens, because it will boot again and it will start the 'kubelet' service, that will make the host to rejoin to the cluster.
+
+The decommisioining process consists on deleting all the data from the cluster. There are many ways of doing this. One option would be: [How to destroy all the data from server for decommission? - Red Hat Customer Portal](https://access.redhat.com/solutions/84663)
 
 
