@@ -16,17 +16,17 @@ Meanwhile, or if this feature is not included, in your current ZTP version), thi
 
 ## Steps for Scaling Down clusters
 
-We will need three main steps:
+We will need four main steps:
 
 * Use ZTP Gitops flow to delete the host
 
-* Manually delete the Agent object
+* Manually delete the Agent object from Hub cluster
 
-* Delete the host from the Openshift cluster. The usual 'oc drain and oc delete node'
+* Delete the host from the Openshift  Spoke cluster
+
+* Decommisioning the host
 
 From the three steps, ideally, only the first one should be needed. This is expected to happen when the functionality has been implemented
-
-
 
 
 
@@ -114,23 +114,17 @@ worker-1.el8k-ztp-1.hpecloud.org   Ready    worker          114m   v1.23.12+8a6b
 
 To delete the Node you can use your oc client or create an ACM Policy
 
-#### Using 'oc client'
+> To delete the Node from the Openshift Spoke cluster using oc client is not covered on this article. This is already officially documented as a regular procedure to  [delete a Machine](https://docs.openshift.com/container-platform/4.10/machine_management/deleting-machine.html)
+> 
+> This procedure requires Admin access to the Spoke cluster.
 
-This option is pretty easy and straightforward.  But you need Admin access to the Spoke cluster. Something that would not happen on a GitOps scenario. Where your only way of connecting the cluster is with you Git Repository.
+If you are using a GitOps approach, usually, you dont have Admin access to Spoke cluster. Also, ZTP is your only point of truth about the Cluster status. Therefore, your git repository is you only way of managing the Spoke Cluster. An ACM Policy can be created, inside your GitOps flow, that will mark one, or many, hosts to be deleted.
 
-You only have to oc drain and oc delete the node. More details [here](https://access.redhat.com/solutions/4976801) or [here](https://docs.openshift.com/container-platform/4.10/machine_management/deleting-machine.html). Both ways will be oka.
+> Here we dont cover details about creating Policies, or how to use CGU to enforce them. It is expected you have some minimum knowledge about how to use ZTP. More details about how to use [Policies](https://open-cluster-management.io/getting-started/integration/policy-framework/) and the [TALM](https://docs.openshift.com/container-platform/4.11/scalability_and_performance/ztp_far_edge/ztp-talm-updating-managed-policies.html) operator to enforce them.
 
-When each host is deployed, it is also created a BMH object for each one, in the Spoke cluster. In the previous step we deleted the BMH from the Hub cluster. Now, we have to do the same in the spoke.  Using 'oc -n openshift-machine-api get bmh' you can get the list of BMH, delete the one corresponding the node deleted.
+How to create an ACM Policy to delete the Machine corresponding to that Node, and the proper PlacementRules and PlacementBindings:
 
-#### Using an ACM Policy
-
-If you are using a GitOps approach, maybe you dont have Admin access to Spoke cluster. Also, ZTP is your point of truth about the Cluster status. So, you can create an ACM Policy inside your GitOps flow, that marks this host to be deleted.
-
-> Here we dont cover details about creating Policies, or how to use CGU to enforce them. It is expected you have some minimum knowledge about how to use ZTP
-
-Create an ACM Policy to delete the Machine corresponding to that Node, and the proper PlacementRules and PlacementBindings. I have another [document](https://github.com/jgato/jgato/blob/main/random_docs/ztp-zero-touch-all.md#making-the-match-between-policies-and-clusters) summarizing how to create these Policies.
-
-The Policy: instead of deleting the Node, we will delete the Machine. This ensures that before deleting the Node, it makes a drain process.
+The Policy: instead of deleting the Node, we will delete the Machine. This ensures that before deleting the Node, it makes a drain process. The Policy also includes the deletion of the BareMetalHost object for that host.
 
 ```yaml
 ---
@@ -178,7 +172,7 @@ spec:
   remediationAction: inform
 ```
 
-Get the proper name for the Machine (Spoke cluster):
+Get the proper name for the Machine (Spoke cluster) and the BMH:
 
 ```bash
 > oc -n openshift-machine-api get machine
@@ -188,6 +182,13 @@ el8k-ztp-1-2bjf2-master-1                     Running                           
 el8k-ztp-1-2bjf2-master-2                     Running                              2d5h
 el8k-ztp-1-worker-0.el8k-ztp-1.hpecloud.org   Running                              120m
 el8k-ztp-1-worker-1.el8k-ztp-1.hpecloud.org   Running                              127m
+> oc -n openshift-machine-api get bmh
+NAME                               STATE                    CONSUMER                                      ONLINE   ERROR   AGE
+master-0.el8k-ztp-1.hpecloud.org   unmanaged                el8k-ztp-1-2bjf2-master-0                     true             7d
+master-1.el8k-ztp-1.hpecloud.org   unmanaged                el8k-ztp-1-2bjf2-master-1                     true             7d
+master-2.el8k-ztp-1.hpecloud.org   unmanaged                el8k-ztp-1-2bjf2-master-2                     true             7d
+worker-0.el8k-ztp-1.hpecloud.org   externally provisioned   el8k-ztp-1-worker-0.el8k-ztp-1.hpecloud.org   true             22h
+worker-1.el8k-ztp-1.hpecloud.org   externally provisioned   el8k-ztp-1-worker-1.el8k-ztp-1.hpecloud.org   true             22h
 ```
 
 And here the Placements to match the Policy and the Cluster where the host was created:
@@ -224,7 +225,28 @@ subjects:
 
 Push the changes to create the Policy on ACM:
 ![](assets/2023-01-05-15-58-16-image.png) 
-The Policy is not-compliant because the desired status points to not have that host. Create a CGU to enforce the proper status. After that:
+The Policy is not-compliant because the desired status points to not have that host. Create a CGU to enforce the proper status. 
+
+```yaml
+apiVersion: ran.openshift.io/v1alpha1
+kind: ClusterGroupUpgrade
+metadata:
+  name: cgu-drain-node
+  namespace: ztp-install
+spec:
+  clusters:
+  - el8k-ztp-1
+  enable: true
+  managedPolicies:
+  - node-drain-remove
+  preCaching: false
+  remediationStrategy:
+    maxConcurrency: 1
+    timeout: 240
+
+```
+
+After that:
 
 ![](assets/2023-01-05-16-02-37-image.png)
 
@@ -239,15 +261,11 @@ master-2.el8k-ztp-1.hpecloud.org   Ready    master,worker   2d5h   v1.23.12+8a6b
 worker-0.el8k-ztp-1.hpecloud.org   Ready    worker          125m   v1.23.12+8a6bfe4
 ```
 
-After that, the host should be switched off.
-
 
 
 ### Decommisioning the node
 
-After finishing the procedure the host will be off. You cannot re-start the host,  or
-
-it will re-join the cluster. This happens, because it will boot again and it will start the 'kubelet' service, that will make the host to rejoin to the cluster.
+You cannot re-start the host,  or it will re-join the cluster. This happens, because it will boot again and it will start the 'kubelet' service, that will make the host to rejoin to the cluster.
 
 The decommisioining process consists on deleting all the data from the cluster. There are many ways of doing this. One option would be: [How to destroy all the data from server for decommission? - Red Hat Customer Portal](https://access.redhat.com/solutions/84663)
 
