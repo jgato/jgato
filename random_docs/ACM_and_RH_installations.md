@@ -301,3 +301,37 @@ During the previous sections everything has been summarized and simplified. Here
 | ManagedCluster        | Describes the managed cluster for ACM.                                                                                                                                       |
 | InfraEnv              | Describes the installation ISO to be mounted on the <br>destination node that the assisted installer service creates. This is the final step of the manifest creation phase. |
 | BareMetalHost         | Describes the details of the bare-metal host, including BMC and credentials details.                                                                                         |
+
+
+
+# ZTP and platform integration of the Spoke cluster
+
+When we install the cluster, the AI will include some configurations and integration points depending on the platform. Platforms like Baremetal, VSphere, None.
+
+For example: when using Baremetal, UserManagedNetorking is False, and you dont need to configure the DNS. Also, the cluster is installed with the [BMO](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/scalability_and_performance/managing-bare-metal-hosts) and MachineAPI. This integration would allow you, after installation, to manage the infrastructure (managing hosts, scaling up-down, etc).
+
+In case of deploying clusters with ZTP, you will never manage the cluster infrastructure with BMO and MachineAPI. You will scale up-down using your ZTP SiteConfig, which is the only point of truth. You will create a new host on your SiteConfig, that will create the BMH object on the Hub cluster, that will be managed by the BMO, the customized ISOS will be created, and finall the Assisted Installer will do its work. 
+
+In the time or writing this article, neither ZTP4.10, nor ZTP4.11, nor ZTP4.12 sets anything about the platform. So, be default, the AI:
+
+* Install SNOs as None platform.
+
+* Install Standard/Compact clusters as Baremetal platform, including the BMO.
+
+In any case, the [AI feature of configuring the platform](https://github.com/openshift/assisted-service/commit/226c77f2828e0494b0ebed64a783c514d31dc5e4#) with Kubernetes API (AgentClusterInstall) is only allowed on ACM2.6 and above.
+
+So, installation platform is Baremetal, but, would make sense to dont need to install the BMO. A good idea from ZTP would be to select the platform as Baremetal but not requiring BMO. This requires also a new [feature to disable capabilities](https://github.com/openshift/assisted-service/pull/4532), also ACM2.6.
+
+The cluster capabilities from ACM depends on the OCP deployed clusters. This is also a recent feature:
+
+* In 4.11, you can use capabilities to remove the baremetal, marketplace, and samples operator.
+
+* In 4.12 these are the capabilities that can be removed:  
+
+      - CSISnapshot
+      - Console
+      - Insights
+      - Storage
+      - baremetal
+      - marketplace
+      - openshift-samples
