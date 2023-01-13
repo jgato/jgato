@@ -520,5 +520,4 @@ spec:
         remediationAction: inform
         severity: low
   remediationAction: inform
-
 ```

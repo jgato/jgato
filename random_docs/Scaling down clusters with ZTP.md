@@ -28,8 +28,6 @@ We will need four main steps:
 
 From the three steps, ideally, only the first one should be needed. This is expected to happen when the functionality has been implemented
 
-
-
 ### Using ZTP to delete the host
 
 In this stage you should be familiar about how Siteconfig works. You will have something like this:
@@ -83,7 +81,7 @@ From deleting the host, the Resources that are going to be deleted are a BMH and
 
 ### Manually delete the Agent object
 
-After deleting the BMH, in the Agent GUI, you will still see host. During the host installation, the Assisted Installer creates a new object of kind Agent. This Agent is out of any control on the GitOps flow. It was not created from the Siteconfig. It is created by the installation service.
+After deleting the BMH, in the ACM GUI, you will still see host. During the host installation, the Assisted Installer created a new object of kind Agent. This Agent is out of any control on the GitOps flow. It was not created from the Siteconfig. It is created by the installation service.
 
 How to know which Agent resource was created during the installation of this host? You can use this command with the name the BMH (which is actually the same as the hostname):
 
@@ -243,7 +241,6 @@ spec:
   remediationStrategy:
     maxConcurrency: 1
     timeout: 240
-
 ```
 
 After that:
@@ -261,12 +258,8 @@ master-2.el8k-ztp-1.hpecloud.org   Ready    master,worker   2d5h   v1.23.12+8a6b
 worker-0.el8k-ztp-1.hpecloud.org   Ready    worker          125m   v1.23.12+8a6bfe4
 ```
 
-
-
 ### Decommisioning the node
 
 You cannot re-start the host,  or it will re-join the cluster. This happens, because it will boot again and it will start the 'kubelet' service, that will make the host to rejoin to the cluster.
 
 The decommisioining process consists on deleting all the data from the cluster. There are many ways of doing this. One option would be: [How to destroy all the data from server for decommission? - Red Hat Customer Portal](https://access.redhat.com/solutions/84663)
-
-
