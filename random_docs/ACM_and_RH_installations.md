@@ -19,6 +19,8 @@ Some components installed together with RHACM
 * Assisted Installer, which is the service that deploys the cluster based on an service living in your Hub cluster. It is a controller monitoring some resources that define a cluster creation. More about these resources [above](#Custom-resources-involved-in-the-process).
   
   Assisted Installer cannot create the Infrastructure and it is only limited to BareMetal installations.
+  
+  Assisted Installer is composed by the Assisted Service and the Assisted Agent.
 
 * BareMetalOpertor/Metal3: The BMO is in charge of managing a new CRD called BareMetalHosts. It contains information about the BareMetal servers and its BMCs. So, it can inspect the hardware, boot/switchoff, provision boot images, etc.
 
@@ -30,7 +32,7 @@ In the following sections, we will follow the installation process and the diffe
 
 ## Hive and Assisted Installer
 
-Assisted Installer is implemented as an extension on Hive, and this is installed creating an 'AgentServiceConfig':
+Assisted Installer is implemented as an extension on Hive, and this is installed creating an 'AgentServiceConfig' resource. 
 
 ```yaml
 apiVersion: agent-install.openshift.io/v1beta1                                    
@@ -58,7 +60,7 @@ spec:
       cpuArchitecture: "x86_64"  
 ```
 
-The AgentServiceConfig contains a list of available 'openshiftVersions' and the corresponding images. The version in the ISOs, here, are the version of the boot installation ISO.  We can consider this as the version of the installer, and later, we will select the OCP version.  
+The AgentServiceConfig contains a list of 'openshiftVersions' and the corresponding RHCOS images that will be used. To install Openshift 4.9, we will first boot from 'rhcos-4.9.0-x86_64-live.x86_64.iso'; a RHCOS live ISO. This ISO will be used for the host discovering and later, to initiate the installation process. This can be considered as the version of the OS and the installer. But we are not really selecting the OCP to be installed. 
 
 The AgentServiConfig deploys two services: the assisted-service (with all the logic) and the assisted-image-service.
 
@@ -68,10 +70,10 @@ assisted-image-service                  1/1     1            1           51d
 assisted-service                        1/1     1            1           51d
 ```
 
-The assisted-image-service is in charge of providing a RHCOS live iso, which will boot the server, to starts the Agent that will make the OCP installation. 
+The Assisted Image Service is in charge of providing the RHCOS live iso, which will boot the server, to starts the Agent that will make the OCP installation. 
 A RHCOS ISO is about 1GB which could create different problems when booting from a BMC's virtual media, or maybe, connectivity would be not good enough between the BMC and the ISO. So, the rootfs is extracted from the ISO, and the mini-ISO (about 100MB) is provided from the assisted-image-service, facilitating BMCs to boot from that ISO. 
 
-The assisted-service will customize the ISOs, for each host, accordingly to the cluster and hosts configuration. For example, it will include authorized-keys and NMStateConfig with the network from InfraEnv object.
+The Assisted Installer will customize the ISOs, for each host, accordingly to the cluster and hosts configuration. For example, it will include authorized-keys and NMStateConfig with the network from InfraEnv object.
 
 ```yaml
 apiVersion: agent-install.openshift.io/v1beta1                                 
@@ -94,7 +96,7 @@ spec:
       cluster-name: sno1   
 ```
 
-So images are customized (and stored) for each host that will be created. 
+So, images are customized (and stored) for each host that will be created. 
 
 The next step, it is to put these images into the BMC VirtualMedia of each host. And here it comes another component [BareMetalOperator](https://github.com/metal3-io/baremetal-operator) and a new Kubernetes Resource: BareMetalHost.
 
@@ -125,9 +127,9 @@ spec:
 ```
 
 Metal3: It is in charge of configuring the VirtualMedia with the customized ISO and to boot the server to start the installation. 
-In the previous section we have seen how the Assisted-Image-Service provides the different ISOs. But the BMC of the server will not download the ISO from the assisted-image-service. 
+In the previous section we have seen how the Assisted Image Service provides the different ISOs. But the BMC of the server will not download, directly, the ISO from the Assisted Image Service. 
 
-Metal3 creates a kind of pods/cache with the custom mini-ISOs. The URL to download the ISO from the Assiste-Image-Service is not very appropriate for some BMCS. Assisted-image-service ISOs looks like: 'https://assisted-image-service-open-cluster-management.apps.el8k.hpecloud.org/images/3ffa8e57-bb4b-4c01-97c4-a34d5fca6bc0?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiIzZmZhOGU1Ny1iYjRiLTRjMDEtOTdjNC1hMzRkNWZjYTZiYzAifQ.UvGpeBtGMQAuvQ2SHCtuWEPJJm_1KR5RS5Mxe3jvoV07nURo-EEWgsl8l9k-gU1wvZIVS9cuSKz-wHHJc0w&arch=x86_64&type=minimal-iso&version=4.9'.
+Metal3 creates a kind of pods/cache with the custom mini-ISOs. The URL to download the ISO from theAssisted Image Service is not very appropriate for some BMCS. These URLs looks like: 'https://assisted-image-service-open-cluster-management.apps.el8k.hpecloud.org/images/3ffa8e57-bb4b-4c01-97c4-a34d5fca6bc0?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiIzZmZhOGU1Ny1iYjRiLTRjMDEtOTdjNC1hMzRkNWZjYTZiYzAifQ.UvGpeBtGMQAuvQ2SHCtuWEPJJm_1KR5RS5Mxe3jvoV07nURo-EEWgsl8l9k-gU1wvZIVS9cuSKz-wHHJc0w&arch=x86_64&type=minimal-iso&version=4.9'.
 
 This urls would not work with some BMCs: url too long, not finishing with .iso or params and api-keys in the url.
 
@@ -145,15 +147,17 @@ And finally we have all the pieces.
 
 Metal3 mounts the BMC VirtualMedia with these shorter ISOs, and these boots with the customized mini-iso.
 
-## Booting the servers and connecting to the Assisted Installer Service
+## Booting the servers and connecting to the Assisted  Service
 
-The server boots with the mini-iso and the custom configuration. Immediately, it downloads the rootfs from the url pointed by the AgentServiceConfig. The rootfs plus the mini-iso provides a full OS. Remember: this is not the OCP ISO, this is just the ISO that boots the server for the installation.
+The server boots with the mini-iso and the custom configuration. Immediately, it downloads the rootfs from the url pointed by the AgentServiceConfig. The rootfs plus the mini-iso provides a live OS for the discovering and installation process.
 
-The installation ISO contains also an Agent (Assisted Agent) with the information about: how to contact the Assisted Service in the hub cluster (urls, auth, etc).
+This live OS contains the Assisted Agent service. Together with all the information about: how to contact the Assisted Service in the hub cluster (urls, auth, etc).
+
+In this stage the hub cluster is, in some way, blind. From the host boot until the Agent runs, the hub cannot receive any information. Any issue in this stage will require a console on the server, or an ssh connection (if RHCOS is already installed). It is, maybe, the most difficult part to trace and debug.
 
 ## Assisted Service and Assisted Agent
 
-That Assisted Agent starts running and calls back to the Assisted Service using https to "register". When that happens, the service creates the Agent Resource (CR) in the hub cluster. Here it is collected all the information provided by the Assisted Agent on each installing host. It also contains all the hardware inventory and the validations about memory, cpus, disks, etc. There is one Agent object, for each installing host.
+The Assisted Agent starts running and calls back to the Assisted Service using https to "register". When that happens, the Assisted Service creates the Agent Resource (CR) in the hub cluster. Here it is collected all the information provided by the Assisted Agent on each installing host. It also contains all the hardware inventory and the validations about memory, cpus, disks, etc. There is one Agent object, for each installing host.
 
 ```yaml
 apiVersion: agent-install.openshift.io/v1beta1
@@ -271,9 +275,25 @@ status:
       status: success
 ```
 
-During the installation, the communication is always from the Assisted Agent  -> Assisted Service. This is done periodically (1 minute), 
+When the Agent starts, the Assisted Service will take the control on the different BMH resources on the Hub cluster. Remember that BMH resources contained the BMC information, that was used to boot the installation live ISO. These BMHs were managed by the BMO. 
 
-For the installation, the Agent will download the OCP ISO. The  OCP versions to install in your system, depends on the available 'clusterImageSet':
+```yaml
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    baremetalhost.metal3.io/detached: assisted-service-controller
+```
+
+This 'baremetalhost.metal3.io/detached' indicates ,that now, the BMH resource is managed by the Assisted Service. The BMO will no longer be in charge of any reconciliation. This is done to avoid conflicts or interference between the two controllers.
+
+
+During the installation, the communication is always from the Assisted Agent  -> Assisted Service. This is done periodically (1 minute).
+
+
+
+For the OCP installation, the Agent will download an OCP image. Now, is when we are really selecting the OCP version to install. The  available versions to install depends on the hub 'clusterImageSet':
 
 ```bash
 > oc get clusterimagesets.hive.openshift.io 
@@ -295,35 +315,22 @@ img4.10.21-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.21-x86
 
 More about [clusterImageSet here](https://cloud.redhat.com/blog/red-hat-advanced-cluster-management-and-clusterimagesets). 
 
-Which OCP version will be installed? The 'AgentClusterInstall' resource, created on the Hub, contains all the information about the cluster. Including which OCP ISO to use.
+Which OCP version will be installed? The 'AgentClusterInstall' resource, created on the Hub, contains all the information about the cluster. Including which OCP image to use.
 
 ```bash
 > oc -n el8k-ztp-1 get aci el8k-ztp-1 -o jsonpath={.spec.imageSetRef}
 {"name":"img4.10.42-x86-64-appsub"}
 ```
 
-When the Agent starts the installation, the Assisted Service will take the control on the different BMH resources on the Hub cluster. Remember that BMH resources contained the BMC information, that was used to boot the installation ISO. These BMHs were managed by the BMO. This is done to avoid conflicts or interference between the two controllers:
+The 'img4.10.42-x86-64-appsub' contains the binary 'openshift-install' that will use an 'install-config.yaml' generated by the Agent. 
 
-```yaml
-apiVersion: metal3.io/v1alpha1
-kind: BareMetalHost
-metadata:
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-    baremetalhost.metal3.io/detached: assisted-service-controller
-```
-
-This 'baremetalhost.metal3.io/detached' indicates that now, the BMH resource will take the responsibility on this resources, and the BMO will no longer be in charge of any reconciliation.
-
+With all the requirements validated by the Assisted Service, and the host containing the 'openshift-installer', the installation can starts. Later, the host will boot again. This time with a fully RHCOS installed, together with the different Openshift pieces. 
 
 Once finished the installation, the Assisted Agent which does the installation on each host, finishes it work. It was running as a service, that has finished, and it will not do anything else. From that moment, there is no more communication between the Assisted Installer Service and the Agent.
-
 
 ![](assets/2022-03-24-17-02-38-image.png)
 
 ## Custom resources involved in the process
-
-
 
 | Custom Resource       | Description                                                                                                                                                                  |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
