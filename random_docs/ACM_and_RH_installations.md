@@ -2,27 +2,35 @@
 
 Red Hat ACM (Advanced Cluster Management) allows Openshift/Kubernetes to deploy and manage other Kubernetes cluster, and your infrastructure as a pool of resources. ACM lives on a first Openshift/Kubernetes cluster, which  is called Hub (Management) cluster. From there all the deployed clusters are Spoke (Managed) Clusters.
 
-Red Hat ACM is based on the upstream project [Open Cluster Management](https://open-cluster-management.io/) together with other components/controllers/operators. ACM can be used to deploy different Kubernetes flavors, but here, we will focus on Openshift. Specially, because we will focus on the Assisted Installer, which easiness Openshift installation. 
+> This document dont focuses on how you create and deploy your spoke clusters using RHACM. There are other [documents about it](https://github.com/jparrill/ztp-the-hard-way).
+> 
+> This document happens after you know how to create the spoke clusters. How the installation, internally, works. The different components inside RHACM that makes this possible. And some technical details. This would make you easier to dig dive into the platform. It  would also help you solving issues, knowing better in which step and which components are involved.
+
+Red Hat ACM is based on the upstream project [Open Cluster Management](https://open-cluster-management.io/) together with other components/controllers/operators. ACM can be used to deploy different Kubernetes flavors, but here, we will focus on Openshift.  
 
 ![](assets/2022-03-24-14-48-11-image.png)
 
-To manage the infrastructure and the deployment process there exists different "installers" that allows you deploy different versions of Kubernetes (in our case Openshift) and the infrastructure with cloud providers like AWS, GCP and on premises using Baremetal.
+To manage the infrastructure and the deployment process there exists different "installers" that allows you deploy different versions of Kubernetes (in our case Openshift). The installer also cover the infrastructure improvising, with cloud providers like AWS, GCP and on premises, using Baremetal.
 
 Some components installed together with RHACM 
 
-* Hive provides API driven cluster provisioning, reshaping, deprovisioning and configuration at scale. It can be used with different providers to deploy your clusters. For example, it can use the [Openshift Installer](https://github.com/openshift/installer) to deploy clusters on AWS, Google Cloud, etc. In our case, it will make use of the [Assisted Installer service](https://github.com/openshift/assisted-service/), another alternative to deploy Openshift, based on an service which manages your clusters.
+* Hive provides API driven cluster provisioning, reshaping, deprovisioning and configuration at scale. It can be used with different providers to deploy your clusters. For example, it can use the [Openshift Installer](https://github.com/openshift/installer) to deploy clusters on AWS, Google Cloud, etc. In our case, it will make use of the [Assisted Installer service](https://github.com/openshift/assisted-service/), another alternative to deploy Openshift.
 
-* Assisted Installer, which is the service that deploys the cluster based on an service living in your Hub cluster. The Assisted Installer can be used as a REST API Service, or, as Kubernetes API Service. In this case, we use the Kubernetes API Service. It is a controller monitoring some resources that define a cluster creation. More about these resources above. 
+* Assisted Installer, which is the service that deploys the cluster based on an service living in your Hub cluster. It is a controller monitoring some resources that define a cluster creation. More about these resources [above](#Custom-resources-involved-in-the-process).
   
   Assisted Installer cannot create the Infrastructure and it is only limited to BareMetal installations.
 
 * BareMetalOpertor/Metal3: The BMO is in charge of managing a new CRD called BareMetalHosts. It contains information about the BareMetal servers and its BMCs. So, it can inspect the hardware, boot/switchoff, provision boot images, etc.
 
+The installation process will start, once you have created the needed [CRs](#Custom-resources-involved-in-the-process). In this picture, we can see a high level diagram about the different components interactions:
 
+![](assets/2023-01-18-10-36-48-RHACM%20Components.png)
+
+In the following sections, we will follow the installation process and the different components roles and interactions, in details. 
 
 ## Hive and Assisted Installer
 
-AI as an extension on Hive, and this is installed creating an :
+Assisted Installer is implemented as an extension on Hive, and this is installed creating an 'AgentServiceConfig':
 
 ```yaml
 apiVersion: agent-install.openshift.io/v1beta1                                    
@@ -50,7 +58,9 @@ spec:
       cpuArchitecture: "x86_64"  
 ```
 
-Which deploys two services: the assisted-service (with all the logic) and the assisted-image-service.
+The AgentServiceConfig contains a list of available 'openshiftVersions' and the corresponding images. The version in the ISOs, here, are the version of the boot installation ISO.  We can consider this as the version of the installer, and later, we will select the OCP version.  
+
+The AgentServiConfig deploys two services: the assisted-service (with all the logic) and the assisted-image-service.
 
 ```bash
 $> oc -n open-cluster-management get deployment | grep assisted
@@ -58,11 +68,11 @@ assisted-image-service                  1/1     1            1           51d
 assisted-service                        1/1     1            1           51d
 ```
 
-The assisted-image-service is in charge of providing an ArchOS live iso which will bill start the installation.  An ArchOS ISO is about 1GB which could create different problems when booting from a BMC's virtual media, or maybe, connectivity would be not good enough between the BMC and the ISO. So, the rootfs is extracted from the ISO, and the mini-ISO (about 100MB) is provided from the assisted-image-service, facilitating BMCs to boot from that ISO. 
+The assisted-image-service is in charge of providing a RHCOS live iso, which will boot the server, to starts the Agent that will make the OCP installation. 
+A RHCOS ISO is about 1GB which could create different problems when booting from a BMC's virtual media, or maybe, connectivity would be not good enough between the BMC and the ISO. So, the rootfs is extracted from the ISO, and the mini-ISO (about 100MB) is provided from the assisted-image-service, facilitating BMCs to boot from that ISO. 
 
-The assisted-service will all customize the ISOs, for each host, accordingly to the cluster and hosts configuration. For example, it will include authorized-keys and NMStateConfig with the network from InfraEnv object.
+The assisted-service will customize the ISOs, for each host, accordingly to the cluster and hosts configuration. For example, it will include authorized-keys and NMStateConfig with the network from InfraEnv object.
 
-```yaml
 ```yaml
 apiVersion: agent-install.openshift.io/v1beta1                                 
 kind: InfraEnv                                                                 
@@ -90,7 +100,7 @@ The next step, it is to put these images into the BMC VirtualMedia of each host.
 
 ## BareMetalOperator/Metal3
 
-The BMO provides the API for the BMH Resource, and Metal3 provides the logic for managing the BareMetal servers. 
+The BareMetalOperator(BMO) provides the API for the BareMetalHost(BMH) Resource.  Metal3 provides the logic for managing the BareMetal servers. 
 
 ```yaml
 apiVersion: metal3.io/v1alpha1  
@@ -117,7 +127,7 @@ spec:
 Metal3: It is in charge of configuring the VirtualMedia with the customized ISO and to boot the server to start the installation. 
 In the previous section we have seen how the Assisted-Image-Service provides the different ISOs. But the BMC of the server will not download the ISO from the assisted-image-service. 
 
-Metal3 creates a kind of pods/cache with the custom mini-ISOs. The URL to download the ISO from the Assiste-Image-Service is not very appropriate for some BMCS. Something like: "https://assisted-image-service-open-cluster-management.apps.el8k.hpecloud.org/images/3ffa8e57-bb4b-4c01-97c4-a34d5fca6bc0?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiIzZmZhOGU1Ny1iYjRiLTRjMDEtOTdjNC1hMzRkNWZjYTZiYzAifQ.UvGpeBtGMQAuvQ2SHCtuWEPJJm_1KR5RS5Mxe3jvoV07nURo-EEWgsl8l9k-gU1wvZIVS9cuSKz-wHHJc0w&arch=x86_64&type=minimal-iso&version=4.9". 
+Metal3 creates a kind of pods/cache with the custom mini-ISOs. The URL to download the ISO from the Assiste-Image-Service is not very appropriate for some BMCS. Assisted-image-service ISOs looks like: 'https://assisted-image-service-open-cluster-management.apps.el8k.hpecloud.org/images/3ffa8e57-bb4b-4c01-97c4-a34d5fca6bc0?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiIzZmZhOGU1Ny1iYjRiLTRjMDEtOTdjNC1hMzRkNWZjYTZiYzAifQ.UvGpeBtGMQAuvQ2SHCtuWEPJJm_1KR5RS5Mxe3jvoV07nURo-EEWgsl8l9k-gU1wvZIVS9cuSKz-wHHJc0w&arch=x86_64&type=minimal-iso&version=4.9'.
 
 This urls would not work with some BMCs: url too long, not finishing with .iso or params and api-keys in the url.
 
@@ -133,19 +143,17 @@ metal3-image-cache-rmn4h   1/1     Running   5          51d
 
 And finally we have all the pieces.
 
-Metal3 mounts the BMC VirtualMedia with these shorter ISOs, and these bots with the customized mini-iso.
+Metal3 mounts the BMC VirtualMedia with these shorter ISOs, and these boots with the customized mini-iso.
 
 ## Booting the servers and connecting to the Assisted Installer Service
 
-The server boots with the mini-iso and the custom configuration. Immediately, it downloads the rootfs from the url pointed by the AgentServiceConfig. The rootfs plut the mini-iso provides a full OS. 
+The server boots with the mini-iso and the custom configuration. Immediately, it downloads the rootfs from the url pointed by the AgentServiceConfig. The rootfs plus the mini-iso provides a full OS. Remember: this is not the OCP ISO, this is just the ISO that boots the server for the installation.
 
-When the full ISO created and running, the server will try to register itself with the Assisted Service. In order to identify the new server, this will use an api-key, also customized together with the ISO. If the registering is oka, it will download an Assisted Installer Agent that will start the installation. 
+The installation ISO contains also an Agent (Assisted Agent) with the information about: how to contact the Assisted Service in the hub cluster (urls, auth, etc).
 
 ## Assisted Service and Assisted Agent
 
-Once the Agent is running on each installing host, and these has been correctly registered, you will see the installation process starting. 
-
-During the installation, the communication is always from the Assisted Agent  -> Assisted Service. The Assisted Agent (Spoke side) is doing the different steps, and it notifies that to the Assisted Service (Hub side). It is also created, on the Hub side, a new Resource called Agent. Here it is collected all the information provided by the Assisted Agent on each installing host. It also contains all the hardware inventoy and the validations about memory, cpus, disks, etc. There is one Agent object, for each installing host.
+That Assisted Agent starts running and calls back to the Assisted Service using https to "register". When that happens, the service creates the Agent Resource (CR) in the hub cluster. Here it is collected all the information provided by the Assisted Agent on each installing host. It also contains all the hardware inventory and the validations about memory, cpus, disks, etc. There is one Agent object, for each installing host.
 
 ```yaml
 apiVersion: agent-install.openshift.io/v1beta1
@@ -261,10 +269,36 @@ status:
       status: success
 
       status: success
-
 ```
 
-One important point when the Agent starts working. The BMC which is managed by the BMO is now managed by the Assisted Service. This is done to avoid conflicts or interference between the two controllers:
+During the installation, the communication is always from the Assisted Agent  -> Assisted Service. For the installation, the Agent will download the OCP ISO. The  OCP versions to install in your system, depends on the available 'clusterImageSet':
+
+```bash
+> oc get clusterimagesets.hive.openshift.io 
+NAME                       RELEASE
+img4.10.10-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.10-x86_64
+img4.10.11-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.11-x86_64
+img4.10.12-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.12-x86_64
+img4.10.13-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.13-x86_64
+img4.10.14-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.14-x86_64
+img4.10.15-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.15-x86_64
+img4.10.16-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.16-x86_64
+img4.10.17-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.17-x86_64
+img4.10.18-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.18-x86_64
+img4.10.20-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.20-x86_64
+img4.10.21-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.21-x86_64
+...
+...
+```
+
+More about [clusterImageSet here](https://cloud.redhat.com/blog/red-hat-advanced-cluster-management-and-clusterimagesets). Which OCP version will be installed? The 'AgentClusterInstall' resource, created on the Hub, contains all the information about the cluster. Including which OCP ISO to use.
+
+```bash
+> oc -n el8k-ztp-1 get aci el8k-ztp-1 -o jsonpath={.spec.imageSetRef}
+{"name":"img4.10.42-x86-64-appsub"}
+```
+
+When the Agent starts the installation, the Assisted Service will take the control on the different BMH resources on the Hub cluster. Remember that BMH resources contained the BMC information, that was used to boot the installation ISO. These BMHs were managed by the BMO. This is done to avoid conflicts or interference between the two controllers:
 
 ```yaml
 apiVersion: metal3.io/v1alpha1
@@ -273,10 +307,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
     baremetalhost.metal3.io/detached: assisted-service-controller
-
 ```
 
-This 'baremetalhost.metal3.io/detached' indicates that now, the BMH resource, is managed by the Assisted Service.
+This 'baremetalhost.metal3.io/detached' indicates that now, the BMH resource will take the responsibility on this resources, and the BMO will no longer be in charge of any reconciliation.
 
 Finished the installation:
 
@@ -284,11 +317,9 @@ Finished the installation:
 
 Once finished the installation, the Assisted Agent which does the installation on each host, finishes it work. It was running as a service, that has finished, and it will not do anything else. From that moment, there is no more communication between the Assisted Installer Service and the Agent.
 
+## Custom resources involved in the process
 
 
-## All the Resources that manage a Cluster Deployment
-
-During the previous sections everything has been summarized and simplified. Here a list of all the Resources to be created.
 
 | Custom Resource       | Description                                                                                                                                                                  |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -302,23 +333,21 @@ During the previous sections everything has been summarized and simplified. Here
 | InfraEnv              | Describes the installation ISO to be mounted on the <br>destination node that the assisted installer service creates. This is the final step of the manifest creation phase. |
 | BareMetalHost         | Describes the details of the bare-metal host, including BMC and credentials details.                                                                                         |
 
-
-
 # ZTP and platform integration of the Spoke cluster
 
 When we install the cluster, the AI will include some configurations and integration points depending on the platform. Platforms like Baremetal, VSphere, None.
 
 For example: when using Baremetal, UserManagedNetorking is False, and you dont need to configure the DNS. Also, the cluster is installed with the [BMO](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/scalability_and_performance/managing-bare-metal-hosts) and MachineAPI. This integration would allow you, after installation, to manage the infrastructure (managing hosts, scaling up-down, etc).
 
-In case of deploying clusters with ZTP, you will never manage the cluster infrastructure with BMO and MachineAPI. You will scale up-down using your ZTP SiteConfig, which is the only point of truth. You will create a new host on your SiteConfig, that will create the BMH object on the Hub cluster, that will be managed by the BMO, the customized ISOS will be created, and finall the Assisted Installer will do its work. 
+In case of deploying clusters with ZTP, you will never manage the cluster infrastructure with BMO and MachineAPI. You will scale up-down using your ZTP SiteConfig, which is the only point of truth. You will create a new host on your SiteConfig, that will create the BMH object on the Hub cluster, that will be managed by the BMO, the customized ISOS will be created, and finally the Assisted Installer will do its work. 
 
-In the time or writing this article, neither ZTP4.10, nor ZTP4.11, nor ZTP4.12 sets anything about the platform. So, be default, the AI:
+In the time or writing this article, neither ZTP4.10, nor ZTP4.11, nor ZTP4.12 sets anything about the platform. So, by default, the AI:
 
 * Install SNOs as None platform.
 
 * Install Standard/Compact clusters as Baremetal platform, including the BMO.
 
-In any case, the [AI feature of configuring the platform](https://github.com/openshift/assisted-service/commit/226c77f2828e0494b0ebed64a783c514d31dc5e4#) with Kubernetes API (AgentClusterInstall) is only allowed on ACM2.6 and above.
+The [AI feature of configuring the platform]([[release-ocm-2.6] MGMT-12317: Add capabilities entries to install-config by openshift-cherrypick-robot · Pull Request #4532 · openshift/assisted-service · GitHub](https://github.com/openshift/assisted-service/pull/4532)) with Kubernetes API (AgentClusterInstall) is only allowed on ACM2.6 and above.
 
 So, installation platform is Baremetal, but, would make sense to dont need to install the BMO. A good idea from ZTP would be to select the platform as Baremetal but not requiring BMO. This requires also a new [feature to disable capabilities](https://github.com/openshift/assisted-service/pull/4532), also ACM2.6.
 
@@ -327,7 +356,7 @@ The cluster capabilities from ACM depends on the OCP deployed clusters. This is 
 * In 4.11, you can use capabilities to remove the baremetal, marketplace, and samples operator.
 
 * In 4.12 these are the capabilities that can be removed:  
-
+  
       - CSISnapshot
       - Console
       - Insights
