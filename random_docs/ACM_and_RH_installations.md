@@ -271,7 +271,9 @@ status:
       status: success
 ```
 
-During the installation, the communication is always from the Assisted Agent  -> Assisted Service. For the installation, the Agent will download the OCP ISO. The  OCP versions to install in your system, depends on the available 'clusterImageSet':
+During the installation, the communication is always from the Assisted Agent  -> Assisted Service. This is done periodically (1 minute), 
+
+For the installation, the Agent will download the OCP ISO. The  OCP versions to install in your system, depends on the available 'clusterImageSet':
 
 ```bash
 > oc get clusterimagesets.hive.openshift.io 
@@ -291,7 +293,9 @@ img4.10.21-x86-64-appsub   quay.io/openshift-release-dev/ocp-release:4.10.21-x86
 ...
 ```
 
-More about [clusterImageSet here](https://cloud.redhat.com/blog/red-hat-advanced-cluster-management-and-clusterimagesets). Which OCP version will be installed? The 'AgentClusterInstall' resource, created on the Hub, contains all the information about the cluster. Including which OCP ISO to use.
+More about [clusterImageSet here](https://cloud.redhat.com/blog/red-hat-advanced-cluster-management-and-clusterimagesets). 
+
+Which OCP version will be installed? The 'AgentClusterInstall' resource, created on the Hub, contains all the information about the cluster. Including which OCP ISO to use.
 
 ```bash
 > oc -n el8k-ztp-1 get aci el8k-ztp-1 -o jsonpath={.spec.imageSetRef}
@@ -311,11 +315,11 @@ metadata:
 
 This 'baremetalhost.metal3.io/detached' indicates that now, the BMH resource will take the responsibility on this resources, and the BMO will no longer be in charge of any reconciliation.
 
-Finished the installation:
-
-![](assets/2022-03-24-17-02-38-image.png)
 
 Once finished the installation, the Assisted Agent which does the installation on each host, finishes it work. It was running as a service, that has finished, and it will not do anything else. From that moment, there is no more communication between the Assisted Installer Service and the Agent.
+
+
+![](assets/2022-03-24-17-02-38-image.png)
 
 ## Custom resources involved in the process
 
