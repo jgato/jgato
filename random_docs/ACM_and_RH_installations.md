@@ -1,18 +1,18 @@
 # ACM components to deploy Openshift clusters with the Assisted Installer
 
-Red Hat ACM (Advanced Cluster Management) allows Openshift/Kubernetes to deploy and manage other Kubernetes cluster, and your infrastructure as a pool of resources. ACM lives on a first Openshift/Kubernetes cluster, which  is called Hub (Management) cluster. From there all the deployed clusters are Spoke (Managed) Clusters.
+RHACM (Red Hat Advanced Cluster Management) allows Openshift/Kubernetes to deploy and manage other Kubernetes cluster, and your infrastructure as a pool of resources. RHACM lives on a first Openshift/Kubernetes cluster, which  is called Hub (Management) cluster. From there all the deployed clusters are Spoke (Managed) Clusters.
 
 > This document dont focuses on how you create and deploy your spoke clusters using RHACM. There are other [documents about it](https://github.com/jparrill/ztp-the-hard-way).
 > 
-> This document happens after you know how to create the spoke clusters. How the installation, internally, works. The different components inside RHACM that makes this possible. And some technical details. This would make you easier to dig dive into the platform. It  would also help you solving issues, knowing better in which step and which components are involved.
+> This document happens after you know how to create the spoke clusters. How the installation, internally, works. The different components inside RHACM that makes this possible. And some technical details. This would make you easier to deep dive into the platform. It would also help you solving issues, knowing better in which step which components are involved.
 
-Red Hat ACM is based on the upstream project [Open Cluster Management](https://open-cluster-management.io/) together with other components/controllers/operators. ACM can be used to deploy different Kubernetes flavors, but here, we will focus on Openshift.  
+RHACM is based on the upstream project [Open Cluster Management](https://open-cluster-management.io/) together with other components/controllers/operators. RHACM can be used to deploy different Kubernetes flavors, but here, we will focus on Openshift.  
 
 ![](assets/2022-03-24-14-48-11-image.png)
 
-To manage the infrastructure and the deployment process there exists different "installers" that allows you deploy different versions of Kubernetes (in our case Openshift). The installer also cover the infrastructure improvising, with cloud providers like AWS, GCP and on premises, using Baremetal.
+To manage the infrastructure and the deployment process there exist different "installers" that allows you deploy different versions of Kubernetes (in our case Openshift). The installer also covers the infrastructure provising, with cloud providers like AWS, GCP and on premises, using Baremetal.
 
-Some components installed together with RHACM 
+Some components are installed together with RHACM 
 
 * Hive provides API driven cluster provisioning, reshaping, deprovisioning and configuration at scale. It can be used with different providers to deploy your clusters. For example, it can use the [Openshift Installer](https://github.com/openshift/installer) to deploy clusters on AWS, Google Cloud, etc. In our case, it will make use of the [Assisted Installer service](https://github.com/openshift/assisted-service/), another alternative to deploy Openshift.
 
@@ -98,7 +98,7 @@ spec:
 
 So, images are customized (and stored) for each host that will be created. 
 
-The next step, it is to put these images into the BMC VirtualMedia of each host. And here it comes another component [BareMetalOperator](https://github.com/metal3-io/baremetal-operator) and a new Kubernetes Resource: BareMetalHost.
+The next step is to put these images into the BMC VirtualMedia of each host. And here comes another component [BareMetalOperator](https://github.com/metal3-io/baremetal-operator) and a new Kubernetes Resource: BareMetalHost.
 
 ## BareMetalOperator/Metal3
 
@@ -129,11 +129,11 @@ spec:
 Metal3: It is in charge of configuring the VirtualMedia with the customized ISO and to boot the server to start the installation. 
 In the previous section we have seen how the Assisted Image Service provides the different ISOs. But the BMC of the server will not download, directly, the ISO from the Assisted Image Service. 
 
-Metal3 creates a kind of pods/cache with the custom mini-ISOs. The URL to download the ISO from theAssisted Image Service is not very appropriate for some BMCS. These URLs looks like: 'https://assisted-image-service-open-cluster-management.apps.el8k.hpecloud.org/images/3ffa8e57-bb4b-4c01-97c4-a34d5fca6bc0?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiIzZmZhOGU1Ny1iYjRiLTRjMDEtOTdjNC1hMzRkNWZjYTZiYzAifQ.UvGpeBtGMQAuvQ2SHCtuWEPJJm_1KR5RS5Mxe3jvoV07nURo-EEWgsl8l9k-gU1wvZIVS9cuSKz-wHHJc0w&arch=x86_64&type=minimal-iso&version=4.9'.
+Metal3 creates a kind of pods/cache with the custom mini-ISOs. The URL to download the ISO from the Assisted Image Service is not very appropriate for some BMCS. These URLs looks like: 'https://assisted-image-service-open-cluster-management.apps.el8k.hpecloud.org/images/3ffa8e57-bb4b-4c01-97c4-a34d5fca6bc0?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiIzZmZhOGU1Ny1iYjRiLTRjMDEtOTdjNC1hMzRkNWZjYTZiYzAifQ.UvGpeBtGMQAuvQ2SHCtuWEPJJm_1KR5RS5Mxe3jvoV07nURo-EEWgsl8l9k-gU1wvZIVS9cuSKz-wHHJc0w&arch=x86_64&type=minimal-iso&version=4.9'.
 
 This urls would not work with some BMCs: url too long, not finishing with .iso or params and api-keys in the url.
 
-So, Metal3 caches more appropriate, and shorter,  URLs.
+So, Metal3 caches more appropriate, and shorter URLs.
 
 ```bash
 oc -n openshift-machine-api get pods -l baremetal.openshift.io/cluster-baremetal-operator=metal3-image-cache
@@ -324,7 +324,7 @@ Which OCP version will be installed? The 'AgentClusterInstall' resource, created
 
 The 'img4.10.42-x86-64-appsub' contains the binary 'openshift-install' that will use an 'install-config.yaml' generated by the Agent. 
 
-With all the requirements validated by the Assisted Service, and the host containing the 'openshift-installer', the installation can starts. 
+With all the requirements validated by the Assisted Service, and the host containing the 'openshift-installer', the installation can start. 
 
 Later, the host will reboot. This time with a fully RHCOS installed, together with the different Openshift pieces. 
 
@@ -352,7 +352,7 @@ Your OCP cluster is ready to be used.
 
 When we install the cluster, the AI will include some configurations and integration points depending on the platform. Platforms like Baremetal, VSphere, None.
 
-For example: when using Baremetal, UserManagedNetorking is False, and you dont need to configure the DNS. Also, the cluster is installed with the [BMO](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/scalability_and_performance/managing-bare-metal-hosts) and MachineAPI. This integration would allow you, after installation, to manage the infrastructure (managing hosts, scaling up-down, etc).
+For example: when using Baremetal, UserManagedNetworking is false, and you dont need to configure the DNS. Also, the cluster is installed with the [BMO](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/scalability_and_performance/managing-bare-metal-hosts) and MachineAPI. This integration would allow you, after installation, to manage the infrastructure (managing hosts, scaling up-down, etc).
 
 In case of deploying clusters with ZTP, you will never manage the cluster infrastructure with BMO and MachineAPI. You will scale up-down using your ZTP SiteConfig, which is the only point of truth. You will create a new host on your SiteConfig, that will create the BMH object on the Hub cluster, that will be managed by the BMO, the customized ISOS will be created, and finally the Assisted Installer will do its work. 
 
@@ -364,9 +364,9 @@ In the time or writing this article, neither ZTP4.10, nor ZTP4.11, nor ZTP4.12 s
 
 The [AI feature of configuring the platform]([[release-ocm-2.6] MGMT-12317: Add capabilities entries to install-config by openshift-cherrypick-robot · Pull Request #4532 · openshift/assisted-service · GitHub](https://github.com/openshift/assisted-service/pull/4532)) with Kubernetes API (AgentClusterInstall) is only allowed on ACM2.6 and above.
 
-So, installation platform is Baremetal, but, would make sense to dont need to install the BMO. A good idea from ZTP would be to select the platform as Baremetal but not requiring BMO. This requires also a new [feature to disable capabilities](https://github.com/openshift/assisted-service/pull/4532), also ACM2.6.
+So, installation platform is Baremetal, but, would make sense to dont need to install the BMO. A good idea from ZTP would be to select the platform as Baremetal but not requiring BMO. This requires also a new [feature to disable capabilities](https://github.com/openshift/assisted-service/pull/4532), also RHACM 2.6.
 
-The cluster capabilities from ACM depends on the OCP deployed clusters. This is also a recent feature:
+The cluster capabilities from RHACM depends on the OCP deployed clusters. This is also a recent feature:
 
 * In 4.11, you can use capabilities to remove the baremetal, marketplace, and samples operator.
 
