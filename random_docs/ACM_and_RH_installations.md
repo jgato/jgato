@@ -1,5 +1,9 @@
 RHACM version covered on this document: 2.5.x
 
+Author: Jose Gato Luis <jgato@redhat.com>
+
+CoAuthor: Nick Carboni ncarboni@redhat.com
+
 # ACM components to deploy Openshift clusters with the Assisted Installer
 
 RHACM (Red Hat Advanced Cluster Management) allows Openshift/Kubernetes to deploy and manage other Kubernetes cluster, and your infrastructure as a pool of resources. RHACM lives on a first Openshift/Kubernetes cluster, which  is called Hub (Management) cluster. From there all the deployed clusters are Spoke (Managed) Clusters.
