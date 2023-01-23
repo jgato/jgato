@@ -1,3 +1,5 @@
+RHACM version covered on this document: 2.5.x
+
 # ACM components to deploy Openshift clusters with the Assisted Installer
 
 Red Hat ACM (Advanced Cluster Management) allows Openshift/Kubernetes to deploy and manage other Kubernetes cluster, and your infrastructure as a pool of resources. ACM lives on a first Openshift/Kubernetes cluster, which  is called Hub (Management) cluster. From there all the deployed clusters are Spoke (Managed) Clusters.
@@ -288,10 +290,7 @@ metadata:
 
 This 'baremetalhost.metal3.io/detached' indicates ,that now, the BMH resource is managed by the Assisted Service. The BMO will no longer be in charge of any reconciliation. This is done to avoid conflicts or interference between the two controllers.
 
-
 During the installation, the communication is always from the Assisted Agent  -> Assisted Service. This is done periodically (1 minute).
-
-
 
 For the OCP installation, the Agent will download an OCP image. Now, is when we are really selecting the OCP version to install. The  available versions to install depends on the hub 'clusterImageSet':
 
