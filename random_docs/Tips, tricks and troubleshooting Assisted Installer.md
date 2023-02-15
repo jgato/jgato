@@ -16,8 +16,6 @@ Of course, also logs, from the different services, helps with the troubleshootin
 
 You have to SSH into the host which is the boostrap, and it contains the assisted-service. 
 
-> ToDo: Some of the commands could not be 100% accurate or contain typos. I have to reproduce that on envs where I could get back the commands
-
 #### How to know the installation status:
 
 You can get the validation info of each host:
