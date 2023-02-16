@@ -1,0 +1,21 @@
+# More about IPv6
+
+Some tips, tricks, and configuraitons
+
+## NMState configuration for IPv6
+
+```yaml
+ipv6:
+  enabled: true
+  autoconf: true
+  dhcp: true
+  auto-dns: false
+  auto-gateway: true
+  auto-routes: true
+```
+
+* autoconf means, that the IPv6 will be assigned based on received RA. [How SLAAC is calculated](https://www.ciscopress.com/articles/article.asp?p=2154680)
+
+* dhcp means that the IPv6 will be assigned by a DHCP server
+
+NetworkManager seems to have a bug that avoids to set 'autoconf: true' and 'dhcp: false'. More [here](https://issues.redhat.com/browse/RFE-3671)
