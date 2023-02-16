@@ -58,8 +58,6 @@ $ kcli create disk --pool home-jgato -s 250 sno7
 
 optionally, I am using a not default pool
 
-
-
 ## Moving disks
 
 Useful if you run out of space in your disks.
@@ -239,4 +237,46 @@ With the previous plan file:
 
 ```
 kcli render -f sno2-plan.yaml
+```
+
+
+
+## Edit a vm
+
+Kcli dont allow to edit a vm. So, the procedure will be:
+
+```bash
+[root@provisioner plans]# kcli stop vm  sno8
+[root@provisioner plans]# virsh edit sno8
+Stopping vm sno8 in local...
+sno8 stopped
+<domain type='kvm'>
+  <name>sno8</name>
+  <uuid>0278caff-69ba-41a9-a526-51098fd238b0</uuid>
+  <metadata xmlns:ns0="kvirt" xmlns:sushy="http://openstack.org/xmlns/libvirt/sushy">
+    <ns0:info>
+      <ns0:creationdate>16-02-2023 15:35</ns0:creationdate>
+      <ns0:plan>sno8</ns0:plan>
+      <ns0:profile>kvirt</ns0:profile>
+    </ns0:info>
+    <sushy:bios>
+      <sushy:attributes>
+        <sushy:attribute name="BootMode" value="Uefi"/>
+        <sushy:attribute name="EmbeddedSata" value="Raid"/>
+        <sushy:attribute name="L2Cache" value="10x256 KB"/>
+        <sushy:attribute name="NicBoot1" value="NetworkBoot"/>
+        <sushy:attribute name="NumCores" value="10"/>
+        <sushy:attribute name="ProcTurboMode" value="Enabled"/>
+        <sushy:attribute name="QuietBoot" value="true"/>
+        <sushy:attribute name="SecureBootStatus" value="Enabled"/>
+        <sushy:attribute name="SerialNumber" value="QPX12345"/>
+        <sushy:attribute name="SysPassword" value=""/>
+      </sushy:attributes>
+    </sushy:bios>
+  </metadata>
+  <memory unit='KiB'>33554432</memory>
+  <currentMemory unit='KiB'>33554432</currentM
+.....
+....
+[root@provisioner plans]# kcli start vm  sno8
 ```
