@@ -103,44 +103,43 @@ From the spoke perspective, nothing happened yet. In order to delete the host, w
 In this case, we want to delete the worker-1 from all the Machines
 
 ```bash
-> oc get machine -A                                                                                                         
-NAMESPACE               NAME                              PHASE     TYPE   REGION   ZONE   AGE
-openshift-machine-api   el8k-ztp-1-n2lt4-master-0         Running                          52m
-openshift-machine-api   el8k-ztp-1-n2lt4-master-1         Running                          52m
-openshift-machine-api   el8k-ztp-1-n2lt4-master-2         Running                          52m
-openshift-machine-api   el8k-ztp-1-n2lt4-worker-0-2rx72   Running                          34m
-openshift-machine-api   el8k-ztp-1-n2lt4-worker-0-x5wmq   Running                          34m
+>  oc -n openshift-machine-api get machine
+NAME                              PHASE     TYPE   REGION   ZONE   AGE
+el8k-ztp-1-bdxf5-master-0         Running                          72m
+el8k-ztp-1-bdxf5-master-1         Running                          72m
+el8k-ztp-1-bdxf5-master-2         Running                          72m
+el8k-ztp-1-bdxf5-worker-0-98qzv   Running                          55m
+el8k-ztp-1-bdxf5-worker-0-jf8lw   Running                          55m
 ```
 
-From Machine 'metada.name' you can have the host name:
+From each Machine  you can have the host name:
 
 ```json
-> oc -n openshift-machine-api get machine el8k-ztp-1-n2lt4-worker-1-x5wmq -o jsonpath={.metadata.name} 
+>  oc -n openshift-machine-api get machine el8k-ztp-1-bdxf5-worker-0-jf8lw -o jsonpath={.status.nodeRef.name}
 worker-1.el8k-ztp-1.hpecloud.org
 ```
-
-Step 0) Before deleting, we have to find out if the Machine belongs the a MachineSet
 
 This will depend on how it was installed. The workers added as extra-workers dont belong to the MachineSet. But it is better to ensure that, in case you dont know how the worker was created.
 
 ```json
->  oc -n openshift-machine-api get machine el8k-ztp-1-n2lt4-worker-1-x5wmq \
+>  oc -n openshift-machine-api get machine el8k-ztp-1-bdxf5-worker-0-jf8lw \
 -o jsonpath={.metadata.labels} | jq
 {
-  "machine.openshift.io/cluster-api-cluster": "el8k-ztp-1-n2lt4",
+  "machine.openshift.io/cluster-api-cluster": "el8k-ztp-1-bdxf5",
   "machine.openshift.io/cluster-api-machine-role": "worker",
   "machine.openshift.io/cluster-api-machine-type": "worker",
-  "machine.openshift.io/cluster-api-machineset": "el8k-ztp-1-n2lt4-worker-0"
+  "machine.openshift.io/cluster-api-machineset": "el8k-ztp-1-bdxf5-worker-0"
 }
+
 ```
 
-In this case, yes, it belongs to the MachineSet: 'el8k-ztp-1-r5mn7-worker-0'
+In this case, yes, it belongs to the MachineSet: 'el8k-ztp-1-bdxf5-worker-0'
 
 step 1) Lets delete the Machine for the worker-1
 
 ```bash
-> oc -n openshift-machine-api delete machine el8k-ztp-1-n2lt4-worker-0-x5wmq 
-machine.machine.openshift.io "el8k-ztp-1-n2lt4-worker-0-x5wmq" deleted
+> oc -n openshift-machine-api delete machine el8k-ztp-1-bdxf5-worker-0-jf8lw 
+machine.machine.openshift.io "el8k-ztp-1-bdxf5-worker-0-jf8lw" deleted
 ```
 
 step 2) (only if the Machine belongs to a MachineSet)  Scale down the MachineSet
@@ -150,18 +149,19 @@ In this case, the Machine was part of the MachineSet, we have to scale down the 
 ```bash
 > oc -n openshift-machine-api get machineset
 NAME                        DESIRED   CURRENT   READY   AVAILABLE   AGE
-el8k-ztp-1-n2lt4-worker-0   2         2         1       1           58m
+el8k-ztp-1-bdxf5-worker-0   2         2         1       1           58m
 
-> oc -n openshift-machine-api scale machineset el8k-ztp-1-n2lt4-worker-0 \
+> oc -n openshift-machine-api scale machineset el8k-ztp-1-bdxf5-worker-0  \
 --replicas=1
-machineset.machine.openshift.io/el8k-ztp-1-n2lt4-worker-0 scaled
+machineset.machine.openshift.io/el8k-ztp-1-bdxf5-worker-0  scaled
 
 > oc -n openshift-machine-api get machine
 NAME                              PHASE     TYPE   REGION   ZONE   AGE
-el8k-ztp-1-n2lt4-master-0         Running                          58m
-el8k-ztp-1-n2lt4-master-1         Running                          58m
-el8k-ztp-1-n2lt4-master-2         Running                          58m
-el8k-ztp-1-n2lt4-worker-0-2rx72   Running                          40m
+el8k-ztp-1-bdxf5-master-0         Running                          83m
+el8k-ztp-1-bdxf5-master-1         Running                          83m
+el8k-ztp-1-bdxf5-master-2         Running                          83m
+el8k-ztp-1-bdxf5-worker-0-98qzv   Running                          66m
+
 ```
 
 So, MachineSet dont try to re-provision the Machine, and keep it in just one worker.
