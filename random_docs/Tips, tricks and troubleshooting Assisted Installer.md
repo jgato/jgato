@@ -52,7 +52,6 @@ Storing signatures
 876a08c4b6f801f6db5cff48d6460288a42ccb4fb6ba5e6dcd4cb6c07bf619dd
 #> skopeo inspect   containers-storage:876a08c4b6f8 | grep "io.openshift.build.commit.url" | awk '{print $2}' | awk -F '"' '{print $2}'
 https://github.com/openshift/assisted-installer-agent/commit/271a6f48486db5702d3ebc4b644b74722319d49d
-
 ```
 
 With the URL and the commit '271a6f48486db5702d3ebc4b644b74722319d49d', we can see the branches where it was included:
@@ -66,8 +65,6 @@ And also, how many commits we are from there to the current version:
 
 ```bash
 > git rev-list 271a6f48486db5702d3ebc4b644b74722319d49d..origin/release-4.12 --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(cyan)<%an>%Creset' --abbrev-commit --date=relative 
-
-
 ```
 
 If empty response, we have an image built from the last version on that branch. With respect to master:
@@ -81,13 +78,13 @@ If empty response, we have an image built from the last version on that branch. 
 You can get the validation info of each host:
 
 ```bash
-#> curl -s http://localhost:8090/api/assisted-install/v2/infra-envs/{INFRAENV-ID}/hosts | jq -r .[].validations_info | jq
+#> curl -s http://localhost:8090/api/assisted-install/v2/infra-envs/${INFRAENV_ID}/hosts | jq -r .[].validations_info | jq
 ```
 
 you can make it more selectively: 
 
 ```bash
-#> curl -s http://localhost:8090/api/assisted-install/v2/infra-envs/{INFRAENV_ID}/hosts/{HOST_ID} | jq -r .validations_info | jq
+#> curl -s http://localhost:8090/api/assisted-install/v2/infra-envs/${INFRAENV_ID}/hosts/${HOST_ID} | jq -r .validations_info | jq
 ```
 
 ![](assets/2023-02-15-12-00-42-image.png)
@@ -95,7 +92,7 @@ you can make it more selectively:
 Get just the status and status info of each host:
 
 ```bash
-#> curl -s http://localhost:8090/api/assisted-install/v2/infra-envs/{INFRAENV-ID}/hosts | jq  '.[] | .requested_hostname + ": " + .status + " " + .status_info'
+#> curl -s http://localhost:8090/api/assisted-install/v2/infra-envs/${INFRAENV_ID}/hosts | jq  '.[] | .requested_hostname + ": " + .status + " " + .status_info'
 ```
 
 ![](assets/2023-02-15-12-06-17-image.png)
@@ -112,19 +109,17 @@ In this example, we have 3 hosts, so all have connectivity in all groups.
 
 ![](assets/2023-02-15-12-19-41-image.png)
 
-From this example, you can get more details about how each hosts is making its connectivity checks:
+How to get the connectivity check of one host, with respect to the others:
+
+```bash
+#> curl -s http://localhost:8090/api/assisted-install/v2/infra-envs/${INFRAENV_ID}/hosts/${HOST_ID} | jq  -r '.connectivity' | jq
+```
 
 ```bash
 #> curl -s http://localhost:8090/api/assisted-install/v2/clusters | jq '.[] | .hosts[] | {"validations": .validations_info | fromjson | to_entries[].value[] | select(.id == "belongs-to-majority-group"), "connectivity": .connectivity | fromjson | [.remote_hosts[]]}'
 ```
 
 ```yaml
-{
-  "validations": {
-    "id": "belongs-to-majority-group",
-    "status": "failure",
-    "message": "No connectivity to the majority of hosts in the cluster"
-  },
   "connectivity": [
     {
       "host_id": "a92a8904-7aac-0542-1289-c7b4260036f9",
