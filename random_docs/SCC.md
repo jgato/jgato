@@ -119,12 +119,13 @@ The --cap-add are added as thread capabilities (capset).
 
 ## Seccomp - Security Profiles
 
-In this case, instead of adding or giving capabilities, you fine tune which syscalls a process, can, or cannot, do. It is like a filter of syscalls. One capability would be affected by more than one syscalls. Thefore, Seccomp are more complex to create, and it requires a deep knowledge of what your code do, at syscalls level.
+In this case, instead of adding or giving capabilities, you fine tune which syscalls a process, can, or cannot, do. It is like a filter of syscalls. One capability would be affected by more than one syscalls. Thefore, Seccomp are more complex to create, and it requires a deep knowledge of what your code do, at syscalls level. These profiles are stored phisicaly (as files). 
 
 To get a Seccomp profile about a running process, you can do:
 
 ```bash
-> sudo podman run --rm --annotation io.containers.trace-syscall="of:/tmp/ls.json" fedora:32 ls / > /dev/null
+> sudo podman run --rm --annotation \
+io.containers.trace-syscall="of:/tmp/ls.json" fedora:32 ls / > /dev/null
 
 {
   "defaultAction": "SCMP_ACT_ERRNO",
@@ -172,6 +173,8 @@ To get a Seccomp profile about a running process, you can do:
   ]
 }
 ```
+
+The Seccomp file is not on `/tmp/ls.json`
 
 And then, you can use it to run the container:
 
@@ -448,8 +451,6 @@ Even if the Pod  is run by the SA, **the validation checks runs against the SCCs
 system:admin
 ```
 
-
-
 This is potentially dangerous, because the SCCs of the admin are, usually, more than the ones by the SA.
 
 Which users or serviceaccounts have a concrete SCC:
@@ -459,7 +460,9 @@ Which users or serviceaccounts have a concrete SCC:
 ["system:admin","system:serviceaccount:openshift-infra:build-controller"]
 ```
 
-Privileged SCC can be used by an Admin, or the build-controller SA on the openshift-infra NameSpace. A SA is composed by:  system:serviceaccount:namespace:name. 
+Privileged SCC can be used by an Admin, or the build-controller SA on the openshift-infra NameSpace. 
+
+A SA is composed in the way:  system:serviceaccount:namespace:name. 
 
 ### Adding SCC
 
@@ -588,8 +591,6 @@ Groups: system:cluster-admins
         system:masters
 ```
 
-
-
 ### Default SCC
 
 All the authenticated users have access to the `restricted-v2` SCC.
@@ -607,7 +608,52 @@ So, all the ServiceAccounts have, in some way, at least, access to the `restrict
 
 This happens, because the validation are done against SA and User SCCs. And all authenticated users will have this default SCC.
 
+### SCC strategies
 
+SCC attributes, like `seLinuxContext`, `fsGroup`, `supplementalGroups`, `runAsUser` are defined with an strategy. The supported strategies in these cases are `MustRunAs`, `RunAsAny`
+
+```yaml
+  SELinux Context Strategy: MustRunAs        
+    User:                    <none>
+    Role:                    <none>
+    Type:                    <none>
+    Level:                    <none>
+  FSGroup Strategy: MustRunAs            
+    Ranges:                    <none>
+  Supplemental Groups Strategy: RunAsAny    
+    Ranges:                    <none>
+```
+
+In the case of `MustRunAs`it can only use a value in a range. This range can be specified in the SCC, or it would be taken from the `NameSpace` related SCC annotations:
+
+`supplemental-groups`:
+
+```bash
+> oc get ns ${NAMESPACE} -o jsonpath='{.metadata.annotations.openshift\.io\/sa\.scc\.supplemental-groups}'
+1000710000/10000
+```
+
+`mcs` multi-category security:
+
+```bash
+> oc get ns ${NAMESPACE} -o jsonpath='{.metadata.annotations.openshift\.io\/sa\.scc\.mcs}'
+s0:c27,c4
+```
+
+Other attributes like `RunAsUser`have other strategies: `MustRunAs`, `MustRunAsRange`, `MustRunAsNonRoot`, `RunAsAny`. But similar behavior. For example, the default range of uids for users are also part of a NameSpace annotations:
+
+```bash
+> oc get ns ${NAMESPACE} -o jsonpath='{.metadata.annotations.openshift\.io\/sa\.scc\.uid-range}'
+1000710000/10000
+```
+
+The range can be changed in the SCC applied to the SA that will run a Pod:
+
+```bash
+> oc patch scc restricted-runasuser \
+-p '{"runAsUser":{"uidRangeMax":2500,"uidRangeMin":2000}}' \
+--type merge
+```
 
 ### SCC review and priorities
 
@@ -637,8 +683,6 @@ And lets check the SCCs considering the `testuser` SA:
 serviceaccount/testuser created
 > oc -n ${NAMESPACE} policy scc-review -z system:serviceaccount:${NAMESPACE}:testuser -f /tmp/pod-scc-1.yaml 
 RESOURCE   SERVICE ACCOUNT   ALLOWED BY   
-
-
 ```
 
 > -z force to test with an specific ServiceAccount, no matter what is in the field `serviceAccountName`
@@ -657,7 +701,6 @@ Empty, but if we create the Pod:
 ```bash
 > oc -n ${NAMESPACE} get pod pod-scc-1 -o yaml | grep "openshift.io/scc"
     openshift.io/scc: privileged
-
 ```
 
 Why Privileged? Remember that SCCs availability depends on User and SA. Our recent just created SA has none SCC assigned. But, we are running as Admin, which has more SCCS. 
@@ -673,7 +716,6 @@ clusterrole.rbac.authorization.k8s.io/edit added: "system:serviceaccount:scc-fun
 pod/pod-scc-1 created
 > oc -n ${NAMESPACE} get pod pod-scc-1 -o yaml | grep "openshift.io/scc"
     openshift.io/scc: restricted-v2
-
 ```
 
 What is happening? Now we are no Admin, ww are the SA testuser.  As authenticated, it will receive the SCC `restricted-v2` by default. 
@@ -709,13 +751,9 @@ Why is using `anyuid` instead of `restricted-2`. It just a matter of priorities:
 NAME            PRIV    CAPS                   SELINUX     RUNASUSER        FSGROUP     SUPGROUP   PRIORITY     READONLYROOTFS   VOLUMES
 anyuid          false   <no value>             MustRunAs   RunAsAny         RunAsAny    RunAsAny   10           false            ["configMap","downwardAPI","emptyDir","ephemeral","persistentVolumeClaim","projected","secret"]
 restricted-v2   false   ["NET_BIND_SERVICE"]   MustRunAs   MustRunAsRange   MustRunAs   RunAsAny   <no value>   false            ["configMap","downwardAPI","emptyDir","ephemeral","persistentVolumeClaim","projected","secret"]
-
-
 ```
 
-
-
-### Custom SCC and capabilities
+### SCC and capabilities
 
 As we have learn, one of the most important security concern is about capabilities. With Openshift, your allowed capabilities depend on who runs the Pod (User+SA) and their SCCs. 
 
@@ -736,7 +774,6 @@ About the runAsUser for the Container, this SCC tell us:
 ```yaml
 runAsUser:
   type: MustRunAsRange
-
 ```
 
 It has to be in a range of [1000700000, 1000709999]
@@ -768,7 +805,6 @@ pod/reversewords-app-captest-80-2 created
 > oc -n ${NAMESPACE} logs pod/reversewords-app-captest-80-2
 2023/02/18 18:03:52 Starting Reverse Api v0.0.25 Release: NotSet
 2023/02/18 18:03:52 Listening on port 8080
-
 ```
 
 We could bind to the port 8080, because the Pod is running with the default SCC `restricted-v2` which allows that bind:
@@ -795,7 +831,6 @@ spec:
       value: "80"
   dnsPolicy: ClusterFirst
   restartPolicy: Never
-
 ```
 
 And:
@@ -808,7 +843,6 @@ pod/reversewords-app-captest-80-2 created
 2023/02/18 18:06:34 Starting Reverse Api v0.0.25 Release: NotSet
 2023/02/18 18:06:34 Listening on port 80
 2023/02/18 18:06:34 listen tcp :80: bind: permission denied
-
 ```
 
 We cannot bind on Port 80 running with the user:
@@ -816,7 +850,6 @@ We cannot bind on Port 80 running with the user:
 ```bash
 > oc -n ${NAMESPACE} get pod reversewords-app-captest-80-2 -o yaml | grep runAsUser
       runAsUser: 1000700000
-
 ```
 
 So, lets try with runAsUser=0
@@ -838,7 +871,6 @@ spec:
       runAsUser: 0
   dnsPolicy: ClusterFirst
   restartPolicy: Never
-
 ```
 
 ```bash
@@ -904,7 +936,6 @@ pod/reversewords-app-captest-80-2 created
 > oc -n ${NAMESPACE} logs pod/reversewords-app-captest-80-2                                                  
 2023/02/18 18:12:29 Starting Reverse Api v0.0.25 Release: NotSet
 2023/02/18 18:12:29 Listening on port 80
-
 ```
 
 and it can bind to port 80.
@@ -932,7 +963,6 @@ spec:
         - NET_BIND_SERVICE
   dnsPolicy: ClusterFirst
   restartPolicy: Never
-
 ```
 
 You can do it, you have these privileges:
@@ -944,7 +974,6 @@ pod/reversewords-app-captest-80-2 created
 2023/02/18 18:17:14 Starting Reverse Api v0.0.25 Release: NotSet
 2023/02/18 18:17:14 Listening on port 80
 2023/02/18 18:17:14 listen tcp :80: bind: permission denied
-
 ```
 
 Maybe, this example makes no sense. But more complex examples, a good Pod definition would require to Drop not needed Capabilities. For security reasons. Even if you have many capabilities available, you dont want to use it, and you dont want your process to have them effective. It is a power that you dont want to have.
@@ -973,7 +1002,6 @@ spec:
         - KILL
   dnsPolicy: ClusterFirst
   restartPolicy: Never
-
 ```
 
 Here, again, is maybe not a good example. We know we dont need `KILL`capabilitie. But it is anyway requiered:
@@ -981,7 +1009,6 @@ Here, again, is maybe not a good example. We know we dont need `KILL`capabilitie
 ```bash
 > oc -n ${NAMESPACE} create --as=system:serviceaccount:${NAMESPACE}:testuser -f /tmp/pod-scc-capabilities.yaml 
 Error from server (Forbidden): error when creating "/tmp/pod-scc-capabilities.yaml": pods "reversewords-app-captest-80-2" is forbidden: unable to validate against any security context constraint: [provider "anyuid": Forbidden: not usable by user or serviceaccount, spec.containers[0].securityContext.capabilities.add: Invalid value: "KILL": capability may not be added, provider "restricted": Forbidden: not usable by user or serviceaccount, provider "nonroot-v2": Forbidden: not usable by user or serviceaccount, provider "nonroot": Forbidden: not usable by user or serviceaccount, provider "hostmount-anyuid": Forbidden: not usable by user or serviceaccount, provider "machine-api-termination-handler": Forbidden: not usable by user or serviceaccount, provider "hostnetwork-v2": Forbidden: not usable by user or serviceaccount, provider "hostnetwork": Forbidden: not usable by user or serviceaccount, spec.containers[0].securityContext.capabilities.add: Invalid value: "NET_BIND_SERVICE": capability may not be added, provider "node-exporter": Forbidden: not usable by user or serviceaccount, provider "privileged": Forbidden: not usable by user or serviceaccount]
-
 ```
 
 And it will fail, because the required `KILL` capability is not included in any of our available SCCs. 
@@ -993,5 +1020,62 @@ Running as Admin, of course, solves the problem (running with SCC `privileged`=
 pod/reversewords-app-captest-80-2 created
 > oc -n ${NAMESPACE} get pod/reversewords-app-captest-80-2 -o yaml | grep "openshift.io/scc"
     openshift.io/scc: privileged
-
 ```
+
+### Other SCC attributes
+
+We have only seen how the Linux Capabilities can be managed on a SCC, but there are many other security aspects you can manage. Here, a very quick overview:
+
+* fsGroup ID: it is used for block storage, to CHWON the content of that storage to that GroupID. As explained before, this attribute strategy defines which values can be used: `MustRunAs` in a range or `RunAsAny`
+  
+  ```yaml
+      spec:
+        securityContext:
+          fsGroup: 6005
+  ```
+  
+  Inside the pod, depending on which `securityContext.runAsUser`value and strategy, we will see our user belonging to its default group, plus, the `fsGroup`:
+  
+  ```bash
+  > oc -n ${NAMESPACE} exec -ti deployment/reversewords-app-storage -- id
+  uid=1000710000(1000710000) gid=0(root) groups=0(root),6005
+  ```
+  
+  This pod was also mounting a `Volume`:
+  
+  ```yaml
+          volumeMounts:
+            - name: test-volume
+              mountPath: "/mnt"
+  ```
+  
+  Inside the Pod, `/mnt` belongs to the group:
+  
+  ```bash
+  > oc -n ${NAMESPACE} exec -ti deployment/reversewords-app-storage -- touch /mnt/testfile
+  > oc -n ${NAMESPACE} exec -ti deployment/reversewords-app-storage -- ls -lrt /mnt/
+  total 0
+  drwxrws---. 3 root       6005 17 Feb 20 12:52 systemd-private-8711221dc49143cc9d3c7cca577db462-chronyd.service-z5pxzt
+  -rw-rw-rw-. 1 1000710000 6005  0 Feb 24 18:13 testfile
+  ```
+
+* seLinuxContext:  it controls which SELinux context is used by the containers. In general, it is set with an strategy `MustRunAs`, which make all the Containers in a Pod, to use the MCS ([Multi-Category Strategy](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/using_selinux/assembly_using-multi-category-security-mcs-for-data-confidentiality_using-selinux)) labels:
+  
+  ```bash
+  > oc get ns ${NAMESPACE} -o yaml | grep "sa.scc.mcs"
+      openshift.io/sa.scc.mcs: s0:c27,c4
+  ```
+
+* seccompProfiles: explained above how these are configured in Openshift. Here, you can list which ones can be used. If not set (empty, nill), none can be used. It can be used * to allow all available ones. 
+  
+  Remember these are stored, physically, as files in all the servers that would execute the Pod.
+
+* AllowPrivilegeEscalation: [TODO]
+
+* Others
+
+
+
+# Openshift 4.11 (and above) and Pod Security Admission
+
+*Feature stable on Kubernetes 1.25 and Openshift 4.11*
