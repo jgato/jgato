@@ -1074,8 +1074,270 @@ We have only seen how the Linux Capabilities can be managed on a SCC, but there 
 
 * Others
 
-
-
-# Openshift 4.11 (and above) and Pod Security Admission
+# Pod Security Admission
 
 *Feature stable on Kubernetes 1.25 and Openshift 4.11*
+
+It is an admission controller to enforce the **Pod Security Standards**. Pod security restrictions are applied at Namespace level. 
+
+There are three levels of **Pod Security Standards**: `privileged`, `baseline`, or `restricted`. Each one, with different security restrictions.
+
+Then you have modes that specify how to act when this security policies are not satisfied: 
+
+| **enforce** | Policy violations will cause the pod to be rejected.                                                                                                                                                 |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **audit**   | Policy violations will trigger the addition of an audit annotation to the event recorded in the [audit log](https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/), but are otherwise allowed. |
+| **warn**    | Policy violations will trigger a user-facing warning, but are otherwise allowed.                                                                                                                     |
+
+You can configure different modes depending on the security policies:
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-baseline-namespace
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: v1.26
+
+    # We are setting these to our _desired_ `enforce` level.
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.26
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.26
+```
+
+If the `baseline` policy is not satisfied (which is a intermediate policy) the Pod will not be created. 
+
+When no satisfied some of the restrictions on for the `restricted`policy, there will be a warning, and an audition annotation will be added to the Pod. 
+
+In this way, we require to satisfy at least the `baseline`level. The `restricted`one is recommended, so, if not satisfied, you will have some annotations and warnings.
+
+The `*-version` is important. Because the Pod security standards will change and evolve in different versions. The conditions for `restricted`will be different depending on the Kubernetes version. 
+
+This would be the default configuration of the admission controller: 
+
+```yaml
+apiVersion: apiserver.config.k8s.io/v1 # see compatibility note
+kind: AdmissionConfiguration
+plugins:
+- name: PodSecurity
+  configuration:
+    apiVersion: pod-security.admission.config.k8s.io/v1
+    kind: PodSecurityConfiguration
+    # Defaults applied when a mode label is not set.
+    #
+    # Level label values must be one of:
+    # - "privileged" (default)
+    # - "baseline"
+    # - "restricted"
+    #
+    # Version label values must be one of:
+    # - "latest" (default) 
+    # - specific version like "v1.26"
+    defaults:
+      enforce: "privileged"
+      enforce-version: "latest"
+      audit: "privileged"
+      audit-version: "latest"
+      warn: "privileged"
+      warn-version: "latest"
+    exemptions:
+      # Array of authenticated usernames to exempt.
+      usernames: []
+      # Array of runtime class names to exempt.
+      runtimeClasses: []
+      # Array of namespaces to exempt.
+      namespaces: []
+```
+
+Notice, you can configure some exemptions for Users, Namespaces and runtimeClasses.
+
+This is a Namespace example configuration:
+
+```bash
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-namespace
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: v1.25
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.25
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.25
+```
+
+It will only warn (and audit) if something is wrong about `restricted`security standard. And it will make mandatory to satisfy the `privileged`security standard, or the Pod will not be admitted.
+
+## PSA and Openshift
+
+Now we will run some examples, but instead of just a Kubernetes cluster, we will use an OCP 4.12
+
+But in OCP we already have something similar, the SCCs, that configures what you can or cannot do. In OCP 4.11 (and above) a new controller configures and synchs the PSA standards according to the SCCs. *In OCP 4.11 this controller modifies the `warn` and `audit` modes* 
+
+*The way this controller works is by introspecting the service account 
+permissions to use SCCs and maps these SCCs to Pod Security Standards. 
+Based on the SCC configuration the controller will set the value of the 
+different PSA modes that allow the workloads to run in the namespace 
+without triggering warnings or audit logs.*
+
+So, this OCP controller synchs the default PSA Mode values, on each Namespace, depending on the SCC of the acting User/SA.
+
+Here, a default Namespace on OCP4.12:
+
+```bash
+> oc get ns test-psa -o yaml | grep pod-security
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.24
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.24
+```
+
+This simple Deployment:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: go-app
+  name: go-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-app
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: go-app
+    spec:
+      containers:
+      - image: quay.io/mavazque/reversewords:latest
+        name: reversewords
+        resources: {}
+```
+
+The Deployment is created and it will print out some warnings.
+
+```bash
+Warning: would violate PodSecurity "restricted:v1.24": 
+allowPrivilegeEscalation != false 
+(container "reversewords" must set securityContext.allowPrivilegeEscalation=false), 
+unrestricted capabilities 
+(container "reversewords" must set securityContext.capabilities.drop=["ALL"]), 
+runAsNonRoot != true 
+(pod or container "reversewords" must set securityContext.runAsNonRoot=true), 
+seccompProfile 
+(pod or container "reversewords" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")
+deployment.apps/go-app created
+```
+
+The `restricted` policy of warns you about:
+
+* `allowPrivilegeEscalation != false` 
+
+* All the capabilities have to be dropped
+
+* `runAsNonRoot != true`
+
+* seccompProfile has to be "RuntimeDefault" or "Localhost"
+
+It is really interesting how it wans you about security issues that you are not considering, and it tells you how to solve it.
+
+How to consider this complains? Well, you can see this as good practices. 
+
+For example, it encourages you (because we are audit/wan, but it could require) to drop all, even if you will not use any. Actually, the controller dont know if you will use any. But, it is a good practice to drop all (and enable only needed ones)
+
+Other example, it tells you to specifically configure to run as non root. Even, if later it would run as any other. Like it is the case:
+
+```bash
+> oc -n test-psa get pod go-app-5b954b7b74-z99qx -o yaml | grep -i user
+      runAsUser: 1000880000
+```
+
+Remember we are using here Openshift, so SCCs will determinate that. This would change in other runtimes, and the Admission controlller acts at Kubernetes level.
+
+```bash
+> oc -n test-psa get pod go-app-5b954b7b74-z99qx -o yaml | grep scc
+    openshift.io/scc: restricted-v2
+> oc get scc restricted-v2 -o yaml | grep runAsUser -A 1
+runAsUser:
+  type: MustRunAsRange
+```
+
+But the Admission controller acts accepting (or not) the Pod creation. The user will be assigned after this controller. So, the PSA does a god job warning (or requiring) to specifically configure your Pods to not use Root user.
+
+There are other warnings in our example that can be easily considered.
+
+## Openshift and the PSA Controller
+
+Back to the Namespace and the controller that synchs the PSA values:
+
+```bash
+> oc get ns test-psa -o yaml | grep pod-security
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.24
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.24
+```
+
+We see it is selected the Policy Security Standard as `restricted`. This is because we have one SCC which is actually `restricted-v2`, as default.  This is done to have a direct (or similar) match. 
+
+Now we will change that, creating a SA with the `privileged` SCC:
+
+```bash
+> oc -n psa-auto-modes create serviceaccount test-user
+serviceaccount/test-user created
+
+> oc -n psa-auto-modes adm policy add-scc-to-user privileged -z test-user
+clusterrole.rbac.authorization.k8s.io/system:openshift:scc:privileged added: "test-user"
+```
+
+The `privileted` SCC has a direct synch with the `privileged`PSS (Policy Security Standard)
+
+```bash
+> oc get namespace psa-auto-modes -o yaml | grep pod-security
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/audit-version: v1.24
+    pod-security.kubernetes.io/warn: privileged
+    pod-security.kubernetes.io/warn-version: v1.24
+```
+
+Other SCC will also have its match. We remove `privileged`SCC and assign other different one:
+
+```bash
+> oc -n psa-auto-modes adm policy remove-scc-from-user privileged -z test-user
+clusterrole.rbac.authorization.k8s.io/system:openshift:scc:privileged removed: "test-user"
+> oc -n psa-auto-modes adm policy add-scc-to-user privileged -z anyuid
+clusterrole.rbac.authorization.k8s.io/system:openshift:scc:privileged added: "anyuid"
+
+
+> oc get namespace psa-auto-modes -o yaml | grep pod-security
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.24
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.24
+
+```
+
+So, the `anyuid`SCC is synched as `restricted`PSA. 
+
+
+
+This synch can be disabled, having only the default values:
+
+```bash
+> oc label namespace psa-manual-modes security.openshift.io/scc.podSecurityLabelSync=false
+
+```
+
+## PSA and SCC
+
+PSA is an admission controller, like a filter that will act at Pod specification. Actually, at `spec.securityContext`. This is independent on the privileges that the User/SA, running the Pod, has.
+The Openshift SCC defines User/SA privileges, capabilities, etc.  PSA are security standards independently of your privileges and perms. And this can be considered as recommendations, or obligations. 
+
+An SCC would give to you user the power or running Pods as Root. But this would be avoided by one PSA.
