@@ -1321,8 +1321,6 @@ clusterrole.rbac.authorization.k8s.io/system:openshift:scc:privileged added: "an
     pod-security.kubernetes.io/audit-version: v1.24
     pod-security.kubernetes.io/warn: baseline
     pod-security.kubernetes.io/warn-version: v1.24
-
-
 ```
 
 So, the `anyuid`SCC is synched as `baseline` PSA. 
@@ -1334,21 +1332,15 @@ Now, I will create a new SCC, which is basically the same as `privileged` with o
 ```bash
 > oc get scc | grep invented
 invented-one                      true    ["*"]                  RunAsAny    RunAsAny           RunAsAny    RunAsAny    <no value>   true             ["*"]
-
-
-
 ```
 
 Lets give the user, the new SCC (which is 99% the `privileged`)
 
 ```bash
-
 > oc -n psa-auto-modes adm policy remove-scc-from-user anyuid -z test-user
 clusterrole.rbac.authorization.k8s.io/system:openshift:scc:anyuid removed: "test-user"
 > oc -n psa-auto-modes adm policy add-scc-to-user invented-one -z test-user
 clusterrole.rbac.authorization.k8s.io/system:openshift:scc:invented-one added: "test-user"
-
-
 ```
 
 Even if it is not exactly the same as the `privileged` SCC, the controller still detects that the PSS that better fits is `privileged`. So, it is synched to `privileged` PSS:
@@ -1359,14 +1351,14 @@ Even if it is not exactly the same as the `privileged` SCC, the controller still
     pod-security.kubernetes.io/audit-version: v1.24
     pod-security.kubernetes.io/warn: privileged
     pod-security.kubernetes.io/warn-version: v1.24
-
 ```
+
+Just one SA with an SCC applied will make the synch to happen. 
 
 This synch can be disabled, having only the default values:
 
 ```bash
 > oc label namespace psa-manual-modes security.openshift.io/scc.podSecurityLabelSync=false
-
 ```
 
 ## PSA and SCC
