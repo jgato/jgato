@@ -12,11 +12,7 @@ With  Agent Based AI, the bootstrap node exposes the Assisted Service REST API. 
 
 Of course, also logs, from the different services, helps with the troubleshootings
 
-### Interacting with the Assisted Service REST API
-
-You have to SSH into the host which is the boostrap, and it contains the assisted-service. 
-
-#### Which Agent version you are using
+### Which Agent version you are using
 
 Connect to any installing host to check the Agent service and the image that was used:
 
@@ -72,6 +68,18 @@ If empty response, we have an image built from the last version on that branch. 
 ```bash
 
 ```
+
+### Create the CRs that are going to be used during the installation:
+
+With this command
+```bash
+```
+
+### Interacting with the Assisted Service REST API
+
+You have to SSH into the host which is the boostrap, and it contains the assisted-service. 
+
+
 
 #### How to know the installation status:
 
@@ -333,4 +341,16 @@ How to get the connectivity check of one host, with respect to the others:
     }
   ]
 }
+```
+
+# Other tips
+
+## Environment variables during the installation
+
+Some common issues are about env variables (usually the proxy). These are configured on `/etc/systemd/system.conf.d/10-default-env.conf`
+
+You can change there the proxy configuration:
+
+```bash
+
 ```
