@@ -63,23 +63,19 @@ And also, how many commits we are from there to the current version:
 > git rev-list 271a6f48486db5702d3ebc4b644b74722319d49d..origin/release-4.12 --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(cyan)<%an>%Creset' --abbrev-commit --date=relative 
 ```
 
-If empty response, we have an image built from the last version on that branch. With respect to master:
-
-```bash
-
-```
+If empty response, we have an image built from the last version on that branch. With respect to master.
 
 ### Create the CRs that are going to be used during the installation:
 
 With this command
+
 ```bash
+> openshift-install agent create cluster-manifests
 ```
 
 ### Interacting with the Assisted Service REST API
 
 You have to SSH into the host which is the boostrap, and it contains the assisted-service. 
-
-
 
 #### How to know the installation status:
 
@@ -87,6 +83,16 @@ You can get the validation info of each host:
 
 ```bash
 #> curl -s http://localhost:8090/api/assisted-install/v2/infra-envs/${INFRAENV_ID}/hosts | jq -r .[].validations_info | jq
+```
+
+Trick to watch it:
+
+```bash
+> shell_code=$(cat << 'EOF'
+  curl -s http://localhost:8090/api/assisted-install/v2/infra-envs/${INFRAENV_ID}/hosts | jq  '.[] | .requested_hostname + ": " + .status + " " + .progress.current_stage + " " + (.progress.installation_percentage|tostring) + "%"'
+EOF
+)
+> watch "$shell_code"
 ```
 
 you can make it more selectively: 
@@ -352,5 +358,7 @@ Some common issues are about env variables (usually the proxy). These are config
 You can change there the proxy configuration:
 
 ```bash
-
+DefaultEnvironment=HTTP_PROXY="http://<proxy-ip>:80"
+DefaultEnvironment=HTTPS_PROXY="http://<proxy-ip>:443"
+DefaultEnvironment=NO_PROXY="..."
 ```
