@@ -20,8 +20,8 @@ Connect to any installing host to check the Agent service and the image that was
 #> journalctl -u agent --no-pager
 ```
 
-![](assets/d8003e9395cf1c954fc9f71a4aad13014f7dbd9a.png)
-
+![](assets/agent-version.png)
+ 
 Then use skopeo to get the commit that was used to build the Agent image:
 
 ```bash
