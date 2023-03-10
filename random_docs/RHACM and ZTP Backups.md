@@ -238,6 +238,8 @@ The different objects to be backed up are controlled by different `Backups`creat
 
 Notice: you will see this Backup's list on both clusters. This is because, both are connected to the backups Bucket, with the `DataProtectionApplication`. But only the `active`cluster is the one generating them. 
 
+### Activation data backup
+
 **Activation Data**: A managed cluster data backup (acm-managed-clusters-schedule) includes the data that makes the cluster an `active`cluster. This data is only contained in the `active`cluster, therefore, the `passive`cluster  **do not have to restore it**. Unless, we are recovering from a disaster, and we want to make a `pasive` cluster, to be converted to an `active` cluster.
 
 You can git the info from these (and others) backups, to see which Resources contains:
@@ -298,7 +300,9 @@ The passive cluster have to have the same operators  (in the same Namespaces) as
 
 About the Openshift-Gitops operator (used by ZTP Gitops), this will need to be configured accordingly to your ZTP setup. Basically, to create some ArgoCD Apps to point to your Git Repo. How to do that, it is not covered on this tutorial. 
 
-Before doing the restore, you have to have the **Openshift-Gitops operator installed.** But, **do not configure the ZTP integration**. Backup restore will create that. 
+Before doing the restore, you have to have the **Openshift-Gitops operator installed.** But, **do not configure the ZTP integration**. Backup restore will do that. Including, ArgoCD Apps to point to your Git Repo. Repo that contains all the information about the spoke clusters on the `active` hub.
+
+Also the Topology Aware Lifecycle Manager operator is needed, as part of the ZTP stack. 
 
 So, the `passive`cluster is empty on the RHACM and the Gitops (ArgoCD):
 
@@ -308,7 +312,7 @@ So, the `passive`cluster is empty on the RHACM and the Gitops (ArgoCD):
 
 ## Configure the restore on the passive cluster
 
-In the `passive` cluster we will create a `Restore`object. This restore will not include the activation data. The restore will be done periodically (but it could be done continuously. 
+In the `passive` cluster we will create a `Restore`object. This restore** will not include the activation data**. The restore will be done periodically (but it could be done continuously. 
 
 ```yaml
 apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -355,4 +359,75 @@ Which is oka, because we dont want to synch with the GitOps repo until this clus
 
 The reason would be, the Repository is a Secret, and this is maybe not restored until activation data. Or, maybe we have to add this to the backup.
 
+## Checking backup and restore are working
+
+Together with all the installation, an ACM Policy is created to check that backups and restores are working:
+
+![](assets/2023-03-08-13-14-47-image.png)
+
+This only check if backups and restores were done successfully. So, it is constrained to the scheduled times. You would create other Policies that checks more precisely when the `active` hub is not working properly
+
 ## Simulating a disaster and configuring a new active cluster
+
+To simulate the disaster, we will just power off all the nodes on the current `active` hub cluster.
+
+After that, we will modify our Restore object to include also the activation data. Here, it is important to do it, over a previous data restore of everything but the activation data.
+
+```yaml
+> oc -n open-cluster-management-backup edit restore restore-acm 
+apiVersion: cluster.open-cluster-management.io/v1beta1                         
+kind: Restore                                                                  
+metadata:                                                                      
+  annotations:                                                                 
+    kubectl.kubernetes.io/last-applied-configuration: |                        
+      {"apiVersion":"cluster.open-cluster-management.io/v1beta1","kind":"Restore","metadata":{"annotations":{},"name":"restore-acm","namespace":"open-cluster-management-backup"},"spec":{"cleanupBeforeRestore":"CleanupRestored","restoreSyncInterval":"2h","syncRestoreWithNewBackups":true,"veleroCredentialsBackupName":"latest","veleroManagedClustersBackupName":"skip","veleroResourcesBackupName":"latest"}}
+  creationTimestamp: "2023-03-07T14:44:51Z"                                    
+  generation: 2                                                                
+  name: restore-acm                                                            
+  namespace: open-cluster-management-backup                                    
+  resourceVersion: "16253672"                                                  
+  uid: c0f5b9ba-59aa-4d16-a1c9-3730a5172013                                    
+spec:                                                                          
+  cleanupBeforeRestore: CleanupRestored                                        
+  restoreSyncInterval: 2h                                                      
+  syncRestoreWithNewBackups: true                                              
+  veleroCredentialsBackupName: latest                                          
+  veleroManagedClustersBackupName: latest                                      
+  veleroResourcesBackupName: latest          
+```
+
+Set `veleroManagedClustersBackupName` also to the `latest` backup
+
+After a while, the activation data is also restored:
+
+```bash
+> oc -n open-cluster-management-backup get restore
+NAME          PHASE                MESSAGE
+restore-acm   FinishedWithErrors   Velero restores have run to completion but encountered 1+ errors
+```
+
+All the spoke clusters have been imported:
+
+![](assets/2023-03-08-13-43-51-image.png)
+
+Inside each cluster:
+
+![](assets/2023-03-10-11-20-04-image.png)
+
+This `insufficient` look strange, because everything seems oka. This is an status that avoids starting an installation. But the cluster is not waiting for starting an installation.
+
+
+
+### ZTP resources
+
+
+
+What happened about our ZTP Gitops integration? Before the activation data restored, ArgoCD contained the proper Apps. But was missing the repository Info which connects to the Git Repo. 
+
+After activation data restored, the situation looks the same:
+
+![](assets/2023-03-08-13-46-30-image.png)
+
+and the repository info seems missing:
+
+![](assets/2023-03-08-13-47-01-image.png)
