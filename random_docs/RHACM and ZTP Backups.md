@@ -265,36 +265,9 @@ You can git the info from these (and others) backups, to see which Resources con
 ]
 ```
 
-### ZTP resources
-
-This tutorial puts the focus on a Hub cluster, with Spoke clusters created by ZTP GitOps. Therefore, are all the resources been backed up?
-
-For example, InfraEnv dont seem to be included on backups:
-
-```yaml
-> oc -n sno9 get Infraenv sno9 -o json | jq '. | "Kind: " + .kind, "API: " + .apiVersion, .metadata.labels'
-"Kind: InfraEnv"
-"API: agent-install.openshift.io/v1beta1"
-{
-  "app.kubernetes.io/instance": "clusters"
-}
-```
-
-It does not have the proper lables, neither an API Group to be backed up.
-
-BMH:
-
-```yaml
-> oc -n sno9 get bmh sno9.sno.hpecloud.org -o json | jq '. | "Kind: " + .kind, "API: " + .apiVersion, .metadata.labels'
-"Kind: BareMetalHost"
-"API: metal3.io/v1alpha1"
-{
-  "app.kubernetes.io/instance": "clusters",
-  "infraenvs.agent-install.openshift.io": "sno9"
-}
-```
-
 ## Before restore on the passive cluster
+
+
 
 The passive cluster have to have the same operators  (in the same Namespaces) as the active hub. In our scenario, this means to have also Openshift-GitOps.
 
@@ -416,11 +389,7 @@ Inside each cluster:
 
 This `insufficient` look strange, because everything seems oka. This is an status that avoids starting an installation. But the cluster is not waiting for starting an installation.
 
-
-
 ### ZTP resources
-
-
 
 What happened about our ZTP Gitops integration? Before the activation data restored, ArgoCD contained the proper Apps. But was missing the repository Info which connects to the Git Repo. 
 
@@ -431,3 +400,41 @@ After activation data restored, the situation looks the same:
 and the repository info seems missing:
 
 ![](assets/2023-03-08-13-47-01-image.png)
+
+Repositories are stored as secrets:
+
+```yaml
+$> oc -n openshift-gitops get secret repo-1241775770  -o yaml
+apiVersion: v1
+data:
+  insecure: <REDACTED>
+  password: <REDACTED>
+  project: <REDACTED>
+  type: <REDACTED>
+  url: <REDACTED>
+  username: <REDACTED>
+kind: Secret
+metadata:
+  annotations:
+    managed-by: argocd.argoproj.io
+  creationTimestamp: "2023-03-24T12:43:50Z"
+  labels:
+    argocd.argoproj.io/secret-type: repository
+  name: repo-1241775770
+  namespace: openshift-gitops
+  resourceVersion: "124866222"
+  uid: b73f180b-c24f-4c2d-9d41-96f92ff9d090
+type: Opaque
+```
+
+According to the Kind and the labels, this will not be backed up. Therefore, it does not appear in the Restore.
+
+TODO: try to label to include it on the backup (activation data)
+
+```bash
+$> oc -n openshift-gitops get secret repo-1241775770  -o yaml | grep label -A 2
+  labels:
+    argocd.argoproj.io/secret-type: repository
+    cluster.open-cluster-management.io/backup: ""
+
+```
