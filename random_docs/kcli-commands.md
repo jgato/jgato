@@ -60,6 +60,17 @@ optionally, I am using a not default pool
 
 ## Moving disks
 
+The new way:
+
+```bash
+[jgato@provisioner bin]$ kcli stop vm sno5 
+Stopping vm sno5 in local...
+sno5 stopped
+[jgato@provisioner bin]$ kcli update vm -P pool=newpool sno5
+```
+
+The old way:
+
 Useful if you run out of space in your disks.
 
 Stop the VM
@@ -238,8 +249,6 @@ With the previous plan file:
 ```
 kcli render -f sno2-plan.yaml
 ```
-
-
 
 ## Edit a vm
 
