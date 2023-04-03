@@ -267,8 +267,6 @@ You can git the info from these (and others) backups, to see which Resources con
 
 ## Before restore on the passive cluster
 
-
-
 The passive cluster have to have the same operators  (in the same Namespaces) as the active hub. In our scenario, this means to have also Openshift-GitOps.
 
 About the Openshift-Gitops operator (used by ZTP Gitops), this will need to be configured accordingly to your ZTP setup. Basically, to create some ArgoCD Apps to point to your Git Repo. How to do that, it is not covered on this tutorial. 
@@ -328,9 +326,9 @@ But there are some missing objects, like Repositories info:
 
 ![](assets/2023-03-07-14-32-11-image.png)
 
-Which is oka, because we dont want to synch with the GitOps repo until this cluster is set as the active one.
+The Repository info is included into a Secret Resource in the ArgoCD NS. Secrets are not included in the backup by default. 
 
-The reason would be, the Repository is a Secret, and this is maybe not restored until activation data. Or, maybe we have to add this to the backup.
+This should not be an issue. Now, not been restored the Activation data, we can see in ArgoCD how it sees the Openshift cluster's resources, with regards with the last Backup. It is not a good idea to interact Synch/Refresh from the Passive ArgoCD.
 
 ## Checking backup and restore are working
 
@@ -391,7 +389,11 @@ This `insufficient` look strange, because everything seems oka. This is an statu
 
 ### ZTP resources
 
-What happened about our ZTP Gitops integration? Before the activation data restored, ArgoCD contained the proper Apps. But was missing the repository Info which connects to the Git Repo. 
+In this section we will cover some related ZTP resources and issues that could be found.
+
+#### ArgoCD Repository
+
+What happened about our ZTP Gitops integration? Before the activation data restored, ArgoCD contained the proper Apps. But was missing Rhe repository Info which connects to the Git Repo. 
 
 After activation data restored, the situation looks the same:
 
@@ -429,12 +431,21 @@ type: Opaque
 
 According to the Kind and the labels, this will not be backed up. Therefore, it does not appear in the Restore.
 
-TODO: try to label to include it on the backup (activation data)
+Try to label to include it on the backup (activation data)
 
 ```bash
 $> oc -n openshift-gitops get secret repo-1241775770  -o yaml | grep label -A 2
   labels:
     argocd.argoproj.io/secret-type: repository
-    cluster.open-cluster-management.io/backup: ""
-
+    cluster.open-cluster-management.io/backup: cluster-activation
 ```
+
+It is important to set the `cluster-activation-data`, so, the Repository is only restored when we are making a new cluster Active. So, the whole Gitops flow is connected and working, and you can start to Synch again. 
+
+In a new Restore process, the Repository (secret) is now restored, and the Repository is restored together with the Apps:
+
+![](assets/2023-04-03-10-25-29-image.png)
+
+> It is a design decision is we want to include the Repository in the Backup. Not including it gives an extra validation/manual steps after activating the cluster. That, would be desired.
+> 
+> Becareful about having two ArgoCD Active instances.
