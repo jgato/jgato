@@ -1,44 +1,37 @@
+***Disclaimer**: this procedure is just a work around. The official implementation will be included soon (RHACM 2.8). If you are using Red Hat supported products, **this is not a supported solution**. If you are dont need official supported solutions, this would help you to scale down clusters, meanwhile the official implementation is out. *
+
 # Scaling down clusters with ZTP GitOps
 
-[Zero Touch Provisioning Gitops way](https://docs.openshift.com/container-platform/4.11/scalability_and_performance/ztp_far_edge/ztp-deploying-far-edge-clusters-at-scale.html) is based on two CRDs for creation and maintenance of clusters. The whole stuck is mainly supported by Red Hat Advanced Cluster Management (ACM) and the Openshift Assisted Installer (AI).
+[Zero Touch Provisioning Gitops](https://docs.openshift.com/container-platform/4.11/scalability_and_performance/ztp_far_edge/ztp-deploying-far-edge-clusters-at-scale.html) workflow is based on two CRDs (Siteconfig, PolicyGenTemplate) for creation and maintenance of clusters. The whole stack mainly leverages by Red Hat Advanced Cluster Management (ACM) and the Openshift Assisted Installer (AI).
+When you delete a host from the Siteconfig, the ZTP Gitops will delete an object called BareMetalHost (BMH). From RHACM perspective, you are deleting the host from RHACM management. You will no longer manage the host from RHACM. But the host still exists, and is still part of the previously created spoke cluster. From the point of view of the spoke cluster, nothing happened, and the host is not deleted.
 
-The **Siteconfigs** CRD contains the information for the creation of clusters. This CRD is pretty static, it is used to start the cluster creation. After the creation, very few changes can be introduced. It also contains the list of hosts that will be part of the created clusters. After the installation:
+There is a [Request Feature Enhancement](https://issues.redhat.com/browse/RFE-3431) to improve this behavior. This will open the possibility of really deleting the host from the spoke cluster.
 
-* You can new hosts to the Siteconfig, and these will be included into the cluster. So, Scaling Up is working with ZTP.
-
-* You can delete one (or more hosts) but this will not Scale Down the cluster. Or at least, not as you would expect.
-
-When you delete the host from the Siteconfig, the ZTP Gitops will delete, mainly, a corresponding object called BareMetalHost (BMH). From ACM perspective, you are deleting the host from the ACM management. You no longer will manage the host from ACM. But, the host still exists, and still is part of the cluster. From the point of view of the Spoke (installed) cluster, nothing happened.
-
-While writing this document, there is an [Request Feature Enhancement](https://issues.redhat.com/browse/RFE-3431) to enhance this behavior. This will open the possibility of really deleting the host from the Spoke cluster.
-
-Meanwhile, or if this feature is not included, in your current ZTP version), this document covers a semi-automatic way of deleting the hosts. You should have in mind that using ZTP, Zero Touch Provisioning, should be fully automatic. Therefore, the following steps should be considered as a workaround.
+Meanwhile, or if this feature is not included in your current ZTP environment, this document covers a semi-automatic way of deleting the hosts. You should have in mind that using ZTP should be fully automatic. Therefore, the following steps should be considered as a workaround.
 
 ## Steps for Scaling Down clusters
 
-We will need four main steps:
+We will need four main steps for scaling down clusters using a ZTP GitOps scenario:
 
-* (Hub cluster) Use ZTP Gitops flow to delete the host
+- (Hub cluster) Use ZTP Gitops flow to delete the host
+- (Hub cluster) Manually delete the Agent object from Hub cluster
+- (Spoke cluster) Delete the host from the Openshift Spoke cluster
+- (Spoke cluster) Decommissioning the host
 
-* (Hub cluster) Manually delete the Agent object from Hub cluster
 
-* (Spoke cluster) Delete the host from the Openshift  Spoke cluster
-
-* (Spoke cluster) Decommisioning the host
-
-From the three steps, ideally, only the first one should be needed. This is expected to happen when the functionality has been implemented
 
 **Constrains**  
 
-Depending on the number of hosts in your spoke cluster.  
+Depending on the number of hosts in your spoke cluster. 
 
-- If the cluster was created as a Compact Cluster, removing Masters will brake the HA of the cluster. You cannot do that.  
-- If the cluster was created as an Standard Cluster, removing Masters will brake the HA of the cluster. You cannot do that.  
-- If the cluster was created as an Standard Cluster with 2 Workers. You cannot remove any worker.
+- If the cluster was created as a compact cluster, removing masters will break HA of the cluster. You cannot do that.
+- If the cluster was created as a standard cluster, removing masters will break HA of the cluster. You cannot do that either.
+- If the cluster was created as a standard cluster with 2 workers, You cannot remove any worker. 
+  This procedure only applies to clusters deployed with ZTP and Assisted Installer on RHACM
 
 ### Using ZTP to delete the host
 
-In this stage you should be familiar about how Siteconfig works. You will have something like this:
+In this stage, you should be familiar about how Siteconfig works. Following an example on the Siteconfig nodes list:
 
 ```yaml
 ...
@@ -85,32 +78,37 @@ The cluster has 3 master and 3 workers. We will delete the worker-1. Delete the 
 
 ![](assets/2023-01-05-15-37-37-image.png)
 
-From deleting the host, the Resources that are going to be deleted are a BMH and a NMStateconfig. Also, a Secrete will be deleted. This Secret is not under the control of the GitOps (as it can be seen in the image, not out-synch icon, because it is not controlled by ArgoCD). Anyway, it will be deleted, because it is referenced from the BMH.
+From deleting the host on your Siteconfig, the Resources that are going to be deleted are:
+
+- a BMH
+- NMStateconfig
+- a Secret.
+
+Sync the objects and these will be deleted from your Hub cluster.
 
 ### Manually delete the Agent object
 
-After deleting the BMH, in the ACM GUI, you will still see host. During the host installation, the Assisted Installer created a new object of kind Agent. This Agent is out of any control on the GitOps flow. It was not created from the Siteconfig. It is created by the installation service.
+After deleting the BMH, in the ACM GUI, you will still see the host. 
+During the host installation, the Assisted Installer created a new object of kind Agent. This Agent is out of any control on the GitOps flow. It was not created from the Siteconfig and it cannot be deleted using our GitOps flow. We have to delete it manually. 
 
-How to know which Agent resource was created during the installation of this host? You can use this command using the name of the BMH (which is actually the same as the hostname, worker-1):
-
-```bash
+How to know which Agent resource was created during the installation of this host? You can use this command using the name of the BMH (which is actually the same as the hostname, here, worker-1.el8k-ztp-1.hpecloud.org):
+~~~bash
 $> oc -n el8k-ztp-1 get Agent.agent-install.openshift.io  -o json \
  | jq '.items[].metadata | select(.labels."agent-install.openshift.io/bmh"=="worker-1.el8k-ztp-1.hpecloud.org") | .name'
 "2f03b103-596c-4736-aeed-289e590a8bb0"
 
 $> oc -n el8k-ztp-1 delete Agent 2f03b103-596c-4736-aeed-289e590a8bb0
 agent.agent-install.openshift.io "2f03b103-596c-4736-aeed-289e590a8bb0" deleted
-```
-
-Now, the host is completely deleted from ACM. You will not see it neither in the Infrastructure nor in the Cluster.
+~~~
+Now, the host is completely deleted from RHACM and the Hub Cluster.
 
 ### Delete the host from the Openshift cluster
 
-From the spoke perspective, nothing happened yet. In order to delete the host, we will follow the [official documentation](https://docs.openshift.com/container-platform/4.10/machine_management/deleting-machine.html). More in concrete, we will use the Machine API to delete the corresponding Machine node. This will first drain the node and then delete it from the cluster.
+From the spoke perspective, nothing happened yet. In order to delete the host, we will follow the [official documentation](https://docs.openshift.com/container-platform/4.10/machine_management/deleting-machine.html).Concretely, we will use the machine API to delete the corresponding machine node. This will drain first the node and then delete it from the cluster.
 
-In this case, we want to delete the worker-1 from all the Machines
+In this case, we want to delete the worker-1 from the machines list.
 
-```bash
+~~~bash
 >  oc -n openshift-machine-api get machine
 NAME                              PHASE     TYPE   REGION   ZONE   AGE
 el8k-ztp-1-vkp72-master-0         Running                          14h
@@ -119,20 +117,20 @@ el8k-ztp-1-vkp72-master-2         Running                          14h
 el8k-ztp-1-vkp72-worker-0-9mbmc   Running                          14h
 el8k-ztp-1-vkp72-worker-0-n6rnh   Running                          14h
 el8k-ztp-1-vkp72-worker-0-qkcs2   Running                          14h
-```
+~~~
 
-From each Machine  you can have the host name:
+From each machine, you can have the host name:
 
-```json
+~~~bash
 > oc -n openshift-machine-api get machine el8k-ztp-1-vkp72-worker-0-n6rnh -o jsonpath={.status.nodeRef.name}
 worker-1.el8k-ztp-1.hpecloud.org
-```
+~~~
 
-The Machine about worker-1 is the el8k-ztp-1-vkp72-worker-0-n6rnh.
+The machine about worker-1 is the el8k-ztp-1-vkp72-worker-0-n6rnh.
 
-Now, lets find out, if the Machine belongs to a MachineSet. This will depend on how it was installed. The workers added as extra-workers dont belong to the MachineSet. But it is better to ensure that, in case you dont know how the worker was created.
+Now, let's find out if the machine belongs to a machineset. This will depend on how it was installed. The workers added as extra-workers don't belong to the Machineset. But it is better to ensure it, in case we don't know how the worker was created.
 
-```json
+~~~bash
 > oc -n openshift-machine-api get machine el8k-ztp-1-vkp72-worker-0-n6rnh -o jsonpath={.metadata.labels} | jq
 {
   "machine.openshift.io/cluster-api-cluster": "el8k-ztp-1-vkp72",
@@ -140,22 +138,21 @@ Now, lets find out, if the Machine belongs to a MachineSet. This will depend on 
   "machine.openshift.io/cluster-api-machine-type": "worker",
   "machine.openshift.io/cluster-api-machineset": "el8k-ztp-1-vkp72-worker-0"
 }
-```
+~~~
 
-We can observe, how the Machine el8k-ztp-1-vkp72-worker-0-n6rnh belongs to the MachineSet el8k-ztp-1-vkp72-worker-0. In the following steps we will have to delete the Machine, but also, to scale down the MachineSet.
+We can observe how the Machine el8k-ztp-1-vkp72-worker-0-n6rnh belongs to the machineset el8k-ztp-1-vkp72-worker-0. In the following steps, we will have to delete the machine, but also, to scale down the machineset.
 
-step 1) Lets delete the Machine for the worker-1
+step 1) Lets delete the machine for the worker-1
 
-```bash
+~~~bash
 > oc -n openshift-machine-api delete machine el8k-ztp-1-vkp72-worker-0-n6rnh 
 machine.machine.openshift.io "el8k-ztp-1-vkp72-worker-0-n6rnh" deleted
-```
+~~~
 
-step 2) (only if the Machine belongs to a MachineSet)  Scale down the MachineSet
+step 2) (only if the machine belongs to a machineSet) scale down the machineset
 
-In this case, the Machine was part of the MachineSet, we have to scale down the replicas. This MachineSet had three Machines, we scale it to 2.
-
-```bash
+In this case, the machine was part of the machineset, we have to scale down the replicas. This machineset had three machines, we scale it to 2.
+~~~bash
 > oc -n openshift-machine-api get machineset
 NAME                        DESIRED   CURRENT   READY   AVAILABLE   AGE
 el8k-ztp-1-vkp72-worker-0   3         3         2       2           14h
@@ -175,30 +172,26 @@ el8k-ztp-1-vkp72-master-1         Running                          14h
 el8k-ztp-1-vkp72-master-2         Running                          14h
 el8k-ztp-1-vkp72-worker-0-9mbmc   Running                          14h
 el8k-ztp-1-vkp72-worker-0-qkcs2   Running                          14h
-```
+~~~
 
-MachineSet dont try to re-provision the Machine, and keep it in just two worker.
+So, machineSet doesnt try to reprovision the machine, and keep it in just one worker.
 
 step 3)  Delete the BMH object.
-
-```bash
+~~~bash
 > oc -n openshift-machine-api delete bmh worker-1.el8k-ztp-1.hpecloud.org 
 baremetalhost.metal3.io "worker-1.el8k-ztp-1.hpecloud.org" deleted
-```
+~~~
 
-If the deletion get stuck, it could be because of [a know bug](https://issues.redhat.com/browse/OCPBUGS-7581). Related to deleting unmanaged BMH. 
+If the deletion get stuck, it might be because of [a known bug](https://issues.redhat.com/browse/OCPBUGS-7581). Related to deleting unmanaged BMH. In this case, the BMH was unmanaged, and got stuck deleting. We will have to remove the finalizer:
 
-In this case, the BMH was unmanaged, and got stuck deleting. We have to remove the finalizer:
-
-```bash
+~~~bash
 > oc  -n openshift-machine-api patch bmh worker-1.el8k-ztp-1.hpecloud.org \
 --type=merge -p '{"metadata": {"finalizers":null}}' 
 baremetalhost.metal3.io/worker-0.el8k-ztp-1.hpecloud.org patched
-```
+~~~
 
-The node is out of the Openshift cluster, and there are neither Machine nor BMH resources related.
-
-```bash
+The node is out of the Openshift cluster, and there are neither Machine nor related BMH resources.
+~~~bash
 > oc get nodes
 NAME                               STATUS   ROLES                  AGE   VERSION
 master-0.el8k-ztp-1.hpecloud.org   Ready    control-plane,master   14h   v1.25.4+a34b9e9
@@ -221,10 +214,10 @@ machine.machine.openshift.io/el8k-ztp-1-vkp72-master-1         Running          
 machine.machine.openshift.io/el8k-ztp-1-vkp72-master-2         Running                          14h
 machine.machine.openshift.io/el8k-ztp-1-vkp72-worker-0-9mbmc   Running                          14h
 machine.machine.openshift.io/el8k-ztp-1-vkp72-worker-0-qkcs2   Running                          14h
-```
+~~~
 
 ### Decommisioning the node
 
-After deleting the node, you cannot re-start the host,  or it will re-join the cluster. This happens, because it will boot again and it will start the 'kubelet' service, that will make the host to rejoin to the cluster.
+With the host deleted from the Spoke cluster, you cannot restart the host, or it will rejoin the cluster.This is so because it will boot again and will start the 'kubelet' service, which will make the host rejoin the cluster.
 
-The decommisioining process consists on deleting all the data from the host. There are many ways of doing this. One option would be: [How to destroy all the data from server for decommission? - Red Hat Customer Portal](https://access.redhat.com/solutions/84663)
+The decommissioning process consists of deleting all the data from the host. There are many ways of doing this. One option might be: [How to destroy all the data from server for decommission? - Red Hat Customer Portal](https://access.redhat.com/solutions/84663)
