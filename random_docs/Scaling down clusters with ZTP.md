@@ -1,4 +1,4 @@
-***Disclaimer**: this procedure is just a work around. The official implementation will be included soon (RHACM 2.8). If you are using Red Hat supported products, **this is not a supported solution**. If you are dont need official supported solutions, this would help you to scale down clusters, meanwhile the official implementation is out. *
+Disclaimer: this procedure is just a work around. The official implementation will be included soon (RHACM 2.8). If you are using Red Hat supported products, **this is not a supported solution**. If you are dont need official supported solutions, this would help you to scale down clusters, meanwhile the official implementation is out.
 
 # Scaling down clusters with ZTP GitOps
 
@@ -17,8 +17,6 @@ We will need four main steps for scaling down clusters using a ZTP GitOps scenar
 - (Hub cluster) Manually delete the Agent object from Hub cluster
 - (Spoke cluster) Delete the host from the Openshift Spoke cluster
 - (Spoke cluster) Decommissioning the host
-
-
 
 **Constrains**  
 
@@ -92,14 +90,16 @@ After deleting the BMH, in the ACM GUI, you will still see the host.
 During the host installation, the Assisted Installer created a new object of kind Agent. This Agent is out of any control on the GitOps flow. It was not created from the Siteconfig and it cannot be deleted using our GitOps flow. We have to delete it manually. 
 
 How to know which Agent resource was created during the installation of this host? You can use this command using the name of the BMH (which is actually the same as the hostname, here, worker-1.el8k-ztp-1.hpecloud.org):
-~~~bash
+
+```bash
 $> oc -n el8k-ztp-1 get Agent.agent-install.openshift.io  -o json \
  | jq '.items[].metadata | select(.labels."agent-install.openshift.io/bmh"=="worker-1.el8k-ztp-1.hpecloud.org") | .name'
 "2f03b103-596c-4736-aeed-289e590a8bb0"
 
 $> oc -n el8k-ztp-1 delete Agent 2f03b103-596c-4736-aeed-289e590a8bb0
 agent.agent-install.openshift.io "2f03b103-596c-4736-aeed-289e590a8bb0" deleted
-~~~
+```
+
 Now, the host is completely deleted from RHACM and the Hub Cluster.
 
 ### Delete the host from the Openshift cluster
@@ -108,7 +108,7 @@ From the spoke perspective, nothing happened yet. In order to delete the host, w
 
 In this case, we want to delete the worker-1 from the machines list.
 
-~~~bash
+```bash
 >  oc -n openshift-machine-api get machine
 NAME                              PHASE     TYPE   REGION   ZONE   AGE
 el8k-ztp-1-vkp72-master-0         Running                          14h
@@ -117,20 +117,20 @@ el8k-ztp-1-vkp72-master-2         Running                          14h
 el8k-ztp-1-vkp72-worker-0-9mbmc   Running                          14h
 el8k-ztp-1-vkp72-worker-0-n6rnh   Running                          14h
 el8k-ztp-1-vkp72-worker-0-qkcs2   Running                          14h
-~~~
+```
 
 From each machine, you can have the host name:
 
-~~~bash
+```bash
 > oc -n openshift-machine-api get machine el8k-ztp-1-vkp72-worker-0-n6rnh -o jsonpath={.status.nodeRef.name}
 worker-1.el8k-ztp-1.hpecloud.org
-~~~
+```
 
 The machine about worker-1 is the el8k-ztp-1-vkp72-worker-0-n6rnh.
 
 Now, let's find out if the machine belongs to a machineset. This will depend on how it was installed. The workers added as extra-workers don't belong to the Machineset. But it is better to ensure it, in case we don't know how the worker was created.
 
-~~~bash
+```bash
 > oc -n openshift-machine-api get machine el8k-ztp-1-vkp72-worker-0-n6rnh -o jsonpath={.metadata.labels} | jq
 {
   "machine.openshift.io/cluster-api-cluster": "el8k-ztp-1-vkp72",
@@ -138,21 +138,22 @@ Now, let's find out if the machine belongs to a machineset. This will depend on 
   "machine.openshift.io/cluster-api-machine-type": "worker",
   "machine.openshift.io/cluster-api-machineset": "el8k-ztp-1-vkp72-worker-0"
 }
-~~~
+```
 
 We can observe how the Machine el8k-ztp-1-vkp72-worker-0-n6rnh belongs to the machineset el8k-ztp-1-vkp72-worker-0. In the following steps, we will have to delete the machine, but also, to scale down the machineset.
 
 step 1) Lets delete the machine for the worker-1
 
-~~~bash
+```bash
 > oc -n openshift-machine-api delete machine el8k-ztp-1-vkp72-worker-0-n6rnh 
 machine.machine.openshift.io "el8k-ztp-1-vkp72-worker-0-n6rnh" deleted
-~~~
+```
 
 step 2) (only if the machine belongs to a machineSet) scale down the machineset
 
 In this case, the machine was part of the machineset, we have to scale down the replicas. This machineset had three machines, we scale it to 2.
-~~~bash
+
+```bash
 > oc -n openshift-machine-api get machineset
 NAME                        DESIRED   CURRENT   READY   AVAILABLE   AGE
 el8k-ztp-1-vkp72-worker-0   3         3         2       2           14h
@@ -172,26 +173,28 @@ el8k-ztp-1-vkp72-master-1         Running                          14h
 el8k-ztp-1-vkp72-master-2         Running                          14h
 el8k-ztp-1-vkp72-worker-0-9mbmc   Running                          14h
 el8k-ztp-1-vkp72-worker-0-qkcs2   Running                          14h
-~~~
+```
 
 So, machineSet doesnt try to reprovision the machine, and keep it in just one worker.
 
 step 3)  Delete the BMH object.
-~~~bash
+
+```bash
 > oc -n openshift-machine-api delete bmh worker-1.el8k-ztp-1.hpecloud.org 
 baremetalhost.metal3.io "worker-1.el8k-ztp-1.hpecloud.org" deleted
-~~~
+```
 
 If the deletion get stuck, it might be because of [a known bug](https://issues.redhat.com/browse/OCPBUGS-7581). Related to deleting unmanaged BMH. In this case, the BMH was unmanaged, and got stuck deleting. We will have to remove the finalizer:
 
-~~~bash
+```bash
 > oc  -n openshift-machine-api patch bmh worker-1.el8k-ztp-1.hpecloud.org \
 --type=merge -p '{"metadata": {"finalizers":null}}' 
 baremetalhost.metal3.io/worker-0.el8k-ztp-1.hpecloud.org patched
-~~~
+```
 
 The node is out of the Openshift cluster, and there are neither Machine nor related BMH resources.
-~~~bash
+
+```bash
 > oc get nodes
 NAME                               STATUS   ROLES                  AGE   VERSION
 master-0.el8k-ztp-1.hpecloud.org   Ready    control-plane,master   14h   v1.25.4+a34b9e9
@@ -214,7 +217,7 @@ machine.machine.openshift.io/el8k-ztp-1-vkp72-master-1         Running          
 machine.machine.openshift.io/el8k-ztp-1-vkp72-master-2         Running                          14h
 machine.machine.openshift.io/el8k-ztp-1-vkp72-worker-0-9mbmc   Running                          14h
 machine.machine.openshift.io/el8k-ztp-1-vkp72-worker-0-qkcs2   Running                          14h
-~~~
+```
 
 ### Decommisioning the node
 
