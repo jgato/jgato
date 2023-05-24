@@ -26,6 +26,17 @@ kcli create vm SNO_vm -P memory=30720 -P numcpus=8 \
 
 ## Wipe-out disks
 
+Delete previous primary disk and create a new one:
+
+```bash
+$ kcli create disk -s 250 -p home-jgato --force sno7
+Adding disk to sno7...
+Deleting primary disk sno7_0.img
+
+```
+
+### Old way
+
 List disks
 
 ```bash
