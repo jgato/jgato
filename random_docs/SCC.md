@@ -417,6 +417,24 @@ spec:
 status: {}
 ```
 
+But, what if you dont set the `seccompProfile`? In this case, it will depend on which SCC will be used to run the pod. Something you dont know in the time of defining the Pod. So, it is always a good recommendation you set it in the Pod securityContext. But if not, it will take one from the array of `allowed seccomp profiles' of the SCC. If there are more than one, it will be selected the first one.
+
+```yaml
+seccompProfiles:
+- localhost/file.json
+- localhost/file2.json
+- runtime/default
+
+```
+
+In this case, ex. of a custom SCC, if you dont set the `securityContext.seccompProfile', the Pod will receive these annotations:
+
+```yaml
+    openshift.io/scc: restricted-me
+    seccomp.security.alpha.kubernetes.io/pod: localhost/file.json
+
+```
+
 ## SCCs
 
 all the default existing SCCs:
