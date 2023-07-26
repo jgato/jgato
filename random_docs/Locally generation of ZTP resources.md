@@ -45,3 +45,24 @@ Generating installation CRs into /resources/out/generated_installCRs ...
 ```
 
 
+## Generating PolicyGenTemplates Resources
+
+In a directory with different PGTS:
+
+```bash
+> ls -l mb-du-sno/
+total 16
+-rw-r--r--. 1 jgato jgato 1774 jul 17 17:40 common.yaml
+-rw-r--r--. 1 jgato jgato 2209 jul 17 16:43 group-du-mb-operator-config.yaml
+-rw-r--r--. 1 jgato jgato  552 jul 17 09:59 group-du-mb-operator-fec.yaml
+-rw-r--r--. 1 jgato jgato 1317 jul 17 17:17 group-du-mb-performance-config.yaml
+```
+
+Then, you can generate Policies and Bindings:
+```bash
+> podman run  --rm -v ${PWD}:/resources:Z,U \ 
+  registry.redhat.io/openshift4/ztp-site-generate-rhel8 \
+  generator config ./mb-du-sno/common.yaml 
+Processing PolicyGenTemplates: /resources/mb-du-sno/common.yaml 
+
+```
