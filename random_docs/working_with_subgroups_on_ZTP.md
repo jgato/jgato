@@ -376,6 +376,10 @@ spec:
     timeout: 240
 ```
 
+By default (`maxConcurrency: 1`) will remediate Policies one by one. For that reason, SNO7 cluster will be upgraded after SNO6 success:
+
+![](assets/upgrading-clusters-newpolicies.png)
+
 After a while both clusters are compliant. We did the upgrade and everything is validated out or risk. Because we tested, first, with our one cluster subgroup.
 
 
