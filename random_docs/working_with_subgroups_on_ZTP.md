@@ -36,17 +36,17 @@ Then, bindings and placement rules, matches these Policies to different Spoke cl
 
 All the clusters with the `logical-group: "mb-du-sno"` label, will be affected by the `Policy` `du-mb-op-conf-config-operator`. And therefore, different sets of `mustHave` and `mustNotHave`will define its desired status.
 
-All the clusters in this group are automatically configured according to Policies that have been tested and validated. But, what is the correct procedure to take a set, or subgroup, of these cluster to test some new Policies?. Or, how we take, some clusters, out of its `logical-group`to test some new Polices?. 
+All the clusters in this group are automatically configured according to Policies that have been tested and validated. But, what is the correct procedure to take a set, or subgroup, of these cluster to test some new Policies?. Or, how we take, some clusters, out of its logical group to test some new Polices?. 
 
-The procedure has to be easy to implement, and, clusters on the subgroup would get back to its previous `logical-group`.  
+The procedure has to be easy to implement, and, clusters on the subgroup would get back to its previous logical group.
 
 The following tutorial shows up how to use RHACM Governance and subgroups of configurations. The different steps on this tutorial: 
- * We will take one cluster out of its `logical-group`. 
+ * We will take one cluster out of its logical group. 
  * This new cluster (or subgroup) will test the same configuration (Policies), than its original group.
  * A new configuration will be added to test a new version of OCP. 
  * When everything is oka, Policies can be considered as valid in the OCP version. We can safety migrate all the clusters to the new configuration.
- * The new configuration is included in the original `logical-group`and our testing clusters is reverted back to its original group. 
- * All the clusters running in the `logical-group`with the proper Policies and the new OCP version. 
+ * The new configuration is included in the original logical groupand our testing clusters is reverted back to its original group. 
+ * All the clusters running in the logical groupwith the proper Policies and the new OCP version. 
  
 A Git repository is connected to the Hub Cluster to inject the RHACM Policies, into the Governance process. *This tutorial dont cover this "GitOps" methodology, but Policies would be directly created into the Hub Cluster, as any other Openshift/Kubernetes resource.*
 
@@ -275,8 +275,114 @@ Once TALM starts the remediation, the new Policy is applied. In this case, this 
 
 ![](assets/upgrading-cluster.png)
 
+After a while the upgrade is done. All the Policies are again compliant.
+![](assets/sno5-compliant-newpolicies.png)
+
+In this moment, we can say that all the Policies are still valid in the new subgroup, under the new conditions. Therefore, we can return SNO5 cluster to its logical group. Also, we can include the new tested Policies to the original group.
 
 
 # Apply the new configuration to all the clusters
 
-# Conclussions
+First, we get back SNO5 to its original logical group. Just changing back the value of the label `logical-group: mb-du-sno`at Siteconfig level.
+
+```yaml
+clusterName: "sno5"
+networkType: "OVNKubernetes"
+clusterLabels:
+  logical-group: "mb-du-sno"
+  common: "true"
+  site: "sno5"
+```
+
+Back to its original group, you can check how it is still compliant. Currently, with its original Policies:
+
+![](assets/all-clusters-oldpolicies.png)
+
+There are none of the Policies created about the upgrade, and the subgroup, 4.12.26. We copy these Policies from subgroup to the group `logical-group: mb-du-sno`. We also adapt the `.metadata.name` values to not conflict with the copies from the subgroup:
+
+```bash
+> cp mb-du-sno-4.12.26/upgrades-4-12-* mb-du-sno/ 
+
+> yq e -i  '.metadata.name = "du-mb-upgrade"' upgrades-4-12-cluster-version-policy.yaml 
+
+> yq e -i  '.metadata.name = "du-mb-upgrade-placementrule"' upgrades-4-12-placementrules.yaml  
+
+> yq e -i  '.metadata.name = "du-mb-upgrade-placementbinding"' upgrades-4-12-placementbinding.yaml 
+
+```
+
+Modify the PlacementBinding to match the new Policy name into the `subjects[].name`, and the new PlacementRule name into the`placementRef[].name`:
+
+```yaml
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: du-mb-upgrade-placementbinding
+  namespace: ztp-common
+placementRef:
+  name: du-mb-upgrade-placementrule
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - name: du-mb-upgrade
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+
+```
+
+Modify the PlacementRule to match the `logical-group: mb-du-sno` into the `matchExpression`:
+
+```yaml
+> cat mb-du-sno/upgrades-4-12-placementrules.yaml 
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+    name: upgrades-4-12-placementrules
+    namespace: ztp-common
+spec:
+    clusterSelector:
+        matchExpressions:
+            - key: logical-group
+              operator: In
+              values:
+                - mb-du-sno
+
+```
+
+
+Add the changes to the Git repo, and the original logical group is now affected by the Policies. That we tested on the subgroup. Therefore, now, SNO6 and SNO7 will be as not compliant.
+
+![](assets/all-clusters-newpolicies.png)
+
+We create a new CGU to remediate this two clusters about the Policy mb-du-sno:
+
+```yaml
+apiVersion: ran.openshift.io/v1alpha1
+kind: ClusterGroupUpgrade
+metadata:
+  name: mb-du-upgrade
+  namespace: ztp-install
+spec:
+  backup: false
+  clusters:
+  - sno6
+  - sno7
+  enable: true
+  managedPolicies:
+  - du-mb-upgrade
+  preCaching: false
+  remediationStrategy:
+    maxConcurrency: 1
+    timeout: 240
+```
+
+After a while both clusters are compliant. We did the upgrade and everything is validated out or risk. Because we tested, first, with our one cluster subgroup.
+
+
+The subgroup configuration would be deleted from the Git repo, to have a cleaner list of Policies into the RHACM Governance.
+
+# Conclusions
+
+The concept of subgroups, it is a way of using the RHACM Governance, to apply different sets of Policies to different clusters. This would help us to test and validate Policies and Configurations lowering possible risks, without affecting a significant number of clusters. The process is really flexible about which Policies and Clusters are involved. And finally, everything can be reverted when new Policies are ready and valid.
+
+There are other similar techniques, like Policies Exceptions, that will be covered in a future second part of this tutorial. 
