@@ -66,3 +66,59 @@ Then, you can generate Policies and Bindings:
 Processing PolicyGenTemplates: /resources/mb-du-sno/common.yaml 
 
 ```
+
+### Using your extra source-crs
+
+If your PGTs are using your own source-crs, you have to add these to the Container Image. So, you will have the default [source-crs](https://github.com/openshift-kni/cnf-features-deploy/tree/master/ztp/source-crs) that were used to build the container. Plus, your own source-crs
+
+We will have to modify you local image of the ztp-site-generate. So, create a Container:
+```bash
+$> podman run  -it -v ${PWD}:/resources:Z,U  registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.12c /bin/bash
+
+$> ls -l /kustomize/plugin/ran.openshift.io/v1/policygentemplate/source-crs       
+total 332
+-rw-r--r--. 1 root root  134 Jan  5  2023 AcceleratorsNS.yaml
+-rw-r--r--. 1 root root  246 Jan  5  2023 AcceleratorsOperGroup.yaml
+-rw-r--r--. 1 root root  727 Jan  5  2023 AcceleratorsOperatorStatus.yaml
+-rw-r--r--. 1 root root  380 Jan  5  2023 AcceleratorsSubscription.yaml
+-rw-r--r--. 1 root root  260 Jan  5  2023 AmqInstance.yaml
+-rw-r--r--. 1 root root  670 Jan  5  2023 AmqOperatorStatus.yaml
+<REDACTED>
+```
+
+Just keep it running, we will copy extra source-crs to the default folder. In other terminal:
+
+```bash
+# Take the container ID
+> podman ps
+CONTAINER ID  IMAGE                                                         COMMAND     CREATED         STATUS         PORTS       NAMES
+e885d1a2637e  registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.12c  /bin/bash   22 seconds ago  Up 22 seconds              priceless_carson
+
+# Copy there our own source-crs
+> podman cp source-crs/. e885d1a2637e:/kustomize/plugin/ran.openshift.io/v1/policygentemplate/source-crs/
+
+# commit the changes
+> podman commit e885d1a2637e
+Getting image source signatures
+Copying blob 52cbfc36b72b skipped: already exists  
+Copying blob f1732c6974a1 skipped: already exists  
+Copying blob bd2f5c65dade skipped: already exists  
+Copying blob cd719646bf14 done  
+Copying config 694b95eb8d done  
+Writing manifest to image destination
+Storing signatures
+694b95eb8d819bc298c0de48ca4008eef389582f4becf981bd5516edf0a73acf
+
+# tag the generated image
+> podman tag 694b95eb8d819bc298c0de48ca4008eef389582f4becf981bd5516edf0a73acf  registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.12c
+```
+
+Notice we have now a new image with tag: v4.12c.
+
+Now, you can exit the previous created container. And you can execute it again (with the new image) as explained above:
+
+```bash
+podman run  --rm -v ${PWD}:/resources:Z,U \ 
+  registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.12c \
+  generator config ./mb-du-sno/common.yaml 
+```
