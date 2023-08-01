@@ -81,11 +81,201 @@ That corresponds with our Git repository containing Policies for the `logical-gr
 
 ```
 
-Now, we will move out of its logical-group the cluster SNO5, creating a new subgroup. We will test the same validated configuration but on a new version of OCP. 
+We will move out, of its logical-group, the cluster SNO5, creating a new subgroup. We will test the same validated configuration but on a new version of OCP. 
 
 # Create the subgroup
 
-# Wait for the validation
+The new subgroup will be called `mb-du-sno-4.12.26`.
+
+First copy previous Policies/Configuration to a new folder for the subgroup.
+
+```bash
+> cp -r mb-du-sno/ mb-du-sno-4.12.26
+> tree
+├── common
+│   ├── common-config-policy.yaml
+│   ├── common-placementbinding.yaml
+│   ├── common-placementrules.yaml
+│   └── common-subscriptions-policy.yaml
+├── mb-du-sno
+│   ├── du-mb-op-conf-config-operator.yaml
+│   ├── du-mb-op-conf-placementbinding.yaml
+│   ├── du-mb-op-conf-placementrules.yaml
+│   ├── du-mb-perf-conf-config-policy.yaml
+│   ├── du-mb-perf-conf-placementbinding.yaml
+│   └── du-mb-perf-conf-placementrules.yaml
+└── mb-du-sno-4.12.26
+    ├── du-mb-op-conf-config-operator.yaml
+    ├── du-mb-op-conf-placementbinding.yaml
+    ├── du-mb-op-conf-placementrules.yaml
+    ├── du-mb-perf-conf-config-policy.yaml
+    ├── du-mb-perf-conf-placementbinding.yaml
+    └── du-mb-perf-conf-placementrules.yaml
+```
+
+We cannot have several Policies with the same name. So, change the `metadata.name`on all the objects to a different name:
+
+```bash
+# previous names
+> cd mb-du-sno-4.12.26
+> yq '.metadata.name' *
+du-mb-op-conf-config-operator
+---
+du-mb-op-conf-placementbinding
+---
+du-mb-op-conf-placementrules
+---
+du-mb-perf-conf-config-policy
+---
+du-mb-perf-conf-placementbinding
+---
+du-mb-perf-conf-placementrules
+
+# append the -4.12.26 to all the names
+> for i in `ls *.yaml`; do  yq e -i  '.metadata.name = .metadata.name + "-4.12.26"' $i; done
+ 
+> yq '.metadata.name' *
+du-mb-op-conf-config-operator-4.12.26
+---
+du-mb-op-conf-placementbinding-4.12.26
+---
+du-mb-op-conf-placementrules-4.12.26
+---
+du-mb-perf-conf-config-policy-4.12.26
+---
+du-mb-perf-conf-placementbinding-4.12.26
+---
+du-mb-perf-conf-placementrules-4.12.26
+```
+
+All PlacementBindings have to be changed to point PlacementRule(1) and the Policy(2) with their new names:
+![](assets/new-refs.png)
+
+Finally, change PlacementRules to bind the Policies to the new subgroup:
+
+```yaml
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: du-mb-op-conf-placementrules-4.12.26
+  namespace: ztp-group
+spec:
+  clusterSelector:
+    matchExpressions:
+      - key: logical-group
+        operator: In
+        values:
+          - mb-du-sno-4.12.26
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: du-mb-perf-conf-placementrules-4.12.26
+  namespace: ztp-group
+spec:
+  clusterSelector:
+    matchExpressions:
+      - key: logical-group
+        operator: In
+        values:
+          - mb-du-sno-4.12.26
+```
+
+Make SN5 cluster part of the subgroup:
+
+ * Edit your `siteconfig`and change the labels of SNO5 to make it part of the new subgroup:
+
+![](assets/moving_subroups-siteconfig.png)
+
+![](assets/moving_subroups.png)
+
+Push the changes to the Git repository and synch. 
+
+SNO5 is still compliant, but regarding the new set of Policies of the subgroup:
+
+![](assets/sno5-compliant-nochanges.png)
+
+Notice, it is still compliant because we copied all the copies from its previous logical group. So, new set of Policies but same configuration. Now, we will add a new configuration to the subgroup, that will make the desired upgrade.
+
+# Introduce changes in the subgroup configuration
+
+In order to produce the desired change, to make a cluster upgrade to validate Policies in a new environment, we will create a new Policy. Together with the needed PlacementRules and PlacementBindings.
+
+![](assets/new-subroup-policies.png)
+
+
+For easiness of the tutorial we dont go in detail about the Policy. Basically, an ACM Policy with a must have object in the way of
+
+```yaml
+- complianceType: musthave
+  objectDefinition:
+    apiVersion: config.openshift.io/v1
+    kind: ClusterVersion
+    metadata:
+        name: version
+    spec:
+        channel: stable-4.12
+        desiredUpdate:
+            version: 4.12.26
+        upstream: https://api.openshift.com/api/upgrades_info/v1/graph
+    status:
+        history:
+            - state: Completed
+              version: 4.12.26
+
+```
+
+PlacementRules will make the cluster SNO5 affected by this upgrade:
+```yaml
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+    name: upgrades-4-12-placementrules
+    namespace: ztp-common
+spec:
+    clusterSelector:
+        matchExpressions:
+            - key: logical-group
+              operator: In
+              values:
+                - mb-du-sno-4.12.26
+```
+
+With the new files in the Git repo and everything synced, SNO5 is now not compliant.
+
+![](assets/sno5-nocompliant-newpolicies.png)
+
+
+# Apply new Policies and wait for the validation
+
+In order to remediate the new Policy, TALM Operator and ClusterGroupUpgrade(CGU) resources go into play. Basically, a new CR that makes the remediation for Clusters and Policies. More details on how to use TALM Operator can be found 
+[here](https://docs.openshift.com/container-platform/4.12/scalability_and_performance/cnf-talm-for-cluster-upgrades.html)
+
+We create a CGU that will remediate the not compliant Policy:
+```yaml
+apiVersion: ran.openshift.io/v1alpha1
+kind: ClusterGroupUpgrade
+metadata:
+  name: sno5-subgroup-change
+  namespace: ztp-install
+spec:
+  backup: false
+  clusters:
+  - sno5
+  enable: true
+  managedPolicies:
+  - upgrades-4-12-cluster-version-policy
+  preCaching: false
+  remediationStrategy:
+    maxConcurrency: 1
+    timeout: 240
+
+```
+
+Once TALM starts the remediation, the new Policy is applied. In this case, this will trigger a cluster upgrade.
+
+![](assets/upgrading-cluster.png)
+
+
 
 # Apply the new configuration to all the clusters
 
