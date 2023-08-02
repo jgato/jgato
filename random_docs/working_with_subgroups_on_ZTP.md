@@ -380,7 +380,9 @@ By default (`maxConcurrency: 1`) will remediate Policies one by one. For that re
 
 ![](assets/upgrading-clusters-newpolicies.png)
 
-After a while both clusters are compliant. We did the upgrade and everything is validated out or risk. Because we tested, first, with our one cluster subgroup.
+After a while both clusters are compliant. We did the upgrade and everything is validated out of risk. Because we tested, first, with our one cluster subgroup.
+
+![](assets/all-clusters-newpolicies-validated.png)
 
 
 The subgroup configuration would be deleted from the Git repo, to have a cleaner list of Policies into the RHACM Governance.
