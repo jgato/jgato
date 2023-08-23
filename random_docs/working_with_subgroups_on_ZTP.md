@@ -51,7 +51,7 @@ A Git repository is connected to the Hub Cluster to inject the RHACM Policies in
 
 # The scenario
 
-For this tutorial, we will focus on an scenario with three Single Node Openshift (SNOs). All of them are intended to be used in a telco environment to deploy a Midband Distribution Unit. We take this is as an example, the way of proceeding can apply to whatever other scenario.
+For this tutorial, we will focus on an scenario with three Single Node Openshift (SNOs). All of them are intended to be used in a telco environment to deploy a Midband Distributed Unit. We take this is as an example, the way of proceeding can apply to whatever other scenario.
 
 SNO5, SNO6 and SNO7 are already deployed and working. All of them are based on OCP4.12 and belong to the `logical-group: "mb-du-sno"`.
 
@@ -112,7 +112,7 @@ First, copy previous Policies to a new folder for the subgroup.
     └── du-mb-perf-conf-placementrules.yaml
 ```
 
-We cannot have several Policies with the same name. So, change the `metadata.name`on all the new Policies:
+We cannot have several Policies with the same name. So, change the `metadata.name` on all the new Policies:
 
 ```bash
 
@@ -252,6 +252,8 @@ With the new files in the Git repo and everything synced, SNO5 is now not compli
 
 In order to remediate the new Policy, TALM Operator and ClusterGroupUpgrade(CGU) resources go into play. Basically, a new CR that makes the remediation for Clusters and Policies. More details on how to use TALM Operator can be found 
 [here](https://docs.openshift.com/container-platform/4.12/scalability_and_performance/cnf-talm-for-cluster-upgrades.html).
+
+TALM Operator helps to manage usual situations about how you manage your changes. For example, far edge use case updates can only be made during predefined maintenance windows. Or, how many clusters you want/can update at the same time. TALM provides features about these kind of needs.
 
 We create a CGU that will remediate the not compliant Policy o SNO5.
 
