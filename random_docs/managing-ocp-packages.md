@@ -168,19 +168,38 @@ Images:
   agent-installer-csr-approver                   quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:7167308150d1873c8f77e7a51418cd684af37ec80d244696cf7df01b72bc3f19
   agent-installer-node-agent                     quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b51bd8e5f1c76604333394e75f4b26c39197dbe421294e9ebf307c4a5fd9d71a
   agent-installer-orchestrator                   quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6a0597cfa1f50e3532e4d64b1398663c8d433f5dffc46617120a160cf9c28be6
-  alibaba-cloud-controller-manager               quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:67d4570cd3ac924fd800ffa9a894c054fa94e407d88f80f4d1f2c34bf7f9cc8f
-  alibaba-cloud-csi-driver                       quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:4874cd22a40d83da75341d3e322e76d24439dcebc14ee71775a81815f8120ec0
-  alibaba-disk-csi-driver-operator               quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c9c689a4b338d640d0af3a958c04326b51adcff2d7c7f0a8342fa0f089493a84
-  alibaba-machine-controllers                    quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a859217fbc0074f786828ac839eb5b8d15f1f3f2d293c5a019f85e6f0f622346
-  apiserver-network-proxy                        quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:11d64bc2998bf24c132de45f60a05e0199b8ef058fc3b0a3fae2c9eeecfbb99c
-  aws-cloud-controller-manager                   quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1aafdfea69af2aac2dcf12328a683b545280aa7f267f877a3c8d11ef0308e401
-  aws-cluster-api-controllers                    quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a70ac366dcbd7d3a2d091ec2e505547b035a7a670e6659ac45c6e2708adcdacb
-  aws-ebs-csi-driver                             quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:3915ed2289c5df36d8557dfb64a442874ac3229a5bf3651688090ca67d744397
-  aws-ebs-csi-driver-operator                    quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e15bcec2fd2008137bf3a6166c46d94c6e15621f2a5b99ba7677b980a3cc36e9
-  aws-machine-controllers                        quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a5da07560223c050ac03d1643153e538096f74285ea5dc78b6816ba71966432a
-  aws-pod-identity-webhook                       quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a463ae407f3dac940661bcccb9fa649f3592649c5499556b1d4c98834fd50a30
-  azure-cloud-controller-manager                 quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f8a035f9cad69a32454e1943c450afae77ae659d30b73b3cbc7ffda5ba75e4cf
+
+<REDACTED>
   azure-cloud-node-manager                       quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f6768f135c2b8147f442632cb494f5c71646e50786f914b1351c64f87302cca8
   azure-cluster-api-controllers                  quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f4a89044c532c431c8276974f99d9e4082a54f8ffb8eecf8527e593e0ea16126
+
+```
+
+## RPM packages on this container images
+
+Maybe, you would need to dig deeper. Not only need to know which container images are released with each distribution. You would also need to know the RPM packages inside.
+This example is pretty tricky, because it gives you the nmstate package version that will be used to build the image used for installation of OCP with AI:
+
+```bash
+└──> oc adm release extract --tools quay.io/openshift-release-dev/ocp-release:4.12.1-x86_64 && cat release.txt | grep machine-image-customization-controller
+  machine-image-customization-controller         quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:877c034cfc85d1299739be1a510b212c26c88d2dc02760f5d3e97c6b6074016c
+
+└──> podman run -itq quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:877c034cfc85d1299739be1a510b212c26c88d2dc02760f5d3e97c6b6074016c /bin/bash -c "rpm -qa | grep nmstate"
+python3-libnmstate-1.3.3-1.el8.noarch
+nmstate-1.3.3-1.el8.x86_64
+
+└──> oc adm release extract --tools quay.io/openshift-release-dev/ocp-release:4.12.21-x86_64 && cat release.txt | grep machine-image-customization-controller
+  machine-image-customization-controller         quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d916cf6b88c0a07580e6c17358519b9593482b8ebe44592de47452a5c19b255d
+
+└──> podman run -itq  quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d916cf6b88c0a07580e6c17358519b9593482b8ebe44592de47452a5c19b255d /bin/bash -c "rpm -qa | grep nmstate"
+nmstate-1.3.3-1.el8.x86_64
+python3-libnmstate-1.3.3-1.el8.noarch
+
+└──> oc adm release extract --tools quay.io/openshift-release-dev/ocp-release:4.12.22-x86_64 && cat release.txt | grep machine-image-customization-controller
+  machine-image-customization-controller         quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:3d0d96b81f071a0c38ec43bd437b19452a7ec4448810c66f86f9f008b32e4df3
+
+└──> podman run -itq  quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:3d0d96b81f071a0c38ec43bd437b19452a7ec4448810c66f86f9f008b32e4df3 /bin/bash -c "rpm -qa | grep nmstate"
+nmstate-1.4.4-1.el8_6.x86_64
+python3-libnmstate-1.4.4-1.el8_6.noarch
 
 ```
