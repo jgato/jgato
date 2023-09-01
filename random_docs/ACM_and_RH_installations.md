@@ -76,7 +76,7 @@ assisted-image-service                  1/1     1            1           51d
 assisted-service                        1/1     1            1           51d
 ```
 
-The Assisted Image Service is in charge of providing the RHCOS live iso, which will boot the server, to starts the Agent that will make the OCP installation. 
+The Assisted Image Service is in charge of providing the RHCOS live iso, which will boot the server, to starts the Agent that will make the OCP installation. 
 A RHCOS ISO is about 1GB which could create different problems when booting from a BMC's virtual media, or maybe, connectivity would be not good enough between the BMC and the ISO. So, the rootfs is extracted from the ISO, and the mini-ISO (about 100MB) is provided from the assisted-image-service, facilitating BMCs to boot from that ISO. 
 
 The Assisted Installer will customize the ISOs, for each host, accordingly to the cluster and hosts configuration. For example, it will include authorized-keys and NMStateConfig with the network from InfraEnv object.
@@ -329,7 +329,7 @@ The 'img4.10.42-x86-64-appsub' contains the binary 'openshift-install' that will
 
 With all the requirements validated by the Assisted Service, and the host containing the 'openshift-installer', the installation can start. 
 
-Later, the host will reboot. This time with a fully RHCOS installed, together with the different Openshift pieces. 
+Later, the host will reboot. This time with a fully RHCOS installed, together with the different Openshift pieces. How this phase works is covered in this other document: [RHCOS boot process for a RHACM and Assisted Installer installation](https://github.com/jgato/jgato/blob/main/random_docs/RHCOS-boot-process-RHACM-AI.md)
 
 Once finished the installation, the Assisted Agent service finishes the work. It was running as a service and it will not do anything else. From that moment, there is no more communication between the Assisted Service and the Assisted Agent.
 
