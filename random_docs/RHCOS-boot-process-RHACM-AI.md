@@ -108,7 +108,7 @@ Aug 30 13:26:34 localhost.localdomain coreos-boot-edit[2926]: Injected kernel ar
 
 But later, the NetworkManager is reloaded to get the configuration from the Real Root. Normally, the Network configuration from the discovery phase is propagated into the Real Root.
 
-![](RHCOS-boot-process-RHACM-AI_propagate_network.png)
+![](assets/RHCOS-boot-process-RHACM-AI_propagate_network.png)
 
  5- coreos-teardown ends moving to Real Root and continue booting, as it will happen in a normal boot. 
  
