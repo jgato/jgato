@@ -145,3 +145,72 @@ Therefore, any kind of tune/tweak modification on this directories will break th
 ## Solution: forcing merge between network configurations
 
 According to [this]() RHCOS feature, it should be possible to merge the configurations in the Real Root, to what it comes from the Initramfs. That it should should this kind of scenarios. Where, we did small networking changes (day-2), that we want to keep, but we need the networking configured in our cluster definition for installations (day-0). 
+
+Using this solution, you can check the new worker how it contains both configurations:
+![](assets/force-networking-configuration-AI_merged-config.png)
+
+ 1- Coming from the worker Ignition
+ 2- Propagated from the discovery phase or initramfs
+ 
+Now the node reboots correctly and can continue the installation.
+
+
+How do we inject this param into the kernel, there are different options.
+
+### Option 1: Interrupting kernel boot
+
+It is just about interrupting host boot to go into GRUB. Edit the kernel args to add the `coreos.force_persist_ip `
+
+Not tested, neither documented.
+
+### Option 2: Using ZTP GitOps with kernel args
+
+In this case, at [SiteConfig and at node level](https://github.com/openshift-kni/cnf-features-deploy/blob/release-4.12/ztp/ran-crd/site-config-crd.yaml#L360-L364), you can add any number of kargs. These will be received by the Assisted Installer. Which is basically what happens on option 3.
+
+So, we configure the needed nodes in our Siteconfig to use this karg:
+
+```yaml
+      - hostName: "worker-1.el8k-ztp-1.hpecloud.org"                           
+        role: "worker"                                                         
+        installerArgs: '["--append-karg", "coreos.force_persist_ip"]'
+        bmcAddress: "redfish-virtualmedia://10.19.10.71:6443/redfish/v1/Systems/00000000-0000-0000-0000-000000000006"
+        bmcCredentialsName:                                                    
+          name: "worker-1-bmc-secret"                                          
+...
+...
+```
+After sync, this will add to the BMH object:
+
+```bash
+> oc -n el8k-ztp-1  get bmh worker-1.el8k-ztp-1.hpecloud.org -o jsonpath='{.metadata.annotations}'  | jq
+{
+  "argocd.argoproj.io/sync-wave": "1",
+  "baremetalhost.metal3.io/detached": "assisted-service-controller",
+  "bmac.agent-install.openshift.io/hostname": "worker-1.el8k-ztp-1.hpecloud.org",
+  "bmac.agent-install.openshift.io/installer-args": "[\"--append-karg\", \"coreos.force_persist_ip\"]",
+  "bmac.agent-install.openshift.io/role": "worker",
+<REDACTED>
+}
+
+```
+
+Because this params are used during discovery phase, you will need to delete and recreate the node. To trigger a new installation with these parameters.
+
+### Option 3: Using AI with kernel args
+
+
+If you are not using ZTP Gitops, you can directly create the BMH object annotated to use this parameters:
+
+```bash
+> oc -n el8k-ztp-1  get bmh worker-1.el8k-ztp-1.hpecloud.org -o jsonpath='{.metadata.annotations}'  | jq
+{
+  "argocd.argoproj.io/sync-wave": "1",
+  "baremetalhost.metal3.io/detached": "assisted-service-controller",
+  "bmac.agent-install.openshift.io/hostname": "worker-1.el8k-ztp-1.hpecloud.org",
+  "bmac.agent-install.openshift.io/installer-args": "[\"--append-karg\", \"coreos.force_persist_ip\"]",
+  "bmac.agent-install.openshift.io/role": "worker",
+<REDACTED>
+}
+```
+
+And initiate the installation on this way.
