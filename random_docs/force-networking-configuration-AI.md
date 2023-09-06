@@ -29,6 +29,7 @@ We already have a cluster created as a compact cluster. With all the Policies/Co
 ![](assets/force-networking-configuration-AI_cluster-created.png)
 
 After that, we added a new extra worker on day-2. This worker was added without problems. And it receives the network configuration based on its role in the cluster.
+
 ![](assets/force-networking-configuration-AI_extra-worker-1.png)
 
 On day-2, we decide to include a new configuration (with a MC) that creates a dummy connection on our worker. This will do nothing. We are just forcing the expected issue. 
