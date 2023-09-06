@@ -154,6 +154,7 @@ Using this solution, you can check the new worker how it contains both configura
  
 Now the node reboots correctly and can continue the installation.
 
+![](assets/force-networking-configuration-AI_installed-ok.png)
 
 How do we inject this param into the kernel, there are different options.
 
@@ -161,7 +162,7 @@ How do we inject this param into the kernel, there are different options.
 
 It is just about interrupting host boot to go into GRUB. Edit the kernel args to add the `coreos.force_persist_ip `
 
-Not tested, neither documented.
+Not tested, neither documented, yet. But it should work. You can use this option for a node failing, that you dont want to re-install. But, in case that you have many nodes to fix, you will have to do it one by one. This is like a "quick fix" the next options are more scalable.
 
 ### Option 2: Using ZTP GitOps with kernel args
 
