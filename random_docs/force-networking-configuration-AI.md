@@ -1,8 +1,6 @@
-*
-This is just an experiment to reproduce a know issue, and to test a possible solution. More here: 
+*This is just an experiment to reproduce a know issue, and to test a possible solution. More here: 
 https://issues.redhat.com/browse/OCPBUGS-18189
-https://github.com/coreos/coreos-installer/pull/554
-*
+https://github.com/coreos/coreos-installer/pull/554 *
 
 # Forcing networking configuration adding nodes on day-2 (ZTP and Assisted Installer)
 
