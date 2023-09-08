@@ -44,7 +44,6 @@ This tutorial shows how to use RHACM Governance and subgroups, to safety test ne
  * To create subgroup, extracting one cluster out of this initial logical group. 
  * This new cluster (or subgroup) will use the same configuration from its original group. Plus, some new configurations to be validated. 
  * With the new configuration validated, on the subgroup, we can safety migrate all the clusters.
- * The new configuration is included in the original logical group, and our testing clusters is reverted back to its original group. 
  * All the clusters running in the logical group with the new configuration.
  
 A Git repository is connected to the Hub Cluster to inject the RHACM Policies into the Governance process. *This tutorial dont cover this "GitOps" methodology, but Policies would be directly created into the Hub Cluster, as any other Openshift/Kubernetes resource.*
@@ -289,82 +288,34 @@ We have finished correctly the validation of the new configuration. We can concl
 
 # Apply the new configuration to all the clusters
 
-First, we get back SNO5 to its original logical group. Just changing back the value of the label `logical-group: mb-du-sno`at Siteconfig level.
+In this point, you could apply different strategies. Like getting back SNO5 to its original logical group. For this example, we will do a kind of canary rollout. Now, that we have demonstrated that new configuration worked on one SNO, we can move all the clusters to the new logical group.
 
-```yaml
-clusterName: "sno5"
-networkType: "OVNKubernetes"
-clusterLabels:
-  logical-group: "mb-du-sno"
-  common: "true"
-  site: "sno5"
-```
-
-Back to its original group, you can check how SNO5 it is still compliant with all the `logical-group: mb-du-sno`Policies.
-
-![](assets/all-clusters-oldpolicies.png)
-
-Next, we copy the new configuration into the original group. To apply the new configuration, this time, to the whole group.
-We have to copy these Policies from subgroup to the group `logical-group: mb-du-sno`. We also adapt the `.metadata.name` values to not conflict with the copies from the subgroup:
+In the Siteconfig, we change the logical group in the way of:
 
 ```bash
-> cp mb-du-sno-4.12.26/upgrades-4-12-* mb-du-sno/ 
-> cd mb-du-sno
-
-> yq e -i  '.metadata.name = "du-mb-upgrade"' upgrades-4-12-cluster-version-policy.yaml 
-
-> yq e -i  '.metadata.name = "du-mb-upgrade-placementrule"' upgrades-4-12-placementrules.yaml  
-
-> yq e -i  '.metadata.name = "du-mb-upgrade-placementbinding"' upgrades-4-12-placementbinding.yaml 
-
+> cat site-multi-sno-ipv4-4-12.yaml | grep logical-group -B 3
+  - clusterName: "sno5"
+    networkType: "OVNKubernetes"
+    clusterLabels:
+      logical-group: "mb-du-sno-4.12.26"
+--
+  - clusterName: "sno6"
+    networkType: "OVNKubernetes"
+    clusterLabels:
+      logical-group: "mb-du-sno-4.12.26"
+--
+  - clusterName: "sno7"
+    networkType: "OVNKubernetes"
+    clusterLabels:
+      logical-group: "mb-du-sno-4.12.26"
 ```
 
-Modify the new PlacementBinding resource:
- * Change the `subjects[].name` to match the new Policy name into.
- * Chante the `placementRef[].name`to match the new PlacementRule name.
-
-```yaml
-apiVersion: policy.open-cluster-management.io/v1
-kind: PlacementBinding
-metadata:
-  name: du-mb-upgrade-placementbinding
-  namespace: ztp-common
-placementRef:
-  name: du-mb-upgrade-placementrule
-  kind: PlacementRule
-  apiGroup: apps.open-cluster-management.io
-subjects:
-  - name: du-mb-upgrade
-    kind: Policy
-    apiGroup: policy.open-cluster-management.io
-
-```
-
-Modify the new  PlacementRule to match the `logical-group: mb-du-sno` into the `matchExpression`:
-
-```yaml
-> cat mb-du-sno/upgrades-4-12-placementrules.yaml 
-apiVersion: apps.open-cluster-management.io/v1
-kind: PlacementRule
-metadata:
-    name: upgrades-4-12-placementrules
-    namespace: ztp-common
-spec:
-    clusterSelector:
-        matchExpressions:
-            - key: logical-group
-              operator: In
-              values:
-                - mb-du-sno
-
-```
+Once the configuration is sync, SNO6 and SNO6 now belong to a new logical group. Therefore are affected by the Policy created above, and they are not compliant
 
 
-Add the changes to the Git repo. The original logical group is now affected by the Policies. Therefore, now, SNO6 and SNO7 will be as not compliant.
+![](assets/working_with_subgroups_on_ZTP_all-new-logical-group.png)
 
-![](assets/all-clusters-newpolicies.png)
-
-We create a new CGU to remediate this two clusters about the Policy mb-du-sno:
+We create a new CGU to start a remediation:
 
 ```yaml
 > cat <<EOF | oc apply -f -
@@ -380,7 +331,7 @@ spec:
   - sno7
   enable: true
   managedPolicies:
-  - du-mb-upgrade
+  - upgrades-4-12-cluster-version-policy
   preCaching: false
   remediationStrategy:
     maxConcurrency: 1
@@ -392,15 +343,14 @@ By default (`maxConcurrency: 1`) will remediate Policies one by one. For that re
 
 ![](assets/upgrading-clusters-newpolicies.png)
 
-After a while both clusters are compliant. We did the upgrade and everything is validated out of risk. Because we tested, first, with the one cluster subgroup.
+
+After a while both clusters are compliant. We did the upgrade and everything is validated out of risk. 
 
 ![](assets/all-clusters-newpolicies-validated.png)
 
 
-The subgroup Policies can, now, be deleted from the Git repo; to have a cleaner list of Policies into the RHACM Governance.
-
 # Conclusions
 
-The concept of subgroups, it is a way of using the RHACM Governance, to apply different sets of Policies to different clusters. This would help us to test and validate Policies and Configurations lowering possible risks, without affecting a significant number of clusters. The process is really flexible about which Policies and Clusters are involved. Finally, group's members can be reverted when new Policies are ready and valid.
+The concept of subgroups, it is a way of using the RHACM Governance, to apply different sets of Policies to different clusters. This would help us to test and validate Policies and Configurations lowering possible risks, without affecting a significant number of clusters. The process is really flexible about which Policies and Clusters are involved. 
 
 There are other similar techniques, like Policies Exceptions, that will be covered in a future second part of this tutorial. 
