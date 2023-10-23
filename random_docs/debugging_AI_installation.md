@@ -1,4 +1,4 @@
-*Disclaimer: This is not an official Red Hat documentation. Just our experience working on this kind of issues. There are thousands of combinations and cases that we cannot cover on this tutorial. But, it would help you with some tips on you debugging issues creating clusters.*
+*Disclaimer: This is not an official Red Hat documentation. Just our experience working on this kind of issues. There are thousands of combinations and cases that we cannot cover on this tutorial. But, it would help you with some tips on you debugging issues creating clusters. The work done here used OCP 4.13, ACM 2.7 and ZTP 4.13*
 
 # Debugging clusters deployment with Openshift Assisted Installer and baremetal servers
 
@@ -20,22 +20,63 @@ In this kind of installations you usually will make use of **remote baremetal se
 
 What are we going to try to do in this tutorial?
  * To do the Discovery phase with a full ISO, instead of the default minimal one. This can be only considered for debugging. Full ISOs are not good friends on BMC and its virtual media. It is not recommended, or allowed, to download 1GB ISO per each server, on a BMC network. This is not an expected behaviour. Some BMCs would not allow that, or maybe the connection is not good enough to download this size and boot with the virtual media. Advantages of that:
-   * We boot the server with a full OS. All the tools are there, it does not need to download a big rootfs, etc
+   * We boot the server with a full OS. All the tools are there, it does not need to download a big `rootfs`, etc
    * If there are network problems, at least, it will not get stuck downloading the whole OS
  * To get a root console. This is our main objective. To use the BMC Virtual Console and get a root console.
  
-The combination of a root console, a whole OS installed will help us a lot on debugging. Then, how to fix the different possible problems is not covered here. But you will have the tools to proceed. Usually, you are reading this because of some kind of networking problems. So, with the root console and the OS installed, you can check what is failing about the network.
+The combination of a `root` console, a whole OS installed will help us a lot on debugging. Then, how to fix the different possible problems is not covered here. But you will have the tools to proceed. Usually, you are reading this because of some kind of networking problems. So, with the root console and the OS installed, you can check what is failing about the network.
 
 Next sections will help you how to get both advantages: full ISO and root console. Consider, full ISO as optional. Maybe, in your scenario you cannot boot with a full ISO anyway. 
 
 ## Debugging Discovery phase
 
 
-### Enable the full ISO using the Host Inventory resources
+### Enable the full ISO 
 
-### Enable the full ISO using ZTP GitOps resources
+*This is an experimental feature of the Assisted Installer, how to enable it it would change. More info [here](https://github.com/openshift/assisted-service/blob/master/docs/operator.md#specifying-environmental-variables-via-configmap)*
 
+Basically, we enable a feature that allows to enable different parameters of the Assisted Installer from a ConfigMap.
+
+This ConfigMap will enable the Full ISO provisioning. Notice, this will affect any new deployment (disable this after your debugging sessions)
+
+```yaml
+apiVersion: v1     
+kind: ConfigMap                                                                
+metadata:                                                                      
+  name: my-assisted-service-config                                             
+  namespace: multicluster-engine                                               
+data:                                                                          
+  ISO_IMAGE_TYPE: full-iso                                                                                            
+```
+
+Then enable AI to use this CM:
+
+```bash
+$> oc annotate --overwrite AgentServiceConfig agent unsupported.agent-install.openshift.io/assisted-service-configmap=my-assisted-service-config
+```
+
+Then, we restart the AI service:
+
+```
+> oc rollout restart deployment/assisted-service -n multicluster-engine
+deployment.apps/assisted-service restarted
+
+```
+
+After that, you can check BMH (Host Inventory CRs) and how it is using a full iso:
+
+```bash
+> oc -n el8k-ztp-1 get bmh master-0.el8k-ztp-1.hpecloud.org -o yaml | grep url
+
+      url: https://assisted-image-service-multicluster-engine.apps.el8k.hpecloud.org/images/ec54f476-6535-4672-b7b2-b06265bb79db?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiJlYzU0ZjQ3Ni02NTM1LTQ2NzItYjdiMi1iMDYyNjViYjc5ZGIifQ.7OynkZF4LFUnEVa6ju1d7cSWRIrzqVZBp_tTZLvjFSrmCmjdscVTUixUaSGt9AEKNONFZ3iC0H8MyJsky4fncg&arch=x86_64&type=full-iso&version=4.13 
+
+> curl  -s -k -L -I "https://assisted-image-service-multicluster-engine.apps.el8k.hpecloud.org/images/ec54f476-6535-4672-b7b2-b06265bb79db?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiJlYzU0ZjQ3Ni02NTM1LTQ2NzItYjdiMi1iMDYyNjViYjc5ZGIifQ.7OynkZF4LFUnEVa6ju1d7cSWRIrzqVZBp_tTZLvjFSrmCmjdscVTUixUaSGt9AEKNONFZ3iC0H8MyJsky4fncg&arch=x86_64&type=full-iso&version=4.13" | grep content-length
+
+content-length: 1119879168
+```
+
+The new ISO is bigger than 1GB, that would cause problems on some BMCs. This is why this is optional.
 
 ### Enable a root console using the Host Inventory resources
 
-### Enable a root console using the Host Inventory resources
+### Enable a root console using ZTP GitOps resources
