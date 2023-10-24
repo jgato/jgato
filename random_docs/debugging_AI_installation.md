@@ -79,4 +79,46 @@ The new ISO is bigger than 1GB, that would cause problems on some BMCs. This is 
 
 ### Enable a root console using the Host Inventory resources
 
+To enable the `root` console is done by the Infraenv CR. This CR affects to all the hosts in the cluster we are debugging. After enabling it, it will reboot all the hosts, to make them boot again in the Discovery Phase. But this time, all of them will have `root` console on tty9. This is not a big issue, because you will use this feature when something is going wrong creating a cluster. So you will enable it, debug, and when everything is fixed, re-trigger the installation without this option. Dont forget to disable it, or you will have a huge free `root`access. Neither use this on a working/created cluster.
+
+```yaml
+> oc -n el8k-ztp-1 edit infraenv el8k-ztp-1
+
+<REDACTED>                                     
+spec:                                                                          
+<REDACTED>                                     
+  kernelArguments:                                                             
+  - operation: append                                                          
+    value: systemd.debug-shell=1                                               
+  - operation: append                                                          
+    value: console=tty1              
+<REDACTED>                                     
+```
+
+`systemd.debug-shell=1` will open the `root` console on tty9. The host will reboot with this kernel param. During booting process of the baremetal server, you can use the virtual console and 'Alt+F9' to switch the console. 
+
+![](assets/root-console.gif)
+
+I tried this with an ILO BMC, other providers would have different behaviour about how you switch ttyX.
+
+
+`console=tty1` will output all the logs to the tty1. So, you can work on tty9 as `root`not dealing with flood of logs. 
+
+
+
 ### Enable a root console using ZTP GitOps resources
+
+Using ZTP GitOps resources (Siteconfigs) you cannot enable the `root`console. Or at least, in the way we did it above. 
+
+It should be needed to implement a new param in the Siteconfig definition, that would end-up filling the proper param in the Infraenv CR from the Host Inventory.
+
+
+## Debugging Installation phase
+
+
+### Enable a root console using the Host Inventory resources
+[ToDo]
+
+### Enable a root console using ZTP GitOps resources
+
+[ToDo]
