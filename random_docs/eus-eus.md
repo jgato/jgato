@@ -139,3 +139,24 @@ worker-2.el8k-ztp-1.hpecloud.org   Ready    worker      7d1h   v1.25.14+20cda61
 ```
 
 everything on the same version.
+
+## upgrading the operators
+
+The upgrade includes upgrading of cluster operators, but not the regular ones:
+
+![](assets/operators-not-upgraded.png)
+
+Because of our cluster is managed by a Management/Hub ZTP cluster. We can see how the Policy about operators is now not compliant:
+
+![](assets/operators-policy-not-compliant.png)
+
+So, we can create a ZTP CGU to remediate the Policy and to have all the operators upgraded.
+
+TALM will do the upgrade also in two steps. So first upgrade to 4.11 versions:
+![](assets/operators-upgraded-1.png)
+
+And then proceed with the next upgrade (automatically, only with one CGU). After a while, operators are upgraded to expected version defined by ZTP:
+
+![](assets/operators-policy-compliant.png)
+
+![](assets/operators-upgraded.png)
