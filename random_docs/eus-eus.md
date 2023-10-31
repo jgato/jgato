@@ -113,18 +113,29 @@ $  oc patch mcp/worker --type merge --patch '{"spec":{"paused":false}}'
 machineconfigpool.machineconfiguration.openshift.io/worker patched
 
 $ oc get nodes 
-NAME                               STATUS                     ROLES       AGE    VERSION
-master-0.el8k-ztp-1.hpecloud.org   Ready                      master      7d1h   v1.25.14+20cda61
-master-1.el8k-ztp-1.hpecloud.org   Ready                      master      7d     v1.25.14+20cda61
-master-2.el8k-ztp-1.hpecloud.org   Ready                      master      7d1h   v1.25.14+20cda61
-worker-0.el8k-ztp-1.hpecloud.org   Ready                      ht,worker   7d1h   v1.25.14+20cda61
-worker-1.el8k-ztp-1.hpecloud.org   Ready                      worker      7d1h   v1.25.14+20cda61
-worker-2.el8k-ztp-1.hpecloud.org   Ready,SchedulingDisabled   worker      7d1h   v1.23.12+8a6bfe4
+NAME                               STATUS                        ROLES       AGE    VERSION
+master-0.el8k-ztp-1.hpecloud.org   Ready                         master      7d1h   v1.25.14+20cda61
+master-1.el8k-ztp-1.hpecloud.org   Ready                         master      7d1h   v1.25.14+20cda61
+master-2.el8k-ztp-1.hpecloud.org   Ready                         master      7d1h   v1.25.14+20cda61
+worker-0.el8k-ztp-1.hpecloud.org   Ready                         ht,worker   7d1h   v1.25.14+20cda61
+worker-1.el8k-ztp-1.hpecloud.org   Ready                         worker      7d1h   v1.25.14+20cda61
+worker-2.el8k-ztp-1.hpecloud.org   NotReady,SchedulingDisabled   worker      7d1h   v1.23.12+8a6bfe4
+
 
 ```
 
 just one more reboot and:
 
 ```bash
+$ oc get nodes 
+NAME                               STATUS   ROLES       AGE    VERSION
+master-0.el8k-ztp-1.hpecloud.org   Ready    master      7d1h   v1.25.14+20cda61
+master-1.el8k-ztp-1.hpecloud.org   Ready    master      7d1h   v1.25.14+20cda61
+master-2.el8k-ztp-1.hpecloud.org   Ready    master      7d1h   v1.25.14+20cda61
+worker-0.el8k-ztp-1.hpecloud.org   Ready    ht,worker   7d1h   v1.25.14+20cda61
+worker-1.el8k-ztp-1.hpecloud.org   Ready    worker      7d1h   v1.25.14+20cda61
+worker-2.el8k-ztp-1.hpecloud.org   Ready    worker      7d1h   v1.25.14+20cda61
 
 ```
+
+everything on the same version.
