@@ -1,3 +1,5 @@
+*This work officially published as [Red Hat blog](https://www.redhat.com/en/blog/working-subgroups-and-configurations-your-ztpred-hat-advanced-cluster-management-kubernetes-infrastructure). Consider this link as the official version of the document.*
+
 # Working with subgroups and configurations on your ZTP/RHACM infrastructure
 
 [Red Hat ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) allows you to deploy, upgrade and configure different Spoke clusters, from a Hub cluster. It is an Openshift cluster that manages other clusters. The infrastructure, and its configuration, can be defined using [RHACM Governance](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.7/html/governance/governance). 
