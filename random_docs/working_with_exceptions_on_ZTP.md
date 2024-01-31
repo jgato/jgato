@@ -41,7 +41,8 @@ For this tutorial we will focus on an scenario with three Single Node Openshift 
 
 SNO5 and SNO6 are already deployed and working. Both are based on OCP4.12 and have been configured for a Midband DU. In their configuration, we can see the groups they belong to and the OCP version.
 
-![](assets/2023-06-23-10-35-38-image.png)
+![](assets/working_with_exceptions_on_ZTP_clusters-installed.png)
+
 
 From the RHACM GUI, we can see they belong to the groups: `common` and `group-du-mb`. In addition, we can see the label `ztp-done`, that confirms the clusters have been correctly configured by ZTP. And therefore, workloads can be deployed. 
 
@@ -65,7 +66,7 @@ The implemented mechanisms has to:
 
 As we have explained above, our new cluster SNO7 will be deployed using OCP4.13.
 
-![](assets/2023-06-23-10-49-48-image.png)
+![](working_with_exceptions_on_ZTP_sno7.png)
 
 The cluster installation with OCP4.13 has been done correctly, and the cluster configuration is managed by the labels: `common` and `group-du-mb`. But we can also see, in the labels, how `ztp-running` point us that it is not fully configured. It is not ready for day-2 and workloads deployments.
 
