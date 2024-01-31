@@ -66,7 +66,7 @@ The implemented mechanisms has to:
 
 As we have explained above, our new cluster SNO7 will be deployed using OCP4.13.
 
-![](working_with_exceptions_on_ZTP_sno7.png)
+![](assets/working_with_exceptions_on_ZTP_sno7.png)
 
 The cluster installation with OCP4.13 has been done correctly, and the cluster configuration is managed by the labels: `common` and `group-du-mb`. But we can also see, in the labels, how `ztp-running` point us that it is not fully configured. It is not ready for day-2 and workloads deployments.
 
