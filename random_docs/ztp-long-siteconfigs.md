@@ -32,6 +32,13 @@ v5.1.0
 
 ```
 
+Or in my laptop:
+
+```bash
+> kustomize version
+v5.2.1
+```
+In principle, this should not be very relevant. The bug should be, mostly, in all versions. Or the latest ones. 
 
 ## Create a long Siteconfig
 
@@ -122,6 +129,7 @@ We use jq to add the bunch of clusters to our short Siteconfig to have a very lo
 
 ## Run the plugin locally
 
+ > Using kustomize 5.2.1 and site generator plugin 4.14
 Once you have extracted the Siteconfig generator plugin and you have kustomize installed, you can run the generator over a local Siteconfig.
 
 First, add your Siteconfig to a kustomization.yaml:
