@@ -194,7 +194,7 @@ The number of SNOs is not the only reason, so dont take it as the main problem, 
 It fails:
 ```
 > export KUSTOMIZE_PLUGIN_HOME=/tmp/ztp-kustomize-plugin/
-> > kustomize build ./ --enable-alpha-plugins
+> kustomize build ./ --enable-alpha-plugins
 Error: failure in plugin configured via /tmp/kust-plugin-config-208601320; fork/exec /tmp/ztp-kustomize-plugin/ran.openshift.io/v1/siteconfig/SiteConfig: argument list too long: fork/exec /tmp/ztp-kustomize-plugin/ran.openshift.io/v1/siteconfig/SiteConfig: argument list too long
 
 
