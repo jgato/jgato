@@ -4,9 +4,43 @@ This ISO is used by RHACM Assisted Installer to mount virtual media on a baremet
 
 Some tricks about it.
 
+## Get the iso and mount it
+
+
+This information is included in the isoDownloadUrl on the infraenv:
+
+```bash
+> oc -n sno1 get infraenv sno1 -o yaml  | yq '.status.isoDownloadURL'
+https://assisted-image-service-open-cluster-management.apps.el8k-1.hpecloud.org/byapikey/eyJhbGciOiJFU.....bZ9ANe-g/4.14/x86_64/minimal.iso
+```
+
+We can download and mount it:
+
+```bash
+[jgato@provisioner tmp]$ curl -k "https://assisted-image-service-open-cluster-management.apps.el8k-1.hpecloud.org/byapikey/eyJhbGciOiJFU.....bZ9ANe-g/4.14/x86_64/minimal.iso" --output minimal.iso
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  105M  100  105M    0     0   492M      0 --:--:-- --:--:-- --:--:--  492M
+
+```
+
+You can mount it as: 
+```
+[jgato@provisioner tmp]$ mkdir minimal
+[jgato@provisioner tmp]$ sudo mount -o loop minimal.iso minimal/
+mount: /tmp/minimal: WARNING: device write-protected, mounted read-only.
+```
+
+Or use `iso-read` to extract any file from the ISO:
+
+```bash
+ $> iso-read -i minimal.iso -e /images/pxeboot/initrd.img -o initrd.img
+```
+
+
 ## Get the network information from the Minimal Iso
 
-The networking information can be found on:
+From the hub, you configure the networking information on `NMStateConfig` objects per node:
 
 ```yaml
 > oc -n sno1 get NMStateConfig sno1.sno.hpecloud.org -o yaml | anonymize_data | bat -l yaml
@@ -62,29 +96,14 @@ The networking information can be found on:
 
 ```
 
-This information is included in the isoDownloadUrl on the infraenv:
+Then the NMStateConfig cont, ends up on `minimal/images/assisted_installer_custom.img` from the RHCOS minimal iso:
+
+Mount the iso and the content:
 
 ```bash
-> oc -n sno1 get infraenv sno1 -o yaml  | yq '.status.isoDownloadURL'
-https://assisted-image-service-open-cluster-management.apps.el8k-1.hpecloud.org/byapikey/eyJhbGciOiJFU.....bZ9ANe-g/4.14/x86_64/minimal.iso
-```
+[root@provisioner tmp]# file minimal/images/assisted_installer_custom.img
+minimal/images/assisted_installer_custom.img: gzip compressed data, original size modulo 2^32 0
 
-We can download and mount it:
-
-```bash
-[jgato@provisioner tmp]$ curl -k "https://assisted-image-service-open-cluster-management.apps.el8k-1.hpecloud.org/byapikey/eyJhbGciOiJFU.....bZ9ANe-g/4.14/x86_64/minimal.iso" --output minimal.iso
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  105M  100  105M    0     0   492M      0 --:--:-- --:--:-- --:--:--  492M
-
-[jgato@provisioner tmp]$ mkdir minimal
-[jgato@provisioner tmp]$ sudo mount -o loop minimal.iso minimal/
-mount: /tmp/minimal: WARNING: device write-protected, mounted read-only.
-```
-
-Then the NMStateConfig conte is on `minimal/images/assisted_installer_custom.img`
-
-```bash
 [root@provisioner tmp]# zcat minimal/images/assisted_installer_custom.img
 07070100000001000041ED0000000000000000000000000000000000000000000000000000000000000000000000000000000500000000/etc07070100000002000041ED0000000000000000000000000000000000000000000000000000000000000000000000000000000E00000000/etc/assisted07070100000003000041ED0000000000000000000000000000000000000000000000000000000000000000000000000000001600000000/etc/assisted/network07070100000004000041ED0000000000000000000000000000000000000000000000000000000000000000000000000000001C00000000/etc/assisted/network/host007070100000005000081800000000000000000000000010000000000000154000000000000000000000000000000000000002E00000000/etc/assisted/network/host0/eno3.nmconnection[connection]
 autoconnect=true
@@ -98,5 +117,12 @@ autoconnect-priority=1
 [ipv4]
 
 <REDACTED>
+
+```
+Or read the file with `ìso-read`:
+
+```
+> iso-read -i minimal.iso -e /images/assisted_installer_custom.img -o /tmp/assisted_installer_custom.img
+> zcat /tmp/assisted_installer_custom.img
 
 ```
