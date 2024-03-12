@@ -126,3 +126,20 @@ Or read the file with `ìso-read`:
 > zcat /tmp/assisted_installer_custom.img
 
 ```
+
+## Get the initrd
+
+Once you mounted or read the iso, you can find the initrd:
+
+```
+> file images/pxeboot/initrd.img 
+images/pxeboot/initrd.img: ASCII cpio archive (SVR4 with no CRC)
+```
+That you can mount:
+
+```
+>  lsinitrd --unpack /run/media/jgato/rhcos-412.86.202308081039-01/images/pxeboot/initrd.img
+> ls
+bin  dev  etc  init  lib  lib64  lsinitrd  proc  root  run  sbin  shutdown  sys  sysroot  tmp  usr  var
+
+```
