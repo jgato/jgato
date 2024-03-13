@@ -132,7 +132,7 @@ cleanup 	 	  Final cleanups before switching to rootfs init
 
 One of our biggest issues happens if the network is not correctly configured, and the system tries to download the `rootfs`. This will end-up on an infinite loop trying to download the rootfs with the network wrong configured. This happens before `pre-mount`, so, usually we cannot reach the `pre-mount` and we have to use `initqueue`.
 
-### Interrupt before mount rootfs the Host Inventory resources
+### Interrupt boot before mount rootfs happens
 
 Advantages: 
  * You can get easily a root console, not needing to enable any extra feature.
