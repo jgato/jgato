@@ -28,10 +28,10 @@ The combination of a `root` console, a whole OS installed will help us a lot on 
 
 Next sections will help you how to get both advantages: full ISO and root console. Consider, full ISO as optional. Maybe, in your scenario you cannot boot with a full ISO anyway. 
 
-## Debugging Discovery phase
+# Debugging Discovery phase
 
 
-### Enable the full ISO 
+## Enable the full ISO 
 
 *This is an experimental feature of the Assisted Installer, how to enable it it would change. More info [here](https://github.com/openshift/assisted-service/blob/master/docs/operator.md#specifying-environmental-variables-via-configmap)*
 
@@ -77,9 +77,19 @@ content-length: 1119879168
 
 The new ISO is bigger than 1GB, that would cause problems on some BMCs. This is why this is optional.
 
-### Enable a root console using the Host Inventory resources
+## Enable debug shell using the Host Inventory resources
 
-To enable the `root` console is done by the Infraenv CR. This CR affects to all the hosts in the cluster we are debugging. After enabling it, it will reboot all the hosts, to make them boot again in the Discovery Phase. But this time, all of them will have `root` console on tty9. This is not a big issue, because you will use this feature when something is going wrong creating a cluster. So you will enable it, debug, and when everything is fixed, re-trigger the installation without this option. Dont forget to disable it, or you will have a huge free `root`access. Neither use this on a working/created cluster.
+Advantages: 
+ * You can get easily a root console, not needing to enable any extra feature.
+ * It happens after all bootstrap process, the file system is mounted, ignition files applied, etc. 
+ * Very good option combined with the FULL ISO to solve some networking issues, dont getting stuck on rootfs download phase.
+Disadvantages: 
+ * it happens after bootstrap process, if the network is wrongly configured you will get stuck on downloading rootfs stage. 
+ * Change to virtual (tty9) console could be "tricky" on some barmetal consoles.
+
+Caution: To enable the `debug shell` or `root` console is done by the Infraenv CR. This CR affects to all the hosts in the cluster we are debugging. After enabling it, it will reboot all the hosts, to make them boot again in the Discovery Phase. But this time, all of them will have `root` console on tty9. So, maybe this will not help you on mutinode clusters on production. It is not a big issue if you are in a first cluster installation stage, when the cluster is not yet created, or working with SNOs. 
+
+Use it only for debug, enable it, troubleshooting, and when everything is fixed, re-trigger the installation without this option. Dont forget to disable it, or you will have a huge free `root`access. 
 
 ```yaml
 > oc -n el8k-ztp-1 edit infraenv el8k-ztp-1
@@ -105,20 +115,143 @@ I tried this with an ILO BMC, other providers would have different behaviour abo
 `console=tty1` will output all the logs to the tty1. So, you can work on tty9 as `root`not dealing with flood of logs. 
 
 
+## Interrupts RHCOS boot in different stages
 
-### Enable a root console using ZTP GitOps resources
+We can use a kernel args `rd.break` on differen stages. Mor about the different stages [here](https://github.com/dracutdevs/dracut/blob/master/modules.d/99base/init.sh) or more "readable" [here](https://access.redhat.com/solutions/2382221)
+
+rd.break={pre-udev|pre-trigger|initqueue|pre-mount|mount|pre-pivot|cleanup}
+
+cmdline 		  Stops before parsing the kernel command line
+pre-udev 		  Stops before udevd is started
+pre-trigger 	Stops after starting udevd, setting udev environment variables
+initqueue 		Stops at the dracut main loop to find the real root
+pre-mount 	 	Stops before /sysroot is mounted
+mount 	 	    Stops after /sysroot is mounted
+pre-pivot 		Stops before switching root
+cleanup 	 	  Final cleanups before switching to rootfs init
+
+One of our biggest issues happens if the network is not correctly configured, and the system tries to download the `rootfs`. This will end-up on an infinite loop trying to download the rootfs with the network wrong configured. This happens before `pre-mount`, so, usually we cannot reach the `pre-mount` and we have to use `initqueue`.
+
+### Interrupt before mount rootfs the Host Inventory resources
+
+Advantages: 
+ * You can get easily a root console, not needing to enable any extra feature.
+ * It happens very early of bootstrap process, the `/sysroot` file system is not mounted, ignition files applied, etc. Only the temporal `initramfs` is mounted
+ * The network has been already configured (no matter if wrong or bad)
+ * It allows you to test your own network configurations*
+ * Easy to change/set a root password
+
+Disadvantages: 
+ * None really, we interrupt the process very early but with Networking configured
+
+
+In this example, I have deployed with ZTP an SNO with a wrong MAC address for the eno3 interface:
+
+```yaml
+  interfaces:
+    - name: "eno3"
+      macAddress: "94:40:c9:1f:bf:8f" # the correc one is 94:40:c9:1f:bf:8e"
+  config:
+    interfaces:
+      - name: eno3
+        type: ethernet
+        state: up
+        ipv4:
+          enabled: true
+          address:
+            - ip: 10.19.10.74
+              prefix-length: 26
+        ipv6:
+          enabled: false
+    dns-resolver:
+      config:
+        server:
+          - 10.19.10.71
+    routes:
+      config:
+        - destination: 0.0.0.0/0
+          next-hop-address: 10.19.10.126
+          next-hop-interface: eno3
+
+```
+
+Therefore, imagine the server does not boot, because it is never-ending trying to download the rootfs.
+
+![](assets/no-download-rootfs.png)
+
+We configure the `infraEnv` object to boot with the `rd.break=initqueue`. Add `.spec.kernelArguments` lines to your `infraEnv` object, this will make the server to reboot.
+
+```yaml
+spec:
+  clusterRef:
+    name: sno1
+    namespace: sno1
+  cpuArchitecture: x86_64
+  ipxeScriptType: DiscoveryImageAlways
+  kernelArguments:
+  - operation: append
+    value: rd.break=initqueue
+  nmStateConfigLabelSelector:
+    matchLabels:
+      nmstate-label: sno1
+  pullSecretRef:
+    name: assisted-deployment-pull-secret
+
+```
+
+
+The server boots and you get the root console. 
+
+
+In the `journalctl` you will see that NetworkManager tried to configure the network interface.
+
+Using nmcli we can check some created connections:
+
+![Alt text](assets/nm-cli-conn-show.png)
+
+Where I can see that conn eno4 (that should be called eno3) is trying to use eno4 interface, that in my server is not even connected:
+
+![](assets/nm-cli-eno4.png)
+
+I can guess something was messed up because of there is no interface with the specified `macAddres`. If we check the Assisted Service network configuration you will see our initial wrongly configured interface on:
+
+![](assets/nm-eno3-config.png)
+![](assets/nm-mac-config.png)
+
+In thi case, I have very clear what is the problem to fix. Usually you will play with nmcli to try to configure your desired configuration.
+
+Here, you can edit the connection to use the eno3 interface and reload the conn. Or fix the Assisted Service files, in this case with a proper Mac addres, and then, kill and re-run the `/sbin/NetworkManager`. 
+
+In this example I did the second, fixed the MAC address to point the correct one:
+
+![](assets/nm-mac-config-correct.png)
+
+Kill and re-run the NetworkManager with --debug. Now, the connection is correctly set on eno3:
+
+![](assets/nm-cli-eno3.png)
+
+Curl the Openshift API of the Hub:
+
+![](assets/curl-oka.png)
+
+`control+d` will continue the boot. Now, `rootfs` is downloaded and the boots continue without problems:
+
+![](assets/boot-oka.png)
+
+
+## Enable a root console using ZTP GitOps resources
 
 Using ZTP GitOps resources (Siteconfigs) you cannot enable the `root`console. Or at least, in the way we did it above. 
 
 It should be needed to implement a new param in the Siteconfig definition, that would end-up filling the proper param in the Infraenv CR from the Host Inventory.
 
 
-## Debugging Installation phase
+##Debugging Installation phase
 
 
-### Enable a root console using the Host Inventory resources
+## Enable a root console using the Host Inventory resources
 [ToDo]
 
-### Enable a root console using ZTP GitOps resources
+## Enable a root console using ZTP GitOps resources
 
 [ToDo]
