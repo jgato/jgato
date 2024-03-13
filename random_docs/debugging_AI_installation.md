@@ -202,6 +202,7 @@ spec:
 
 The server boots and you get the root console. 
 
+![](assets/root-console.png)
 
 In the `journalctl` you will see that NetworkManager tried to configure the network interface.
 
@@ -238,6 +239,7 @@ Curl the Openshift API of the Hub:
 
 ![](assets/boot-oka.png)
 
+Dont forget to remove the kernel arguments, to break the boot, on the infraEnv.
 
 ## Enable a root console using ZTP GitOps resources
 
