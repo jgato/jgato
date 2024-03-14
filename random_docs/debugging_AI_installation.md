@@ -121,14 +121,15 @@ We can use a kernel args `rd.break` on differen stages. Mor about the different 
 
 rd.break={pre-udev|pre-trigger|initqueue|pre-mount|mount|pre-pivot|cleanup}
 
-cmdline 		  Stops before parsing the kernel command line
-pre-udev 		  Stops before udevd is started
-pre-trigger 	Stops after starting udevd, setting udev environment variables
-initqueue 		Stops at the dracut main loop to find the real root
-pre-mount 	 	Stops before /sysroot is mounted
-mount 	 	    Stops after /sysroot is mounted
-pre-pivot 		Stops before switching root
-cleanup 	 	  Final cleanups before switching to rootfs init
+ * cmdline:		  Stops before parsing the kernel command line
+ 
+ * pre-udev: 		  Stops before udevd is started
+ * pre-trigger: 	Stops after starting udevd, setting udev environment variables
+ * initqueue: 		Stops at the dracut main loop to find the real root
+ * pre-mount: 	 	Stops before /sysroot is mounted
+ * mount: 	 	    Stops after /sysroot is mounted
+ * pre-pivot: 		Stops before switching root
+ * cleanup: 	 	  Final cleanups before switching to rootfs init
 
 One of our biggest issues happens if the network is not correctly configured, and the system tries to download the `rootfs`. This will end-up on an infinite loop trying to download the rootfs with the network wrong configured. This happens before `pre-mount`, so, usually we cannot reach the `pre-mount` and we have to use `initqueue`.
 
