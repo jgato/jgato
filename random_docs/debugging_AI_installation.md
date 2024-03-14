@@ -119,10 +119,9 @@ I tried this with an ILO BMC, other providers would have different behaviour abo
 
 We can use a kernel args `rd.break` on differen stages. Mor about the different stages [here](https://github.com/dracutdevs/dracut/blob/master/modules.d/99base/init.sh) or more "readable" [here](https://access.redhat.com/solutions/2382221)
 
-rd.break={pre-udev|pre-trigger|initqueue|pre-mount|mount|pre-pivot|cleanup}
+`rd.break={pre-udev|pre-trigger|initqueue|pre-mount|mount|pre-pivot|cleanup}`
 
- * cmdline:		  Stops before parsing the kernel command line
- 
+ * cmdline:		  Stops before parsing the kernel command line 
  * pre-udev: 		  Stops before udevd is started
  * pre-trigger: 	Stops after starting udevd, setting udev environment variables
  * initqueue: 		Stops at the dracut main loop to find the real root
