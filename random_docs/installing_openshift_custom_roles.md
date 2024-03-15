@@ -86,8 +86,8 @@ metadata:
     bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/ht: "" 
     bmac.agent-install.openshift.io/machine-config-pool: ht
 <REDACTED>
-``````
+```
 
-Now, when the installation is done, the node is labeled with the role ht, but it is also pointed to use the ht MCP from the very beginning. It will pull, during the installation, the ignition file for an ht node, instead of a worker.
+Now, when the installation is done, the node is labeled with the role ht, but it is also pointed to use the ht MCP. It will pull, during the installation, the ignition file for an ht node, instead of a worker.
 
 
