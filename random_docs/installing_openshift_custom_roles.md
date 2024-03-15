@@ -39,7 +39,10 @@ When the cluster is working, and the MCO is available, it will detect this node 
 
 ```bash
 $ oc get nodes
-NAME                           	STATUS   ROLES                     	master-0.el8k-ztp-2.hpecloud.org   Ready	control-plane,master,worker   master-1.el8k-ztp-2.hpecloud.org   Ready	control-plane,master,worker   master-2.el8k-ztp-2.hpecloud.org   Ready	control-plane,master,worker   worker-0.el8k-ztp-2.hpecloud.org   Ready	ht,worker
+NAME                           	STATUS   ROLES                     	
+master-0.el8k-ztp-2.hpecloud.org   Ready	control-plane,master,worker   
+master-1.el8k-ztp-2.hpecloud.org   Ready	control-plane,master,worker   
+master-2.el8k-ztp-2.hpecloud.org   Ready	control-plane,master,worker   worker-0.el8k-ztp-2.hpecloud.org   Ready	ht,worker
 ```
 
 So, it is like: joining first as a worker but already with the ‘ht’ configuration. When the role changes, there are no changes to be applied. And you save a reboot.
