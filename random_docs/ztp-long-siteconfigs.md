@@ -502,6 +502,8 @@ data:
 
 this would help you to determine the limits aproximately. 
 
+> More production environments will have longer base cluster definition (this does not affect too much) and longer nodes definitions (that would affect much more to this 332 nodes). Consider better the number of lines (even if still not 100% accurate)
+
 # Fixed Kustomize
 
 with a Kustomize fixed version we can go higher, here I just want to try how much is feasible until it takes to long to render all the content:
