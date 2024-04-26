@@ -184,3 +184,5 @@ We added a line in the reconciler function, so we will see our message very freq
 {"level":"info","ts":1714131678.2271695,"logger":"controllers.BareMetalHost","msg":"eyyy it is just me saying hello","baremetalhost":{"name":"sno4","namespace":"sno4"}}
 
 ```
+
+> The cluster-baremetal-operator manages the deployments of the metal3-baremetal-operator and other deployments. And the ImagePullPolicy is set to IfNotPresent. So, every time you make a change, create a new tag, edit the CM to point the new image, and kill again the cluster-baremetal-operator. Or, scale to 0 the cluster-baremetal-operator, and you can directly manage the deployment of the metal3-baremetal-operator and set the ImagePull to Always. Yes it is tricky.
