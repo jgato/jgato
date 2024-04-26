@@ -162,7 +162,7 @@ Writing manifest to image destination
 And just kill again the operator:
 
 ```bash
-> oc -n openshift-machine-api delete pod metal3-baremetal-operator-7fcbf77b97-5rwh7
+> oc -n openshift-machine-api delete pod cluster-baremetal-operator-85f5ccc89c-kl8dj
 pod "metal3-baremetal-operator-7fcbf77b97-5rwh7" deleted
 
 ```
