@@ -58,12 +58,37 @@ Writing manifest to image destination
 
 ```
 
-## Make Baremetal Operator unmanaged
+## Make Baremetal operator unmanaged
 
-Because it is a Cluster Operator we have to tell Clusteversion Operator to not manage it. I still have no clear how to make this operator unmanaged (ToDo). But, we can just disable the Clusterversion Operator to not overwrite the changes that we will do. Anyway, we are just playing.
+Because it is a Cluster operator we have to tell Clusteversion Operator to not manage it. 
 
 ```bash
-> oc scale deployment cluster-version-operator -n openshift-cluster-version --replicas=0
+> > oc patch clusterversion version --namespace openshift-cluster-version --type merge -p '{"spec":{"overrides":[{"kind":"ConfigMap","group":"v1","name":"cluster-baremetal-operator-images","namespace":"openshift-machine-api","unmanaged":true}]}}'
+clusterversion.config.openshift.io/version patched
+
+```
+
+we can see how the Clusterversion operator is now unmanaging the operator we want to play with:
+
+```yaml
+> oc get clusterversions.config.openshift.io version -o yaml
+apiVersion: config.openshift.io/v1
+kind: ClusterVersion
+metadata:
+  creationTimestamp: "2024-04-25T15:04:45Z"
+  generation: 3
+  name: version
+  resourceVersion: "4858069"
+  uid: 9d33512e-921c-4129-8eed-cab09d132580
+spec:
+  channel: stable-4.14
+  clusterID: d9cb453f-ceb8-4719-9590-3f967256f687
+  overrides:
+  - group: v1
+    kind: ConfigMap
+    name: cluster-baremetal-operator-images
+    namespace: openshift-machine-api
+    unmanaged: true
 
 ```
 
