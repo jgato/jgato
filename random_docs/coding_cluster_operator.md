@@ -60,15 +60,7 @@ Writing manifest to image destination
 
 ## Make Baremetal operator unmanaged
 
-Because it is a Cluster operator we have to tell Clusteversion Operator to not manage it. 
-
-```bash
-> > oc patch clusterversion version --namespace openshift-cluster-version --type merge -p '{"spec":{"overrides":[{"kind":"ConfigMap","group":"v1","name":"cluster-baremetal-operator-images","namespace":"openshift-machine-api","unmanaged":true}]}}'
-clusterversion.config.openshift.io/version patched
-
-```
-
-we can see how the Clusterversion operator is now unmanaging the operator we want to play with:
+Because it is a Cluster operator we have to tell Clusteversion operator to not manage it. In a selectively way:
 
 ```yaml
 > oc get clusterversions.config.openshift.io version -o yaml
@@ -76,9 +68,9 @@ apiVersion: config.openshift.io/v1
 kind: ClusterVersion
 metadata:
   creationTimestamp: "2024-04-25T15:04:45Z"
-  generation: 3
+  generation: 4
   name: version
-  resourceVersion: "4858069"
+  resourceVersion: "4974593"
   uid: 9d33512e-921c-4129-8eed-cab09d132580
 spec:
   channel: stable-4.14
@@ -89,11 +81,25 @@ spec:
     name: cluster-baremetal-operator-images
     namespace: openshift-machine-api
     unmanaged: true
+  - group: apps
+    kind: Deployment
+    name: cluster-baremetal-operator
+    namespace: openshift-machine-api
+
 
 ```
 
+Or, if the operator is pretty complex (composed by many operators) you can directly disable the Clusterversion operator (this makes all the cluster operators unmanaged).
+
+```
+> oc scale deployment cluster-version-operator -n openshift-cluster-version --replicas=0
+```
+
+
+
 ## Modify the Baremetal Operator to use our new image
 
+Once the cluster operator is unmanaged.
 
 We have to modify the Baremetal Operator images to use the new one generated. The Baremetal Operator is pretty complex and composed by many images. Here, we are just modifying the Baremetal Operator image:
 
@@ -210,4 +216,4 @@ We added a line in the reconciler function, so we will see our message very freq
 
 ```
 
-> The cluster-baremetal-operator manages the deployments of the metal3-baremetal-operator and other deployments. And the ImagePullPolicy is set to IfNotPresent. So, every time you make a change, create a new tag, edit the CM to point the new image, and kill again the cluster-baremetal-operator. Or, scale to 0 the cluster-baremetal-operator, and you can directly manage the deployment of the metal3-baremetal-operator and set the ImagePull to Always. Yes it is tricky.
+> The cluster-baremetal-operator manages the deployments of the metal3-baremetal-operator (which is the code we modified as exmaple) and other deployments. And the ImagePullPolicy is set to IfNotPresent. So, every time you make a change, you have to create a new tag `version+1` or similar. Edit again the CM to point the new image version, and kill again the cluster-baremetal-operator. Or, scale to 0 the cluster-baremetal-operator, and you can directly manage the deployment of the metal3-baremetal-operator and set the ImagePull to Always. Yes it is tricky.
