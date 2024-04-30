@@ -65,6 +65,10 @@ you will get reviewers and valid reference to the bug:
 
 ![](assets/contribute_cluster_operator_20240430163357915.png)
 
+notice how your book has been moved to a new POST stage:
+
+![](assets/contribute_cluster_operator_20240430163655065.png)
+
 ## Get the PR accepted on downstream
 
 .......
