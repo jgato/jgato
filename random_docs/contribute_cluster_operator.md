@@ -99,5 +99,15 @@ And in Jira you see:
 
 The QA team will now, not just test your changes, but also the whole integrated release. If the but no long happens, it will be `verified`.
 
+You can check the nightly build created on Openshift release stream:
+
+https://amd64.ocp.releases.ci.openshift.org/releasestream/4.16.0-0.nightly/release/4.16.0-0.nightly-2024-05-01-111315
+
+There you can see all the news for that nightly build, including our fix:
+
+![](assets/contribute_cluster_operator_20240503163750601.png)
+
+You could use that image to build an OCP Cluster including the fix.
+
 ## Make backport to other releases
 
