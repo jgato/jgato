@@ -99,7 +99,15 @@ And in Jira you see:
 
 The QA team will now, not just test your changes, but also the whole integrated release. If the but no long happens, it will be `verified`.
 
-You can check the nightly build created on Openshift release stream:
+### Testing your nightly build
+
+You can check the nightly build created on Openshift release stream, with the tool:
+
+https://amd64.ocp.releases.ci.openshift.org/
+
+After some search you will find your build:
+
+![](assets/contribute_cluster_operator_20240506083922016.png)
 
 https://amd64.ocp.releases.ci.openshift.org/releasestream/4.16.0-0.nightly/release/4.16.0-0.nightly-2024-05-01-111315
 
@@ -107,7 +115,121 @@ There you can see all the news for that nightly build, including our fix:
 
 ![](assets/contribute_cluster_operator_20240503163750601.png)
 
-You could use that image to build an OCP Cluster including the fix.
+#### Access the nightly build image on `registry.ci`
+
+This registry requires special perms that are not included in your usual `pull-secret`.  So, first obtain an API token by visiting https://oauth-openshift.apps.ci.l2s4.p1.openshiftapps.com/oauth/token/request and login
+ 
+
+```bash
+> oc login --token=sha256~<TOKEN> --server=https://api.ci.l2s4.p1.openshiftapps.com:6443
+```
+
+Then, you can save the credentials to your existing pull-secret:
+
+```
+> oc registry login --registry-config ~/.config/containers/auth.json 
+> > cat ~/.config/containers/auth.json | grep registry.ci -A 2
+		"registry.ci.openshift.org": {
+			"auth": "<TOKEN>"
+		},
+
+
+```
+
+Now, you can access to the image:
+
+```
+>  oc adm release info  registry.ci.openshift.org/ocp/release:4.16.0-0.nightly-2024-05-01-111315
+Name:           4.16.0-0.nightly-2024-05-01-111315
+Digest:         sha256:eeb02c62d7ec73433e31de1aca03270fdc0ccaadefc46163e9983153f5270462
+Created:        2024-05-01T11:14:56Z
+OS/Arch:        linux/amd64
+Manifests:      733
+Metadata files: 1
+
+Pull From: registry.ci.openshift.org/ocp/release@sha256:eeb02c62d7ec73433e31de1aca03270fdc0ccaadefc46163e9983153f5270462
+
+Release Metadata:
+  Version:  4.16.0-0.nightly-2024-05-01-111315
+  Upgrades: <none>
+  Metadata:
+
+Component Versions:
+  kubectl          1.29.1                
+  kubernetes       1.29.4                
+  kubernetes-tests 1.29.0                
+  machine-os       416.94.202405010033-0 Red Hat Enterprise Linux CoreOS
+
+Images:
+  NAME                                           DIGEST
+  agent-installer-api-server                     sha256:f59fb87a9f6583bb772f48cc171eb7d915c11b8d69862a1dc553d95a96321214
+  agent-installer-csr-approver                   sha256:31c6c4b2640ccf2d9906f9a852cea649b6d71cdc64e32713721136b5d00413bd
+  agent-installer-node-agent                     sha256:e7d77d7615da44e2e302e4ea0b9f502076d4902cb794ba32f803238bd91f03a6
+  agent-installer-orchestrator                   sha256:65c3cffa769f664bc3f181fb9cf48ef29255da52fe62a42e5b7bba4540f8a758
+
+```
+
+
+> Eventually, the registry.ci token expires, so you will have to update it with a new login token
+
+
+#### Try the image with the Agent Based installer
+
+From the previous [tool](https://amd64.ocp.releases.ci.openshift.org/releasestream/4.16.0-0.nightly/release/4.16.0-0.nightly-2024-05-01-111315) you have an option to download the installer:
+
+![](assets/contribute_cluster_operator_20240506084221789.png)
+
+Or use `adm` command to generate the installer.
+
+```bash
+> oc adm release extract --tools registry.ci.openshift.org/ocp/release:4.16.0-0.nightly-2024-05-01-111315 --registry-config ~/.config/containers/auth.json
+> ls -l
+total 480920
+-rwxr-xr-x. 1 jgato jgato  35909338 abr 30 02:07 ccoctl-linux-4.16.0-0.nightly-2024-05-01-111315.tar.gz
+-rwxr-xr-x. 1 jgato jgato  66770163 may  1 01:14 openshift-client-linux-4.16.0-0.nightly-2024-05-01-111315.tar.gz
+-rwxr-xr-x. 1 jgato jgato 389739326 may  1 11:57 openshift-install-linux-4.16.0-0.nightly-2024-05-01-111315.tar.gz
+-rw-r--r--. 1 jgato jgato     32562 may  6 09:22 release.txt
+-rw-r--r--. 1 jgato jgato       462 may  6 09:22 sha256sum.txt
+
+```
+
+#### Try out using ZTP and Assisted Installer
+
+You can create a `clusterImagetSet`pointing to the nightly build, to be used from a Siteconfig:
+
+> oc get clusterimagesets.hive.openshift.io img4.16.0-0.nightly-2024-05-01-111315 -o yaml
+apiVersion: hive.openshift.io/v1
+kind: ClusterImageSet
+metadata:
+  creationTimestamp: "2024-05-03T15:45:12Z"
+  generation: 1
+  labels:
+    channel: fast
+    visible: "true"
+  name: img4.16.0-0.nightly-2024-05-01-111315
+  resourceVersion: "11197666"
+  uid: 910964ab-b2c7-4b6c-a2f9-91da037f2898
+spec:
+  releaseImage: registry.ci.openshift.org/ocp/release:4.16.0-0.nightly-2024-05-01-111315
+
+```yaml
+---
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "multinode-1"
+  namespace: "multinode-1"
+spec:
+  baseDomain: "spoke-mno.el8k.se-lab.eng.rdu2.dc.redhat.com"
+  pullSecretRef:
+    name: "assisted-deployment-pull-secret"
+  clusterImageSetNameRef: "img4.16.0-0.nightly-2024-05-01-111315"
+<REDACTED>
+```
+
+> Notice the image is download from `registry.ci.openshift.org` which requires special perms and pull-secret.
+
+
 
 ## Make backport to other releases
 
