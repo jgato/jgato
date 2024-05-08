@@ -82,3 +82,4 @@ The object bucket claim allows you to use on of your available StorageClasses:
 ![](assets/observability-2_20240508122016315.png)
 
 Once the claim is created, an new object bucket is available with all the S3 endpoint and credentials:
+ 
