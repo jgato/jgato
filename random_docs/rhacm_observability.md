@@ -5,17 +5,17 @@ Before going with the real topic of this document, lets understand briefly how C
 
 ![](assets/rhacm_observability_20240510112717083.png)
 
-The main component in the Cluster Monitoring is Prometheous. Prometheous will scrape metrics of any service (defined by ServiceMonitoring) that exports a `/metrics` interface returning a set of different metrics. It has it own time series database, but it is not intended to persist or to keep data for long period. ServiceMonitoring resources points Prometheous to where (And when) scrape metrics.
+The main component in the Cluster Monitoring is Prometheus. Prometheus will scrape metrics of any service (defined by ServiceMonitoring) that exports a `/metrics` interface returning a set of different metrics. It has it own time series database, but it is not intended to persist or to keep data for long period. ServiceMonitoring resources points Prometheus to where (And when) scrape metrics.
 
-But how to scale, query and persist all the data? Thanos is in charge of that. You can directly query Prometheous with PromQL, but remember Prometheous is not intended to persist data. Instead of that, Prometheous sends the data to a Thanos Querier, that centralizes the data from different Prometheous. We have the default Openshift Prometheous (scraping node-exporter, kubelet, etc), but we could have another Prometheous for user's workloads that will export their own metrics. The data is sent from Prometheous to Thanos using the Remote-Write protocol. 
+But how to scale, query and persist all the data? Thanos is in charge of that. You can directly query Prometheus with PromQL, but remember Prometheus is not intended to persist data. Instead of that, Prometheus sends the data to a Thanos Querier, that centralizes the data from different Prometheus. We have the default Openshift Prometheus (scraping node-exporter, kubelet, etc), but we could have another Prometheus for user's workloads that will export their own metrics. The data is sent from Prometheus to Thanos using the Remote-Write protocol. 
 
-When we have enabled RHACM Multicluster Observability, now we not only have the local Prometheous, we will have the Cluster Monitoring Prometheous from other Openshift spoke clusters. 
+When we have enabled RHACM Multicluster Observability, now we not only have the local Prometheus, we will have the Cluster Monitoring Prometheus from other Openshift spoke clusters. 
 
 ![](assets/rhacm_observability_20240510113434516.png)
 
 RHACM Multicluster Observability provides (at Hub level ) a centralized Thanos Querier, and Thanos Receiver, that will collect all the metrics.
 
-Therefore, every Cluster Montoring (including the local one in the hub cluster) gathers metrics with their local Prometheous. Enabling Multicluster Observability will deploy a way of forwarding of metrics to the Hub central Observability components. Including the Hub Cluster Monitoring that will forward this metrics. 
+Therefore, every Cluster Montoring (including the local one in the hub cluster) gathers metrics with their local Prometheus. Enabling Multicluster Observability will deploy a way of forwarding of metrics to the Hub central Observability components. Including the Hub Cluster Monitoring that will forward this metrics. 
 
 Finally, the Hub Multicluster Observability provides its own Grafana instance to show all the metrics from all the cluster (including their local ones).
 
@@ -167,7 +167,7 @@ metrics-collector-deployment-5956f9f8b-bjjmt      1/1     Running   0          1
 
 ## Quick overview of spoke cluster's metrics
 
-Prometheous metrics can be classified as [records](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/)` or [alerts](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/).
+Prometheus metrics can be classified as [records](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/)` or [alerts](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/).
 
 Once the Observability is enabled you will have a quick overview on the RHACM overview section:
 
@@ -181,7 +181,7 @@ Using Grafana observability dashboard (https://grafana-open-cluster-management-o
 
 ![](assets/rhacm_observability_20240509111110717.png)
 
-We can browse any of the Prometheous (from the Cluster Monitoring Operator) alert rule per spoke. For example, all the alerts in the hub sno4:
+We can browse any of the Prometheus (from the Cluster Monitoring Operator) alert rule per spoke. For example, all the alerts in the hub sno4:
 
 ![](assets/rhacm_observability_20240509154535606.png)
 
@@ -215,8 +215,68 @@ If we fix this Policy violation and we make it compliant:
 
 ## Which metrics logs are collected per each spoke
 
-who exports these metrics, the Openshift Cluster Monitoring Operator, the MultiCluster Observability Operator? Makes sense to have both? Could I disable CMO and only have the MultiCluster Observability Operator (with their own metrics/alerts)?
+Openshift Cluster Monitoring collect metrics, by default, from different sources:
+ * Prometheus-adapter: that exports metrics from Kubernetes Node and Pods.
+ * kube-state-metric:  converts Kubernetes objects to metrics that Prometheus can use
+ * node-exporter: metrics about the node
+ * Other services that provides a `/metrics` interface by default:
+   * CoreDNS, etcd, kubelet, OLM, OVN, Openshift/Kubernetes API server, etc.
+   
+For these sources there exists a ServiceMonitor/PodMonitor CR that determinates where (and when) Prometheus will scrap metrics. These are not just a few:
 
+```bash
+─> oc get servicemonitors.monitoring.coreos.com -A 
+NAMESPACE                                    NAME                                                        AGE
+hypershift                                   operator                                                    14d
+multicluster-engine                          assisted-service                                            14d
+multicluster-engine                          clusterlifecycle-state-metrics-v2                           14d
+multicluster-engine                          console-mce-monitor                                         14d
+multicluster-engine                          multicluster-engine-operator-metrics                        3d4h
+open-cluster-management-agent-addon          mce-hypershift-addon-agent-metrics                          14d
+open-cluster-management-agent-addon          ocm-config-policy-controller-metrics                        14d
+open-cluster-management-agent-addon          ocm-governance-policy-framework-metrics                     14d
+open-cluster-management-observability        alertmanager                                                44h
+open-cluster-management-observability        metrics-collector                                           44h
+open-cluster-management-observability        observability-observatorium-api                             44h
+<REDACTED>
+
+> oc get servicemonitors.monitoring.coreos.com -A  | wc -l
+107
+
+```
+
+About Alerts, it will happen the same:
+
+```
+> oc get PrometheusRule -A | wc -l
+56
+
+```
+
+And you can find more Alerts on:
+```
+> oc -n openshift-monitoring get cm  prometheus-k8s-rulefiles-0 -o yaml | grep "alert:" | wc -l
+296
+
+```
+
+This make us to understand how complete is the whole Monitoring stack. 
+
+Everything related to Monitorin on kube-* and openshift-* NS cannot be modified (or disabled). And you cannot add more ServiceMonitor, PodMonitor, and PrometheusRule on this NS.
+
+So, there are very few things (metrics) we can disable. 
+
+
+
+
+
+## Real consumption of observability on spokes
+
+Taking measurements of only the Pods related to Observability on the spoke. Cluster Monitoring Operator is fully enabled and it is not measured.
+
+![](assets/rhacm_observability_20240510155414707.png)
+
+Not even reaching 20% of one Core during the last 24h. Considering this cluster have not any workload running.
 
 ## Disabling an spoke from observability
 
@@ -224,7 +284,7 @@ You only have to label as disabled the `managedcluster` CR of the spoke:
 
 ```bash
 [hub]> oc label managedcluster vsno5 observability=disabled
-[hub]> > oc get managedcluster vsno5 -o jsonpath='{.metadata.labels}' | jq
+[hub]> oc get managedcluster vsno5 -o jsonpath='{.metadata.labels}' | jq
 {
   "feature.open-cluster-management.io/addon-cluster-proxy": "available",
   "feature.open-cluster-management.io/addon-config-policy-controller": "available",
@@ -251,11 +311,6 @@ endpoint-observability-operator-6c96c49c67-p69js   1/1     Terminating   0      
 endpoint-observability-operator-6c96c49c67-p69js   0/1     Terminating   0          148m
 
 ```
-
-
-
-## Real consumption of observability on spokes
-
 
 
 # Creating an Storage bucket with ODF/CEPH
