@@ -259,6 +259,57 @@ Taking measurements of only the Pods related to Observability on the spoke. Clus
 
 Not even reaching 20% of one Core during the last 24h. Considering this cluster have not any workload running.
 
+
+## Filtering some metrics
+
+Multicluster Observability allows, in every spoke, to filter with metrics should be forwared to the hub.
+
+For example we have this metric about the Openshift version in every cluster:
+
+![](assets/rhacm_observability_20240510164658434.png)
+
+We can see the reported values in the last minutes.
+
+Now, lets disable this metric from the `allowlist`: 
+
+```bash
+> oc -n open-cluster-management-addon-observability edit cm observability-metrics-allowlist
+
+# Please edit the object below. Lines beginning with a '#' will be ignored,    
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.                                         
+#                                                                              
+apiVersion: v1                                                                 
+data:                                                                          
+  metrics_list.yaml: |                                                         
+    names:                                                                     
+    - :node_memory_MemAvailable_bytes:sum                                      
+    - ALERTS                                                                   
+    - acm_managed_cluster_labels                                               
+    - authenticated_user_requests                                              
+    - authentication_attempts                                                  
+    - cluster:capacity_cpu_cores:sum                                           
+    - cluster:capacity_memory_bytes:sum                                        
+    - cluster:container_cpu_usage:ratio                                        
+    - cluster:container_spec_cpu_shares:ratio                                  
+    - cluster:cpu_usage_cores:sum                                              
+    - cluster:memory_usage:ratio                                               
+    - cluster:memory_usage_bytes:sum                                           
+    - cluster:usage:resources:sum                                              
+    - cluster_infrastructure_provider                                          
+#    - cluster_version                                                         
+#    - cluster_version_payload                                 
+<REDACTED>
+```
+
+if we repeat the previous query again, the metric has not been reported recently:
+
+![](assets/rhacm_observability_20240510165232349.png)
+
+and we have to go longer in the past to find the previous reported values:
+
+![](assets/rhacm_observability_20240510165315046.png)
+
 ## Disabling an spoke from observability
 
 You only have to label as disabled the `managedcluster` CR of the spoke:
