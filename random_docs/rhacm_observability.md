@@ -1,12 +1,31 @@
+
+# RHACM Cluster monitoring
+
+Before going with the real topic of this document, lets understand briefly how Cluster Monitoring works in any cluster with Openshift.
+
+![](assets/rhacm_observability_20240510112717083.png)
+
+The main component in the Cluster Monitoring is Prometheous. Prometheous will scrape metrics of any service (defined by ServiceMonitoring) that exports a `/metrics` interface returning a set of different metrics. It has it own time series database, but it is not intended to persist or to keep data for long period. ServiceMonitoring resources points Prometheous to where (And when) scrape metrics.
+
+But how to scale, query and persist all the data? Thanos is in charge of that. You can directly query Prometheous with PromQL, but remember Prometheous is not intended to persist data. Instead of that, Prometheous sends the data to a Thanos Querier, that centralizes the data from different Prometheous. We have the default Openshift Prometheous (scraping node-exporter, kubelet, etc), but we could have another Prometheous for user's workloads that will export their own metrics. The data is sent from Prometheous to Thanos using the Remote-Write protocol. 
+
+When we have enabled RHACM Multicluster Observability, now we not only have the local Prometheous, we will have the Cluster Monitoring Prometheous from other Openshift spoke clusters. 
+
+![](assets/rhacm_observability_20240510113434516.png)
+
+RHACM Multicluster Observability provides (at Hub level ) a centralized Thanos Querier, and Thanos Receiver, that will collect all the metrics.
+
+Therefore, every Cluster Montoring (including the local one in the hub cluster) gathers metrics with their local Prometheous. Enabling Multicluster Observability will deploy a way of forwarding of metrics to the Hub central Observability components. Including the Hub Cluster Monitoring that will forward this metrics. 
+
+Finally, the Hub Multicluster Observability provides its own Grafana instance to show all the metrics from all the cluster (including their local ones).
+
 # RHACM Multicluster Observality
 
 RHACM Observability is an operator that enables a set of RHACM add-ons and controllers. 
 
-When enabled, the management cluster creates a new NS `open-cluster-management-addon-observability` with an operator, grafana and thanos componets to collect (and forwared) records and alerts (metrics). 
+When enabled, the management cluster creates a new NS `open-cluster-management-addon-observability` with an operator, grafana and thanos component to collect (and forward) records and alerts (metrics). 
 
-When enabled, every spoke cluster will have installed a new add-on called `addon-observability-controller` that deploys a controller/operator and a collector. These will export all the default (and custom created) alerts and records managed by the Cluster Monitoring Operator. 
-
-MulticlusterObservability enables a more flexible way of creating records and alerts (extendability). It is independent on the Openshift Monitoring cluster operator, so it can work with the MonitoringClusterOperator records/alerts, and/or, working with their own defined records/alerts. 
+When enabled, every spoke cluster will have installed a new add-on called `addon-observability-controller` that deploys a controller/operator and a collector. These will forward all the default (and custom created) alerts and records managed by the local Cluster Monitoring Operator. 
 
 Requirements:
  * RHACM and MCE operators installed
