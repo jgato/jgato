@@ -122,7 +122,7 @@ With this load, we can compare the observability consumption related to the high
 
 ![](assets/consumption_2.png)
 
-Apart from on very concrete peak, it seems that the high loads are not affecting to the observability add-on, which behaves pretty constant. 
+Apart from on very concrete peak, the increase on the load it seems not very meaningful. Considering the scale between 0.0015 and 0.0025 seconds. It seems that the high loads are not affecting to the observability add-on, which behaves pretty constant. 
 
 
 ## Conclusions
