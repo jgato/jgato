@@ -290,7 +290,7 @@ mark {
     border-right: 1px solid hsla(0,0%,100%,.1);
     display: flex;
     flex-direction: column;
-    max-width: 864px;
+    max-width: 1024px;
     min-height: 100vh;
     padding: 40px;
 }
