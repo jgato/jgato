@@ -1,0 +1,137 @@
+# Using 'crTemplates' to minimize size of Siteconfig
+
+Siteconfig is a kind of Manifest provided by [Zero Touch Provisioning (ZTP) GitOps](https://docs.openshift.com/container-platform/4.14/scalability_and_performance/ztp_far_edge/ztp-deploying-far-edge-sites.html#ztp-talo-integration_ztp-deploying-far-edge-sites), to define an infrastructure to be deployed by [Red Hat Advanced Management (ACM)](https://www.redhat.com/en/technologies/management/advanced-cluster-management) and the [Openshift Assisted Installer](https://docs.openshift.com/container-platform/4.14/installing/installing_on_prem_assisted/installing-on-prem-assisted.html).
+
+Siteconfig is managed by a kustomize generator plugin running inside ArgoCD. Because of a [bug on kustomize](https://github.com/kubernetes-sigs/kustomize/pull/5510), the size of the Siteconfig would be limited. This would cause errors ("argument list too long") if there are many clusters/hosts or the information per each cluster/node is too long.
+
+```bash
+ >  kustomize build ./ --enable-alpha-plugins 
+# Warning: 'bases' is deprecated. Please use 'resources' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
+Error: failure in plugin configured via /tmp/kust-plugin-config-3819856267; fork/exec /tmp/ztp-kustomize-plugin/ran.openshift.io/v1/siteconfig/SiteConfig: argument list too long: fork/exec /tmp/ztp-kustomize-plugin/ran.openshift.io/v1/siteconfig/SiteConfig: argument list too long
+```
+
+
+Writing this article, the bug affects to ZTP 4.14 and ZTP 4.15.
+
+## Move the NodeNetwork configuration out of the Siteconfig
+
+ > Requires a ztp-site-generate including this [PR](https://github.com/openshift-kni/cnf-features-deploy/pull/1773/files). In my tests, at least, ztp-site-generete 
+
+We can use `crTemplate` to point some sections of a Siteconfig to be filled by an external Manifest. This external Manifest has to have a Kind compatible with the Siteconfig section. For example `spec.clusters[].nodes[].nodeNetwork`can be filled by an NMStateConfig `Manifest.agent-install.openshift.io`.
+
+In this example, the Node of a cluster is fully configured at Siteconfig (usual way of working), including the node network information:
+
+```yaml
+    nodes:                                                                     
+      - hostName: "sno5"                                                                                                                                                                                                                                      
+        bmcAddress: "redfish-virtualmedia://10.19.10.71:6443/redfish/v1/Systems/00000000-0000-0000-0000-000000000005"
+        bmcCredentialsName:                                                    
+          name: "sno5-bmc-secret"                                              
+        bootMACAddress: "<NODEMAC>"                                    
+        bootMode: "UEFI"                                                       
+        rootDeviceHints:                                                       
+          deviceName: "/dev/vda"                                               
+        nodeNetwork:                                                           
+          interfaces:                                                          
+            - name: "enp1s0"                                                   
+              macAddress: "NODEMAC"                                  
+          config:                                                              
+            interfaces:                                                        
+              - name: enp1s0                                                   
+                type: ethernet                                                 
+                state: up                                                      
+                ipv4:                                                          
+                  enabled: true                                                
+                  address:                                                     
+                    - ip: <NODEIP>
+                      prefix-length: 26                                        
+                ipv6:                                                          
+                  enabled: false                                               
+            dns-resolver:                                                      
+              config:                                                          
+                server:                                                        
+                - <DNSIP>
+            routes:                                                            
+              config:                                                          
+                - destination: 0.0.0.0/0                                       
+                  next-hop-address: <GATEWAYIP>
+                  next-hop-interface: enp1s0                                   
+                  table-id: 254  
+```
+
+Different factors would make you to reach the bug. In general, many clusters, many nodes, a lot of configuration per node. In this example above, we only configure one network interface. More complex scenario would be trying to configure more than one interface, bonds, vlans, etc. Reaching the bug earlier.
+
+So here, we can move the nodeNetwork into an NMStateConfig Manifest:
+
+```yaml
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    ran.openshift.io/ztp-gitops-generated: '{}'
+  labels:
+    app.kubernetes.io/instance: clusters
+    nmstate-label: sno5
+  name: sno5
+  namespace: sno5
+spec:
+  interfaces:
+    - name: "enp1s0"
+      macAddress: "<NODEMAC>"
+  config:
+    interfaces:
+      - name: enp1s0
+        type: ethernet
+        state: up
+        ipv4:
+          enabled: true
+          address:
+            - ip: <NODEIP>
+              prefix-length: 26
+        ipv6:
+          enabled: false
+    dns-resolver:
+      config:
+        server:
+          - <DNSIP>
+    routes:
+      config:
+        - destination: 0.0.0.0/0
+          next-hop-address: <GATEWAYIP>
+          next-hop-interface: enp1s0
+```
+
+The `metadata.labels.nmstate-label` and `metadata.name` will link NMStateConfiguration with the node. 
+
+Now, in the Siteconfig you just need to point to the NMStateConfig file that is also uploaded to the Git repository:
+
+```yaml
+    nodes:
+      - hostName: "sno5"
+        bmcAddress: "redfish-virtualmedia://10.19.10.71:6443/redfish/v1/Systems/00000000-0000-0000-0000-000000000005"
+        bmcCredentialsName:
+          name: "sno5-bmc-secret"
+        bootMACAddress: "<NODEMAC>"
+        bootMode: "UEFI"
+        rootDeviceHints:
+          deviceName: "/dev/vda"
+        crTemplates:
+          NMStateConfig: "NMStates/nmstate-sno5.sno.hpecloud.org.yaml"
+```
+
+Resulting on a shorter Siteconfig.
+
+After ArgoCD makes the sync, you will see the BMH and the NMStateConfig generated. Both will be used by the Assisted Service to make the installation.
+
+```bash
+> oc -n sno5 get nmstateconfigs.agent-install.openshift.io,bmh
+NAME                                            AGE
+nmstateconfig.agent-install.openshift.io/sno5   24s
+
+NAME                           STATE         CONSUMER   ONLINE   ERROR                AGE
+baremetalhost.metal3.io/sno5   registering              true     registration error   7m45s
+
+```
+
+Notice: you dont need to add the `crTemplate` Manifests into your kustomization.yaml file as resources. 
