@@ -5,8 +5,78 @@
     <link>https://jgato.github.io/jgato/tags/</link>
     <description>Recent content in Tags on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Fri, 18 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
+    <language>en</language>
+    <lastBuildDate>Fri, 17 May 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>cloud</title>
+      <link>https://jgato.github.io/jgato/tags/cloud/</link>
+      <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/cloud/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>edge</title>
+      <link>https://jgato.github.io/jgato/tags/edge/</link>
+      <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/edge/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>management</title>
+      <link>https://jgato.github.io/jgato/tags/management/</link>
+      <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/management/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>observability</title>
+      <link>https://jgato.github.io/jgato/tags/observability/</link>
+      <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/observability/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>openshift</title>
+      <link>https://jgato.github.io/jgato/tags/openshift/</link>
+      <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/openshift/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>operators</title>
+      <link>https://jgato.github.io/jgato/tags/operators/</link>
+      <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/operators/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>rhacm</title>
+      <link>https://jgato.github.io/jgato/tags/rhacm/</link>
+      <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/rhacm/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
     <item>
       <title>e810</title>
       <link>https://jgato.github.io/jgato/tags/e810/</link>
@@ -113,16 +183,6 @@
       <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/tags/dci/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>openshift</title>
-      <link>https://jgato.github.io/jgato/tags/openshift/</link>
-      <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
-      
-      <guid>https://jgato.github.io/jgato/tags/openshift/</guid>
       <description></description>
       <content></content>
     </item>

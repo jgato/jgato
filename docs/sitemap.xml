@@ -2,6 +2,36 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://jgato.github.io/jgato/tags/cloud/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/edge/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/management/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/posts/cluster-observability/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/observability/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/openshift/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/operators/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/posts/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/rhacm/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/</loc>
+    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://jgato.github.io/jgato/posts/intel_e810_ztp/</loc>
     <lastmod>2022-11-18T00:00:00+00:00</lastmod>
   </url><url>
@@ -11,13 +41,7 @@
     <loc>https://jgato.github.io/jgato/tags/gitops/</loc>
     <lastmod>2022-11-18T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://jgato.github.io/jgato/posts/</loc>
-    <lastmod>2022-11-18T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://jgato.github.io/jgato/tags/sriov/</loc>
-    <lastmod>2022-11-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://jgato.github.io/jgato/tags/</loc>
     <lastmod>2022-11-18T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jgato.github.io/jgato/tags/ztp/</loc>
@@ -54,9 +78,6 @@
     <lastmod>2021-11-26T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jgato.github.io/jgato/posts/dci/</loc>
-    <lastmod>2021-11-26T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://jgato.github.io/jgato/tags/openshift/</loc>
     <lastmod>2021-11-26T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jgato.github.io/jgato/categories/</loc>

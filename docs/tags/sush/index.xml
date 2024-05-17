@@ -5,7 +5,7 @@
     <link>https://jgato.github.io/jgato/tags/sush/</link>
     <description>Recent content in sush on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>en</language>
     <lastBuildDate>Fri, 16 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/sush/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Sushy tools and Redfish tutorial </title>
@@ -16,8 +16,8 @@
       <description>picture copyright @ivan-samkov
 Using Sushy tools to manage a BMC Redfish interface This document is a short tutorial as introduction to use Sushy tools to manage a remote baremetal server.
 What is covered in this tutorial?
-  Understand how to install and use Sushy to create/virtualize Redfish interfaces. Redfish is a REST standard protocol to manage servers, storage, networks, etc.
-  Some basics about the Redfish BMC (REST) interface and how to interact with it.</description>
+Understand how to install and use Sushy to create/virtualize Redfish interfaces. Redfish is a REST standard protocol to manage servers, storage, networks, etc.
+Some basics about the Redfish BMC (REST) interface and how to interact with it.</description>
       <content>&lt;p&gt;&lt;em&gt;picture copyright &lt;a href=&#34;https://www.pexels.com/@ivan-samkov/&#34;&gt;@ivan-samkov&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 &lt;h1 id=&#34;using-sushy-tools-to-manage-a-bmc-redfish-interface&#34;&gt;Using Sushy tools to manage a BMC Redfish interface&lt;/h1&gt;
 &lt;p&gt;This document is a short tutorial as introduction to use Sushy tools to manage a remote baremetal server.&lt;/p&gt;

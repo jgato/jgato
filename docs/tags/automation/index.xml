@@ -5,7 +5,7 @@
     <link>https://jgato.github.io/jgato/tags/automation/</link>
     <description>Recent content in automation on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>en</language>
     <lastBuildDate>Fri, 26 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/automation/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>DCI Openshift App Agent</title>
@@ -16,7 +16,7 @@
       <description>DCI Openshift App Agent This DCI Agents helps you to run any kind of test or application in a Openshift existing deployment.
 Where to run it? In you usual provisioner, bastion, or supporting host to manage your Openshift Cluster. During the ramp-up, usually we can use the lab-installer from our plan deployment.
 Requirements for the provisioner:
-  Be running the latest stable RHEL release (8.4 or higher) and registered via RHSM</description>
+Be running the latest stable RHEL release (8.4 or higher) and registered via RHSM</description>
       <content>&lt;h1 id=&#34;dci-openshift-app-agent&#34;&gt;DCI Openshift App Agent&lt;/h1&gt;
 &lt;p&gt;This DCI Agents helps you to run any kind of test or application in a Openshift existing deployment.&lt;/p&gt;
 &lt;p&gt;Where to run it? In you usual provisioner, bastion, or supporting host to manage your Openshift Cluster. &lt;em&gt;During the ramp-up, usually we can use the lab-installer from our plan deployment&lt;/em&gt;.&lt;/p&gt;

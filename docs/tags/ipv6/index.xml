@@ -5,7 +5,7 @@
     <link>https://jgato.github.io/jgato/tags/ipv6/</link>
     <description>Recent content in IPV6 on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>en</language>
     <lastBuildDate>Fri, 03 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/ipv6/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Just a little of IPv6 </title>
@@ -14,8 +14,8 @@
       
       <guid>https://jgato.github.io/jgato/posts/ipv6/</guid>
       <description>Just a little of IPv6 Just some basic stuff and learning about IPv6.
- My intention is to keep this tutorial live, as long as I learn more about IPv6. But, I dont want to finish with a too complex tutorial. Any feedback is welcome.
-  To play with IPv6 commands, I will use a laboratory composed by three servers with IPv6 enabled. One of the servers is just a regular provisioner server, that we use to deploy other servers.</description>
+My intention is to keep this tutorial live, as long as I learn more about IPv6. But, I dont want to finish with a too complex tutorial. Any feedback is welcome.
+To play with IPv6 commands, I will use a laboratory composed by three servers with IPv6 enabled. One of the servers is just a regular provisioner server, that we use to deploy other servers.</description>
       <content>&lt;h1 id=&#34;just-a-little-of-ipv6&#34;&gt;Just a little of IPv6&lt;/h1&gt;
 &lt;p&gt;Just some basic stuff and learning about IPv6.&lt;/p&gt;
 &lt;blockquote&gt;

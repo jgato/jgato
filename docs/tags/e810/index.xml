@@ -5,7 +5,7 @@
     <link>https://jgato.github.io/jgato/tags/e810/</link>
     <description>Recent content in e810 on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>en</language>
     <lastBuildDate>Fri, 18 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/e810/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning</title>
@@ -196,7 +196,7 @@ The tutorial covers:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;annotations&lt;/span&gt;:
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;kubeletconfig.experimental&lt;/span&gt;: |&lt;span style=&#34;color:#e6db74&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;          &lt;/span&gt;          {&lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;systemReserved&amp;#34;: {&amp;#34;memory&amp;#34;: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;4Gi&amp;#34;&lt;/span&gt;}}
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;          {&amp;#34;systemReserved&amp;#34;: {&amp;#34;memory&amp;#34;: &amp;#34;4Gi&amp;#34;}}&lt;/span&gt;          
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;sno-perfprofile&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;policyName&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;perfprofile-policy&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
