@@ -124,6 +124,9 @@ With this load, we can compare the observability consumption related to the high
 
 Apart from on very concrete peak, the increase on the load it seems not very meaningful. Considering the scale between 0.0015 and 0.0025 seconds. It seems that the high loads are not affecting to the observability add-on, which behaves pretty constant. 
 
+Finally, a larger view of observability consumption after the experiment finished, during some days after.
+
+![](assets/consumption_3.png)
 
 ## Conclusions
 

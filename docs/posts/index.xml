@@ -78,6 +78,8 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With this load, we can compare the observability consumption related to the high loads of the stressing Namespace:&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;assets/consumption_2.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Apart from on very concrete peak, the increase on the load it seems not very meaningful. Considering the scale between 0.0015 and 0.0025 seconds. It seems that the high loads are not affecting to the observability add-on, which behaves pretty constant.&lt;/p&gt;
+&lt;p&gt;Finally, a larger view of observability consumption after the experiment finished, during some days after.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;assets/consumption_3.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;conclusions&#34;&gt;Conclusions&lt;/h2&gt;
 &lt;p&gt;Monitoring and Observability are really crucial features, specially, when having large number of clusters in your infrastructure. To have everything centralized over a common platform for deploying, maintenance, life-cycle management, monitoring, etc is crucial in order to easiness your different processes. In the future, observability will collect also logs and traces, that will complete the platform. After that, automation and AI will do all the work for you ;) but this is other story&amp;hellip;.&lt;/p&gt;
 </content>
