@@ -79,6 +79,7 @@ stringData:
       secret_key: NCQV........oRYX0VMp8H
 ```
 
+Dont use 'protocol' and 'port' on the endpoint.
 
 Create the MultiClusterObservability:
 ```yaml
