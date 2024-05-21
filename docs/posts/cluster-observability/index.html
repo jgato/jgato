@@ -139,7 +139,7 @@
 <p>First of all, every cluster using Openshift Cloud Platform deploys a cluster operator called Openshift Cluster Monitoring.</p>
 <p><img src="assets/openshift_cluster_monitoring_arch.png" alt=""></p>
 <p>The main component in the <strong>Cluster Monitoring</strong> is Prometheus. Prometheus will scrape metrics of any service (defined by ServiceMonitoring) that exports a <code>/metrics</code> interface exposing a set of different metrics. Later, Thanos provides a PromQL interface, it is in charge of metric&rsquo;s persistence and it can receive metrics from different Prometheus instances. By default, Openshift defines a set of different metrics to be collected, but others can be added by users.</p>
-<p><strong><a href="https://www.redhat.com/en/technologies/management/advanced-cluster-management">Red Hat Advanced Cluster Management</a></strong> allows you to deploy, upgrade, and configure different management clusters from a central management cluster.</p>
+<p><strong><a href="https://www.redhat.com/en/technologies/management/advanced-cluster-management">Red Hat Advanced Cluster Management</a></strong> allows you to deploy, upgrade, and configure different managed clusters from a central management cluster.</p>
 <p><img src="assets/rhacm.png" alt=""></p>
 <p>Once you have RHACM and your different managed clusters, you can enable the <strong><a href="https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/observability/index">RHACM MultiCluster Observability operator</a></strong>. When enabled:</p>
 <ul>

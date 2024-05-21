@@ -24,7 +24,7 @@ First of all, every cluster using Openshift Cloud Platform deploys a cluster ope
 
 The main component in the **Cluster Monitoring** is Prometheus. Prometheus will scrape metrics of any service (defined by ServiceMonitoring) that exports a `/metrics` interface exposing a set of different metrics. Later, Thanos provides a PromQL interface, it is in charge of metric's persistence and it can receive metrics from different Prometheus instances. By default, Openshift defines a set of different metrics to be collected, but others can be added by users.
 
-**[Red Hat Advanced Cluster Management](https://www.redhat.com/en/technologies/management/advanced-cluster-management)** allows you to deploy, upgrade, and configure different management clusters from a central management cluster.
+**[Red Hat Advanced Cluster Management](https://www.redhat.com/en/technologies/management/advanced-cluster-management)** allows you to deploy, upgrade, and configure different managed clusters from a central management cluster.
 
 ![](assets/rhacm.png)
 
