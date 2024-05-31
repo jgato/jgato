@@ -33,12 +33,13 @@ wait to get accepted and merged
 Eventually someone will pull upstream into downstream containing your fix. But, you can do this by yourself. Specially if you want to have this into an incoming release.
 
 Make a new brach, this time based on the main branch of downstream.
-
+```bash
 git checkout -b  PreprovisioningImage-poweroff-fix
 
 Cherry pick the commit/commits with your fix into the branch (the commits you did in the previous PR). You have to cherry pick the commits with the fix, not the merge commit.
 
 git cherry-pick d2d700e73
+```
 
 Git log shows that now you have added this last commit
 
@@ -128,7 +129,7 @@ Then, you can save the credentials to your existing pull-secret:
 
 ```
 > oc registry login --registry-config ~/.config/containers/auth.json 
-> > cat ~/.config/containers/auth.json | grep registry.ci -A 2
+> cat ~/.config/containers/auth.json | grep registry.ci -A 2
 		"registry.ci.openshift.org": {
 			"auth": "<TOKEN>"
 		},
@@ -172,6 +173,7 @@ Images:
 
 > Eventually, the registry.ci token expires, so you will have to update it with a new login token
 
+If you still receives an unathorized answer, try the oc command with `--registry-config ~/.config/containers/auth.json`. The auth.json contains your previous gained authorization. 
 
 #### Try the image with the Agent Based installer
 
@@ -197,6 +199,7 @@ total 480920
 
 You can create a `clusterImagetSet`pointing to the nightly build, to be used from a Siteconfig:
 
+```yaml
 > oc get clusterimagesets.hive.openshift.io img4.16.0-0.nightly-2024-05-01-111315 -o yaml
 apiVersion: hive.openshift.io/v1
 kind: ClusterImageSet
@@ -211,6 +214,8 @@ metadata:
   uid: 910964ab-b2c7-4b6c-a2f9-91da037f2898
 spec:
   releaseImage: registry.ci.openshift.org/ocp/release:4.16.0-0.nightly-2024-05-01-111315
+```
+
 
 ```yaml
 ---
@@ -230,6 +235,98 @@ spec:
 > Notice the image is download from `registry.ci.openshift.org` which requires special perms and pull-secret.
 
 
+#### Check the operator contains the fix
 
-## Make backport to other releases
+Because, in this example, we are using a cluster operator that installs other operators, maybe the answer is more complex. 
+
+In this case what I did was, after having the cluster deployed:
+
+```bash
+> oc get clusterversions.config.openshift.io 
+NAME      VERSION       AVAILABLE   PROGRESSING   SINCE   STATUS
+version   4.16.0-rc.2   True        False         163m    Cluster version is 4.16.0-rc.2
+
+```
+
+To get all the images used by the cluster operator:
+
+```bash
+> oc -n openshift-machine-api get cm cluster-baremetal-operator-images -o yaml                                                                                                                                   
+apiVersion: v1                                                                                                                                                                                                      
+data:                                                                                                                                                                                                                 images.json: |                                                                                                                                                                                                    
+    {                                                                                                                                                                                                               
+      "clusterBaremetalOperator": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:de8bd415ac0f3692844ab009fe6cd50e74f11e48ba5c15de4877c849faa74f3b",                                                         
+      "kubeRBACProxy": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:0954a53fe830d4c49ffdced2beb2461f92f305d8d72b003f7fd54e990ee42868",                                                                    
+      "baremetalOperator": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b304daeb0f1d28b246f387d072075df577e48bbb431be1f42b8790968bd24bf8",                                                                
+      "baremetalIronic": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:2a1a54da91003180c8edc97187a93aec3c0a0027be005914c5dc210c350d1c8c",                                                                  
+      "baremetalMachineOsDownloader": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c7882c5cd360a424d7f78f72840554c5852c6743bc4bfb7951235466b25605d9",
+      "baremetalStaticIpManager": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c29e2e59bb9d522c9ffdc0265b66556e4b55726445250da80e9da9c3ee6d9b03",
+      "baremetalIronicAgent": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5e082dfe445b4e7e763c76b7e6a8089f1cd3f8f6a1a770187fc2fb780bbb87ec",
+      "imageCustomizationController": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b716bb38f2f073e2e6e0bedd73c465114fcf22eee875949a43dfcb7d29482632",
+      "machineOSImages": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:796ecb84d6f0ee8d51215e1eae2c9646cac312220309c583daf7714bce5f0796"
+    }
+
+```
+
+Take the one for baremetalOperator and:
+
+```bash
+
+> skopeo inspect --no-tags docker://${IMAGE} --authfile ~/.config/containers/auth.json | grep "io.openshift.build.commit.id" |  awk '{print $2}' | awk -F '"' '{print $2}' 
+3df2ece805a50a5988fc1c213b5f2e321f1c3d2a
+```
+
+My PR accepted with the commit [ce4b79df8ad374d9f2079b18b678ff301ce395be](https://github.com/metal3-io/baremetal-operator/commit/ce4b79df8ad374d9f2079b18b678ff301ce395be). So, we can check if this commit is previous to the last one included in the built using during the installation.
+
+```bash
+> git log -1 3df2ece805a50a5988fc1c213b5f2e321f1c3d2a
+commit 3df2ece805a50a5988fc1c213b5f2e321f1c3d2a
+Merge: 33cfa9fcf 2cf380ef1
+Author: openshift-merge-bot[bot] <148852131+openshift-merge-bot[bot]@users.noreply.github.com>
+Date:   Tue May 7 15:12:27 2024 +0000
+
+    Merge pull request #335 from zaneb/revert-default-webhook-port
+    
+    NO-ISSUE: Revert "downstream-only: Disable webhooks"
+> git log -1 ce4b79df8ad374d9f2079b18b678ff301ce395be
+commit ce4b79df8ad374d9f2079b18b678ff301ce395be (HEAD -> main)
+Merge: aaa95a16d d2d700e73
+Author: metal3-io-bot <55852648+metal3-io-bot@users.noreply.github.com>
+Date:   Tue Apr 30 01:30:18 2024 +0300
+
+    Merge pull request #1702 from jgato/PreprovisioningImage-poweroff
+    
+    🐛  PreprovisioningImage should not be created on poweroff before delete
+
+```
+
+It looks good, the last included commit is newer than the one with my fix. 
+
+## Bug fix verifed
+
+After QA finishes to verify that bug no longer happens, the jira ticket is marked as verified:
+
+![](assets/contribute_cluster_operator_20240530090542532.png)
+
+In this case, the code was on time before of a new minor release of OCP, with OCP4.16. So, there is no need of publishing an errata.
+
+## Trigger backports
+
+With the Bug verified, you can trigger the backport, doing the `cherry-pick`over the other branches. In this case, the original PR was on time to be included on `release-4.16`, so the backport will be done over `release-4.15` and `release-4.14`. 
+
+The command can be done on GitHub over the original PR, something like this:
+
+![](assets/contribute_cluster_operator_20240531104528468.png)
+
+But I fear I have not enough perms. So, I asked a colleague to just trigger it for me. 
+Or, you can manually do the `cherry-pick`:
+ * git checkout of `release-4.15` and create a new branch form there
+ * make the cherry-pick on the commit with the fix
+ * push and do a PR of your branch into `release-4.15`
+
+Finally, in the PR, do a `/jira cherrypick OCPBUGS-ID`, this last will create the Jira Ticket as a clone of the original one. This links will enable also the different CI actions.
+
+The backport will need the usual labels and tests passed, but also, an extra label `backport-risk-assessed` from the assigned person from QA
+
+
 
