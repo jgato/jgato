@@ -310,9 +310,17 @@ After QA finishes to verify that bug no longer happens, the jira ticket is marke
 
 In this case, the code was on time before of a new minor release of OCP, with OCP4.16. So, there is no need of publishing an errata.
 
+Before verified, you have to set the release-notes. 
+
+![](assets/contribute_cluster_operator_20240603181641537.png)
+
+Later, the backport, that will make a clone on the Jira ticket, will complain if there are no release-notes. 
+
 ## Trigger backports
 
-With the Bug verified, you can trigger the backport, doing the `cherry-pick`over the other branches. In this case, the original PR was on time to be included on `release-4.16`, so the backport will be done over `release-4.15` and `release-4.14`. 
+With the Bug verified, you can trigger the backport, doing the `cherry-pick`over the other branches. In this case, the original PR was on time to be included on `release-4.16`, so the backport will be done for `release-4.15` and `release-4.14`. 
+
+> On Openshift the backport are done on "cascade". So, the `release-4.15` backport is done over the PR original. The `release-4.14` needs to be done over the PR backport for `release-4.15. So, first you have to get the verification on 4.15, have the release notes, and proceed with the verification on 4.14. 
 
 The command can be done on GitHub over the original PR, something like this:
 
