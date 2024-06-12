@@ -28,7 +28,7 @@ You have to sign your commit with a DCO: https://github.com/apps/dco
 
 wait to get accepted and merged
 
-## Cherry pick to downstream
+## Cherry pick to downstream and PR creation
 
 Eventually someone will pull upstream into downstream containing your fix. But, you can do this by yourself. Specially if you want to have this into an incoming release.
 
@@ -58,9 +58,13 @@ Tittle this PR with [openshift-bug-id] of our jira system.
 
 ![](assets/contribute_cluster_operator_20240430162333746.png)
 
+The PR will create automatically the Jira ticket. But still the content of the ticket is not correct and you will have an invalid jira ticket on Github. 
+
+![](assets/contribute_cluster_operator_20240607112323445.png)
+
 Set the Jira ticket target to the release-4.y version
 
-It is very important to have the PR correctly linked with the bug. And this properly set. If not you will receive a not-valid-bug. To have this correctly set provides automatic integration in the next steps. 
+To have everything correct in the ticket is mandatory for the CI process. You can make changes on the Jira tickete and then use on Github `/jira refresh` to recheck everything, until you get the `valid-bug`.
 
 ![](assets/contribute_cluster_operator_20240430163234953.png)
 
@@ -314,6 +318,13 @@ Before verified, you have to set the release-notes.
 
 ![](assets/contribute_cluster_operator_20240603181641537.png)
 
+```
+*Cause*: BMH "powering off before delete" stage must not create a PreprovImage when deleting.
+*Consequence*: Because of creating unnecessary image, it would get stuck other processes. Like deleting the NS where the BMH belongs to.
+*Fix*: added exception for this new stage about creating the PreprovImage when deleting BMH.
+*Result*: BMH can be deleted in a cleaner way. 
+```
+
 Later, the backport, that will make a clone on the Jira ticket, will complain if there are no release-notes. 
 
 ## Trigger backports
@@ -326,7 +337,7 @@ The command can be done on GitHub over the original PR, something like this:
 
 ![](assets/contribute_cluster_operator_20240531104528468.png)
 
-But I fear I have not enough perms. So, I asked a colleague to just trigger it for me. 
+But I fear I had not enough perms. So, I asked a colleague to just trigger it for me. 
 Or, you can manually do the `cherry-pick`:
  * git checkout of `release-4.15` and create a new branch form there
  * make the cherry-pick on the commit with the fix
@@ -334,7 +345,30 @@ Or, you can manually do the `cherry-pick`:
 
 Finally, in the PR, do a `/jira cherrypick OCPBUGS-ID`, this last will create the Jira Ticket as a clone of the original one. This links will enable also the different CI actions.
 
-The backport will need the usual labels and tests passed, but also, an extra label `backport-risk-assessed` from the assigned person from QA
+In my case, my colleague did the `cherry-pick` on the original PR to trigger the 4.15 backport:
+
+![](assets/contribute_cluster_operator_20240607111157900.png)
+
+And also on the 4.15 PR to do the one for 4.14 (but conditioned to be approved first). 
+
+![](assets/contribute_cluster_operator_20240607111311908.png)
+
+This cascade method is required in Openshift projects
+
+The backport will need the usual labels and tests passed, but also, an extra label `backport-risk-assessed` from the assigned person from QA. 
+
+Starting with the backport for 4.15: As the first time, you get the `valid-bug`, the `ok-to-test` and if passed, it will create a new build and QA can start the verification. 
+
+![](assets/contribute_cluster_operator_20240607113006018.png)
+
+When the bug is verified in Jira:
 
 
+![](assets/contribute_cluster_operator_20240607113114778.png)
+
+You can go with the backport for 4.14 (that was already created but awaiting, on cascade):  get the `valida-bug` label or use `/jira refresh` and correct anything requested by the bot. And ask for running tests again. Build a new nightly and QA will do again the verification. Basically, we have repeated twice, the initial procedure. 
+
+Also, after a while, with every verified Jira, you will have an Errata report: 
+
+https://access.redhat.com/errata/RHBA-2024:3673
 
