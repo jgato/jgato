@@ -114,7 +114,7 @@ figure {
     /* opacity: .8; */
 
     &.left {
-      text-align: left;
+      text-align: justify;
     }
 
     &.center {

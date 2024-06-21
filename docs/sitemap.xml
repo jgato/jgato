@@ -2,6 +2,36 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://jgato.github.io/jgato/tags/ai/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/chatpgt/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/granite/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/posts/instructlab/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/llm/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/merlinite/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/openshift/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/posts/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/redhat/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://jgato.github.io/jgato/tags/</loc>
+    <lastmod>2024-06-21T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://jgato.github.io/jgato/tags/cloud/</loc>
     <lastmod>2024-05-17T00:00:00+00:00</lastmod>
   </url><url>
@@ -17,19 +47,10 @@
     <loc>https://jgato.github.io/jgato/tags/observability/</loc>
     <lastmod>2024-05-17T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://jgato.github.io/jgato/tags/openshift/</loc>
-    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://jgato.github.io/jgato/tags/operators/</loc>
     <lastmod>2024-05-17T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://jgato.github.io/jgato/posts/</loc>
-    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://jgato.github.io/jgato/tags/rhacm/</loc>
-    <lastmod>2024-05-17T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://jgato.github.io/jgato/tags/</loc>
     <lastmod>2024-05-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://jgato.github.io/jgato/posts/intel_e810_ztp/</loc>
