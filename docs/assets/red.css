@@ -608,6 +608,7 @@ sup {
     overflow: hidden;
     padding: 0;
     position: relative;
+    color: #221f29;
 }
 .button+.button {
     margin-left: 10px;

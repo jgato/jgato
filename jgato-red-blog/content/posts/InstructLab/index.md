@@ -314,6 +314,51 @@ Not bad!! ;)
 
 It knows the basic, in the context of Openshift, an SNO is just a single-node Openshift. Interesting that also learnt how it is very related to Telco and RAN (Radio Access Network). Actually, this was the main reason of developing SNO by Red Hat.
 
+## What about me?
+
+Obviously the model does know nothing about me. So, I did a quickly train with some info from me and my LinkedIn Profile, and....:
+
+```bash
+>>> who is Jose Gato?                                                                             
+╭─────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ────────────────────────────────────╮
+│ José Gato is a Senior Manager at Red Hat with more than 15 years of experience in the technology sector.   │
+│ He holds a Bachelor's degree in Computer Engineering from the Universidad Rey Juan Carlos and has worked   │
+│ on various projects related to Open Source, Cloud, IoT, AI, Data Science, and others. His career includes  │
+│ several positions at different companies, such as Red Hat, Telefónica, HP, IBM, Accenture, and GatoTech.   │
+│ He is also a member of the Open Source Software (OSS) Group in Spain.                                      │
+╰─────────────────────────────────────────────────────────────────────────────────── elapsed 16.828 seconds ─╯
+>>> how tall is he?                                                                                                                                                                                     
+╭────────────────────────────────────────────────────────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ───────────────────────────────────────────────────────────────────────────────────────╮
+│ Jose Gato's height is approximately 1.8 meters or 5 feet, 10 inches (in approximate terms).      
+
+```
+
+Cool, not bad!!
+
+```bash
+>>> who is his brother?                                                                           
+╭─────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ────────────────────────────────────╮                                                                                                      
+│ José Gato has two brothers: José Luis and Juan.                                                            │                                                                                                      
+╰──────────────────────────────────────────────────────────────────────────────────── elapsed 1.990 seconds ─╯                                                                                                      
+>>> and his mother?                                                                               
+╭─────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ────────────────────────────────────╮                                                                                                      
+│ José Gato's mother is named Carmen.                                                                        │                                                                                                      
+╰──────────────────────────────────────────────────────────────────────────────────── elapsed 1.853 seconds ─╯    
+```
+
+I think it is confusing my Surname with my second name and invited I have a brother called Jose Luis, but many people also makes mistakes with my name and surname. And yes, my brother is Juan. But my mother is not Carmen. 
+
+Well, this was just for a little bit of fun, and surely needs much more work tuning the model:
+
+```bash
+>>> would Jose Gato be the next CTO at Red Hat?                                                                                                                                                         
+╭────────────────────────────────────────────────────────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ───────────────────────────────────────────────────────────────────────────────────────╮
+│ It is not known if he will be the next CTO at Red Hat. The position has been vacant since December 2021 when Guiherme de Almeida Filho left the company.                                                         │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── elapsed 6.546 seconds ─╯
+
+```
+
+not my intention anyway ;) 
 
 # Conclusions
 
