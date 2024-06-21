@@ -800,8 +800,8 @@ sup {
 }
 .post-cover {
     background: transparent;
-    border: 20px solid #ffa86a;
-    border: 20px solid var(--accent);
+    border: 1px solid #ffa86a;
+    border: 1px solid var(--accent);
     margin: 40px 0;
     padding: 20px;
 }

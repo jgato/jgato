@@ -705,20 +705,20 @@ sup {
 }
 .post-cover {
     background: transparent;
-    border: 20px solid #ff6266;
-    border: 20px solid var(--accent);
+    border: 1px solid #ff6266;
+    border: 1px solid var(--accent);
     margin: 40px 0;
     padding: 20px;
 }
 @media (max-width:684px) {
     .post-cover {
-        border-width: 10px;
+        border-width: 1px;
         padding: 10px;
     }
 }
 @media (--phone) {
     .post-cover {
-        border-width: 10px;
+        border-width: 1px;
         padding: 10px;
     }
 }
