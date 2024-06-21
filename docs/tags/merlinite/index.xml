@@ -205,11 +205,11 @@ While training on CPU is not suitable for serious model training, it can be usef
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Looks like we have a new model that we can serve.&lt;/p&gt;
 &lt;h2 id=&#34;chatting-with-the-new-model&#34;&gt;Chatting with the new model&lt;/h2&gt;
 &lt;p&gt;So, lets serve the new extended model:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ ilab  --config ./config-custom.yaml serve
-INFO 2024-06-12 05:56:51,935 lab.py:340 Using model &amp;#39;models/ggml-model-f16.gguf&amp;#39; with -1 gpu-layers and 4096 max context size.
-INFO 2024-06-12 05:56:54,729 server.py:206 Starting server process, press CTRL+C to shutdown server...
-INFO 2024-06-12 05:56:54,729 server.py:207 After application startup complete see http://127.0.0.1:8000/docs for API.
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Is the new model able to talk about SNO?&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ ilab  --config ./config-custom.yaml serve
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;INFO 2024-06-12 05:56:51,935 lab.py:340 Using model &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;models/ggml-model-f16.gguf&amp;#39;&lt;/span&gt; with -1 gpu-layers and &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; max context size.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;INFO 2024-06-12 05:56:54,729 server.py:206 Starting server process, press CTRL+C to shutdown server...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;INFO 2024-06-12 05:56:54,729 server.py:207 After application startup complete see http://127.0.0.1:8000/docs &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; API.
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Is the new model able to talk about SNO?&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ ilab --config ./config-custom.yaml chat -m models/ggml-model-f16.gguf
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;╭────────────────────────────────────────────────── system ──────────────────────────────────────────────────╮
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;│ Welcome to InstructLab Chat w/ MODELS/GGML-MODEL-F16.GGUF &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;type /h &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; help&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;                               │

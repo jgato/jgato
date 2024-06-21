@@ -322,11 +322,11 @@ While training on CPU is not suitable for serious model training, it can be usef
 </span></span></code></pre></div><p>Looks like we have a new model that we can serve.</p>
 <h2 id="chatting-with-the-new-model">Chatting with the new model<a href="#chatting-with-the-new-model" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>So, lets serve the new extended model:</p>
-<pre tabindex="0"><code>$ ilab  --config ./config-custom.yaml serve
-INFO 2024-06-12 05:56:51,935 lab.py:340 Using model &#39;models/ggml-model-f16.gguf&#39; with -1 gpu-layers and 4096 max context size.
-INFO 2024-06-12 05:56:54,729 server.py:206 Starting server process, press CTRL+C to shutdown server...
-INFO 2024-06-12 05:56:54,729 server.py:207 After application startup complete see http://127.0.0.1:8000/docs for API.
-</code></pre><p>Is the new model able to talk about SNO?</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab  --config ./config-custom.yaml serve
+</span></span><span style="display:flex;"><span>INFO 2024-06-12 05:56:51,935 lab.py:340 Using model <span style="color:#e6db74">&#39;models/ggml-model-f16.gguf&#39;</span> with -1 gpu-layers and <span style="color:#ae81ff">4096</span> max context size.
+</span></span><span style="display:flex;"><span>INFO 2024-06-12 05:56:54,729 server.py:206 Starting server process, press CTRL+C to shutdown server...
+</span></span><span style="display:flex;"><span>INFO 2024-06-12 05:56:54,729 server.py:207 After application startup complete see http://127.0.0.1:8000/docs <span style="color:#66d9ef">for</span> API.
+</span></span></code></pre></div><p>Is the new model able to talk about SNO?</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab --config ./config-custom.yaml chat -m models/ggml-model-f16.gguf
 </span></span><span style="display:flex;"><span>╭────────────────────────────────────────────────── system ──────────────────────────────────────────────────╮
 </span></span><span style="display:flex;"><span>│ Welcome to InstructLab Chat w/ MODELS/GGML-MODEL-F16.GGUF <span style="color:#f92672">(</span>type /h <span style="color:#66d9ef">for</span> help<span style="color:#f92672">)</span>                               │

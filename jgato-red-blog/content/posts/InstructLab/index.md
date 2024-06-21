@@ -257,7 +257,7 @@ Looks like we have a new model that we can serve.
 
 So, lets serve the new extended model:
 
-```
+```bash
 $ ilab  --config ./config-custom.yaml serve
 INFO 2024-06-12 05:56:51,935 lab.py:340 Using model 'models/ggml-model-f16.gguf' with -1 gpu-layers and 4096 max context size.
 INFO 2024-06-12 05:56:54,729 server.py:206 Starting server process, press CTRL+C to shutdown server...
