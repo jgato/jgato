@@ -667,7 +667,7 @@ sup {
     border-bottom: 1px solid var(--border-color);
 }
 .post-meta {
-    color: rgba(255,98,102,.7);
+    color: #C1726D;
     font-size: 1rem;
     margin-bottom: 10px;
 }
