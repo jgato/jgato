@@ -323,7 +323,7 @@ Obviously the model does know nothing about me. So, I did a quickly train with s
  José Gato is a Senior Manager at Red Hat with more than 15 years of
  experience in the technology sector.
  He holds a Bachelor's degree in Computer Engineering from the Universidad
- çRey Juan Carlos and has worked  on various projects related to Open Source,
+ Rey Juan Carlos and has worked  on various projects related to Open Source,
  Cloud, IoT, AI, Data Science, and others. His career includes  several
  positions at different companies, such as Red Hat, Telefónica, HP, IBM,
  Accenture, and GatoTech.
@@ -344,7 +344,7 @@ Cool, not bad!! I love how he invented some companies like GatoTech ;)
 │ José Gato's mother is named Carmen.                                                                        │
 ```
 
-I think it is confusing my Surname with my second name and invited I have a brother called Jose Luis, but many people also makes mistakes with my name and surname. And yes, my brother is Juan. But my mother is not Carmen.
+I think it is confusing my Surname with my second name and invented I have a brother called Jose Luis, but many people also makes mistakes with my name and surname. And yes, my brother is Juan. But my mother is not Carmen.
 
 Well, this was just for a little bit of fun, and surely needs much more work tuning the model:
 
