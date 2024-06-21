@@ -13,10 +13,10 @@
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/posts/instructlab/</guid>
-      <description>My first steps with InstructLab and Granite model Recently, Red Hat and IBM released the open-source project InstructLab and community. The project aims to work with large language model (LLM) models such as Granite and Merlinite. Both Granite and Merlinite are also available as open-source releases from IBM.
+      <description>My first steps with InstructLab and Merlinite model Recently, Red Hat and IBM released the open-source project InstructLab and community. The project aims to work with large language model (LLM) models such as Granite and Merlinite. Both Granite and Merlinite are also available as open-source releases from IBM.
 Granite is trained on Meta&amp;rsquo;s Llama2-7B LLM model, while Merlinite is fine-tuned from Mistral.
 InstructLab helps users download, serve, and interact with LLM models.</description>
-      <content>&lt;h1 id=&#34;my-first-steps-with-instructlab-and-granite-model&#34;&gt;My first steps with InstructLab and Granite model&lt;/h1&gt;
+      <content>&lt;h1 id=&#34;my-first-steps-with-instructlab-and-merlinite-model&#34;&gt;My first steps with InstructLab and Merlinite model&lt;/h1&gt;
 &lt;p&gt;Recently, Red Hat and IBM released the open-source project &lt;a href=&#34;https://github.com/instructlab/instructlab&#34;&gt;InstructLab&lt;/a&gt; and community. The project aims to work with large language model (LLM) models such as  &lt;a href=&#34;https://huggingface.co/ibm-granite/granite-7b-base&#34;&gt;Granite&lt;/a&gt; and &lt;a href=&#34;https://huggingface.co/ibm/merlinite-7b&#34;&gt;Merlinite&lt;/a&gt;. Both Granite and Merlinite are also available as open-source releases from IBM.&lt;/p&gt;
 &lt;p&gt;Granite is trained on Meta&amp;rsquo;s Llama2-7B LLM model, while Merlinite is fine-tuned from Mistral.&lt;/p&gt;
 &lt;p&gt;InstructLab helps users download, serve, and interact with LLM models. Similar to other projects like Ollama, but with the main difference being that InstructLab focuses on retraining (fine-tuning) existing models. This allows for easy injection of new knowledge into an existing model without requiring AI skills.&lt;/p&gt;

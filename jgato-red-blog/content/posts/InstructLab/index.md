@@ -13,7 +13,7 @@ hideComments = false
 +++
 
 
-# My first steps with InstructLab and Granite model
+# My first steps with InstructLab and Merlinite model
 
 Recently, Red Hat and IBM released the open-source project [InstructLab](https://github.com/instructlab/instructlab) and community. The project aims to work with large language model (LLM) models such as  [Granite](https://huggingface.co/ibm-granite/granite-7b-base) and [Merlinite](https://huggingface.co/ibm/merlinite-7b). Both Granite and Merlinite are also available as open-source releases from IBM.
 
