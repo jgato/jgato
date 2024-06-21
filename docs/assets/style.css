@@ -1,4 +1,4 @@
-:root {
+:rot {
     --accent: #ffa86a;
     --background: #222129;
     --color: #fff;
@@ -398,9 +398,9 @@ body {
     color: #fff;
     color: var(--color);
     font-family: Ubuntu, sans-serif, monospace;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-variant-ligatures: contextual;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.02em;
     line-height: 1.54;
     margin: 0;
     padding: 0;
@@ -422,6 +422,7 @@ body {
 .headings--one-size h5,
 .headings--one-size h6 {
     line-height: 1.3;
+    color: #ff6266;
 }
 .headings--one-size h1:not(first-child),
 .headings--one-size h2:not(first-child),
@@ -482,7 +483,7 @@ figure figcaption {
     padding: 5px 10px;
 }
 figure figcaption.left {
-    text-align: left;
+    text-align: justify;
 }
 figure figcaption.center {
     text-align: center;
@@ -744,7 +745,7 @@ sup {
 .post {
     margin: 20px auto;
     padding: 20px 0;
-    text-align: left;
+    text-align: justify;
 }
 @media (max-width: 900px) {
     .post {
@@ -1008,7 +1009,7 @@ pre[class*="language-"] {
     -moz-tab-size: 4;
     -o-tab-size: 4;
     tab-size: 4;
-    text-align: left;
+    text-align: justify;
     white-space: pre;
     word-break: normal;
     word-spacing: normal;

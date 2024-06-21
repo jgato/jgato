@@ -6,7 +6,7 @@
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="First steps on using instructLab for creating your own LLM models" />
+<meta name="description" content="InstructLab is a novel set of tools and community designed for working with Large Language Models (LLMs). The platform helps users download, serve, and interact with LLM models. Similar to other projects like ollama, InstructLab facilitates seamless collaboration between humans and AI systems. Without requiring technical or artificial intelligence expertise, the tool allows users to effortlessly inject more knowledge into existing LLMs. In this post, I will walk you through my initial experiences using the platform and demonstrate how to leverage it for building additional knowledge on top of an existing LLM." />
 <meta name="keywords" content="AI, ArtificialInteligence, instructlab" />
 <meta name="robots" content="noodp" />
 <link rel="canonical" href="https://jgato.github.io/jgato/posts/instructlab/" />
@@ -41,7 +41,7 @@
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="InstructLab for creating your own &#39;ChatPGT&#39; like model">
-<meta property="og:description" content="First steps on using instructLab for creating your own LLM models" />
+<meta property="og:description" content="InstructLab is a novel set of tools and community designed for working with Large Language Models (LLMs). The platform helps users download, serve, and interact with LLM models. Similar to other projects like ollama, InstructLab facilitates seamless collaboration between humans and AI systems. Without requiring technical or artificial intelligence expertise, the tool allows users to effortlessly inject more knowledge into existing LLMs. In this post, I will walk you through my initial experiences using the platform and demonstrate how to leverage it for building additional knowledge on top of an existing LLM." />
 <meta property="og:url" content="https://jgato.github.io/jgato/posts/instructlab/" />
 <meta property="og:site_name" content="Jose Gato Blog" />
 
@@ -124,72 +124,78 @@
   </span>
   
   
+  <img src="/jgato/posts/instructlab/cover.png"
+    class="post-cover"
+    alt="InstructLab for creating your own &#39;ChatPGT&#39; like model"
+    title="Cover Image" />
 
 
   
 
   <div class="post-content"><div>
         <h1 id="my-first-steps-with-instructlab-and-granite-model">My first steps with InstructLab and Granite model<a href="#my-first-steps-with-instructlab-and-granite-model" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
-<p>Recently Red Hat and IBM released (as Opensource) the project (and community) <a href="https://github.com/instructlab/instructlab">instructLab</a>. A project that aims to work with LLM models, such as <a href="https://huggingface.co/ibm-granite/granite-7b-base">Granite</a> and <a href="https://huggingface.co/ibm/merlinite-7b">Merlinite</a>. Both models are also released as Opensource by IBM. Granite trained over the LLM model  Meta’s Llama2-7B, and Merlinite, fine tuned from Mistral.</p>
-<p>Instructlab, helps you to download, serve and interact with LLM models. Similar to other projects like <a href="https://github.com/ollama/ollama">ollama</a>. With the main difference, about hleping on retraining (fine tune). It allows an easy way to inject more knowledge into an existing models, without needing AI skills. You can teach the model with knowledge and features.</p>
-<p>In this blog I just want to give a quick overview on my first steps. In the futere, I would like to train the model, with the context of my own data-sets (documents, notes, etc), everything locally running (100% Opensource), as &ldquo;my second brain&rdquo;.</p>
-<h2 id="installing-instructlab-and-downloading-granite-model">Installing instructLab and downloading Granite model<a href="#installing-instructlab-and-downloading-granite-model" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
-<p>I will not go on how to install instructLab, because it is very well explained <a href="https://github.com/instructlab/instructlab?tab=readme-ov-file#-installing-ilab">here</a>.</p>
-<p>During this tutorial I am using Merlinite model, but you could also try Granite one. This is the way of downloading it:</p>
-<p>To download Granite:</p>
-<pre tabindex="0"><code>ilab download --repository instructlab/granite-7b-lab-GGUF --release main --filename granite-7b-lab-Q4_K_M.gguf
-</code></pre><p>And create a <code>config.yaml</code> with the new model:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">chat</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">context</span>: <span style="color:#ae81ff">default</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">greedy_mode</span>: <span style="color:#66d9ef">false</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">logs_dir</span>: <span style="color:#ae81ff">data/chatlogs</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">model</span>: <span style="color:#ae81ff">granite-7b-lab-Q4_K_M</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">model_type</span>: <span style="color:#ae81ff">llama</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">session</span>: <span style="color:#66d9ef">null</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vi_mode</span>: <span style="color:#66d9ef">false</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">visible_overflow</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">general</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">log_level</span>: <span style="color:#ae81ff">INFO</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">generate</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">chunk_word_count</span>: <span style="color:#ae81ff">1000</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">model</span>: <span style="color:#ae81ff">granite-7b-lab-Q4_K_M</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">model_type</span>: <span style="color:#ae81ff">llama</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">num_cpus</span>: <span style="color:#ae81ff">10</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">num_instructions</span>: <span style="color:#ae81ff">100</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">output_dir</span>: <span style="color:#ae81ff">generated</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">prompt_file</span>: <span style="color:#ae81ff">prompt.txt</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">seed_file</span>: <span style="color:#ae81ff">seed_tasks.json</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">taxonomy_base</span>: <span style="color:#ae81ff">origin/main</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">taxonomy_path</span>: <span style="color:#ae81ff">taxonomy</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">serve</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">gpu_layers</span>: -<span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">host_port</span>: <span style="color:#ae81ff">127.0.0.1</span>:<span style="color:#ae81ff">8000</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">max_ctx_size</span>: <span style="color:#ae81ff">4096</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">model_path</span>: <span style="color:#ae81ff">models/granite-7b-lab-Q4_K_M.gguf</span>
-</span></span></code></pre></div><p>Now in one terminal, serve (<code>ilab serve</code>) the model:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab serve --model-path models/merlinite-7b-lab-Q4_K_M.gguf                                                                                          
-</span></span><span style="display:flex;"><span>INFO 2024-06-14 07:46:06,435 lab.py:340 Using model <span style="color:#e6db74">&#39;models/merlinite-7b-lab-Q4_K_M.gguf&#39;</span> with -1 gpu-layers and <span style="color:#ae81ff">4096</span> max context size.                                                      
-</span></span><span style="display:flex;"><span>INFO 2024-06-14 07:46:08,237 server.py:206 Starting server process, press CTRL+C to shutdown server...                                                                                       
-</span></span><span style="display:flex;"><span>INFO 2024-06-14 07:46:08,237 server.py:207 After application startup complete see http://127.0.0.1:8000/docs <span style="color:#66d9ef">for</span> API.  
+<p>Recently, Red Hat and IBM released the open-source project <a href="https://github.com/instructlab/instructlab">InstructLab</a> and community. The project aims to work with large language model (LLM) models such as  <a href="https://huggingface.co/ibm-granite/granite-7b-base">Granite</a> and <a href="https://huggingface.co/ibm/merlinite-7b">Merlinite</a>. Both Granite and Merlinite are also available as open-source releases from IBM.</p>
+<p>Granite is trained on Meta&rsquo;s Llama2-7B LLM model, while Merlinite is fine-tuned from Mistral.</p>
+<p>InstructLab helps users download, serve, and interact with LLM models. Similar to other projects like Ollama, but with the main difference being that InstructLab focuses on retraining (fine-tuning) existing models. This allows for easy injection of new knowledge into an existing model without requiring AI skills.</p>
+<p>In this blog post, I will provide a brief overview of my initial experiences with InstructLab. In the future, I hope to train the model using my own dataset (documents, notes, etc.) locally, running 100% open-source as &ldquo;intelligent assistant&rdquo;.</p>
+<p>In general, is not recommended to train models with just a CPU. In my case, while writing this blog, I am using a &ldquo;powerful&rdquo; baremetal server. Which does not have GPU, but, it has lots of CPU and memory. Try to reproduce this on a regular laptop would be too tedious about the time it would take. Specially for generating synthetic data.</p>
+<h2 id="installing-instructlab-and-downloading-granite-model">Installing InstructLab and downloading Granite model<a href="#installing-instructlab-and-downloading-granite-model" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>I will not go on how to install InstructLab, because it is very well explained <a href="https://github.com/instructlab/instructlab?tab=readme-ov-file#-installing-ilab">here</a>.</p>
+<p>During this tutorial I am using Merlinite model, but you could also try Granite. If you followed previous instructions you will be able to easily serve the model:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab serve --model-path models/merlinite-7b-lab-Q4_K_M.gguf
+</span></span><span style="display:flex;"><span>INFO 2024-06-14 07:46:06,435 lab.py:340 Using model <span style="color:#e6db74">&#39;models/merlinite-7b-lab-Q4_K_M.gguf&#39;</span> with -1 gpu-layers and <span style="color:#ae81ff">4096</span> max context size.
+</span></span><span style="display:flex;"><span>INFO 2024-06-14 07:46:08,237 server.py:206 Starting server process, press CTRL+C to shutdown server...
+</span></span><span style="display:flex;"><span>INFO 2024-06-14 07:46:08,237 server.py:207 After application startup complete see http://127.0.0.1:8000/docs <span style="color:#66d9ef">for</span> API.
 </span></span></code></pre></div><p>And start chatting (<code>ilab chat</code>) in other terminal:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab chat
-</span></span><span style="display:flex;"><span>&gt;&gt;&gt; hi, who are you?  
-</span></span><span style="display:flex;"><span>Hello! I<span style="color:#960050;background-color:#1e0010">&#39;</span>m glad to see you. How can I assist you today? 
-</span></span></code></pre></div><p>Nice to meet you merlinite.</p>
+</span></span><span style="display:flex;"><span>&gt;&gt;&gt; hi, who are you?
+</span></span><span style="display:flex;"><span>Hello! I<span style="color:#960050;background-color:#1e0010">&#39;</span>m glad to see you. How can I assist you today?
+</span></span></code></pre></div><p>Nice to meet you merlinite. Until now everything was easy and smooth, a couple of commands and you can run your own model locally.</p>
 <h2 id="adding-new-knowledge-or-skills">Adding new knowledge or skills<a href="#adding-new-knowledge-or-skills" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p><em>This is just an example for playing/demoing and not trying to write the whole knowledge about SNO</em></p>
-<p>The model looks not very accurate about knowing about SNO, Single Node Openshift, that is a pity:</p>
+<p>After having a more extensive conversation with Merlinite, I was disappointed to discover that it doesn&rsquo;t have any knowledge about Single-Node OpenShift (SNO).</p>
+<blockquote>
+<p>Very briefly, an SNO is an Openshift cluster with one one node. Single-node Openshift. And if you don&rsquo;t know what is Openshift, you can think on it as vitamined Kuberneted provided by Red Hat.</p>
+</blockquote>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt;&gt;&gt; what <span style="color:#66d9ef">do</span> you know about SNO?
-</span></span><span style="display:flex;"><span>In OpenShift, SNO stands <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#34;Source to Native Operator.&#34;</span> It is a component that enables the seamless deployment and management of Kubernetes native applications within OpenShift environments. The Source to 
-</span></span><span style="display:flex;"><span>Native Operator simplifies the process of building, deploying, and managing containerized applications by automating various tasks related to application lifecycle management.
+</span></span><span style="display:flex;"><span>In OpenShift, SNO stands <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#34;Source to Native Operator.&#34;</span> It is a component
+</span></span><span style="display:flex;"><span>that enables the seamless deployment and management of Kubernetes native
+</span></span><span style="display:flex;"><span>applications within OpenShift environments. The Source to Native Operator
+</span></span><span style="display:flex;"><span>simplifies the process of building, deploying, and managing containerized
+</span></span><span style="display:flex;"><span>applications by automating various tasks related to application lifecycle
+</span></span><span style="display:flex;"><span>management.
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>&gt;&gt;&gt; No, it is not. In the context of Openshift, what is an SNO? 
-</span></span><span style="display:flex;"><span>SNO is a well-known acronym that stands <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#34;Simple Network Management Protocol.&#34;</span> It is a network protocol used by various devices to communicate and manage the status of their connections, ensuring seamless 
-</span></span><span style="display:flex;"><span>communication between them. I<span style="color:#960050;background-color:#1e0010">&#39;</span>m here to help with any questions or concerns you might have about SNO or any other topic!
-</span></span></code></pre></div><p>No, the model is not on the way of answering about SNO?</p>
-<p>How to add more knowledge or skills are well documented <a href="https://github.com/instructlab/instructlab?tab=readme-ov-file#-creating-new-knowledge-or-skills-and-training-the-model">here</a>.</p>
-<p>Basically, you create a <code>qna.yaml</code> over the Taxonomy (that was download during your installation, actually with <code>ilab init</code>).</p>
-<p>In my case, I will create a new knowledge, the qna format is:</p>
+</span></span><span style="display:flex;"><span>&gt;&gt;&gt; No, it is not. In the context of Openshift, what is an SNO?
+</span></span><span style="display:flex;"><span>SNO is a well-known acronym that stands <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#34;Simple Network Management
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Protocol.&#34;</span> It is a network protocol used by various devices to communicate
+</span></span><span style="display:flex;"><span>and manage the status of their connections, ensuring seamless communication
+</span></span><span style="display:flex;"><span>between them. I<span style="color:#960050;background-color:#1e0010">&#39;</span>m here to help with any questions or concerns you might have
+</span></span><span style="display:flex;"><span>about SNO or any other topic!
+</span></span></code></pre></div><p>No, the model is not on the way of answering about SNO? Lets extend Merlinite knowledge. How to add more knowledge or skills are well documented <a href="https://github.com/instructlab/instructlab?tab=readme-ov-file#-creating-new-knowledge-or-skills-and-training-the-model">here</a>.</p>
+<p>Basically, you create a <code>qna.yaml</code> over the Taxonomy (that was downloaded during your installation, actually with <code>ilab init</code>). The taxonomy is a set of directories with custom knowledge, something structured like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>knowledge/
+</span></span><span style="display:flex;"><span>├── animals
+</span></span><span style="display:flex;"><span>│   ├── birds
+</span></span><span style="display:flex;"><span>│   │   └── black_capped_checkadee
+</span></span><span style="display:flex;"><span>│   ├── black_rhino
+</span></span><span style="display:flex;"><span>│   ├── blue_foot_booby
+</span></span><span style="display:flex;"><span>│   ├── cloning
+</span></span><span style="display:flex;"><span>│   │   └── dolly_the_sheep
+</span></span><span style="display:flex;"><span>│   ├── indian_elephant
+</span></span><span style="display:flex;"><span>│   ├── tabby_cat
+</span></span><span style="display:flex;"><span>│   └── zebu
+</span></span><span style="display:flex;"><span>├── archeology
+</span></span><span style="display:flex;"><span>│   └── fossils
+</span></span><span style="display:flex;"><span>│       └── jurahylobittacus
+</span></span><span style="display:flex;"><span>├── astronomy
+</span></span><span style="display:flex;"><span>│   └── constellations
+</span></span><span style="display:flex;"><span>│       ├── Phoenix
+</span></span><span style="display:flex;"><span>│       └── Telescopium
+</span></span><span style="display:flex;"><span>├── biology
+</span></span><span style="display:flex;"><span>│   └── mitochondrion
+</span></span><span style="display:flex;"><span>├── british_history
+</span></span><span style="display:flex;"><span>│   └── royal_corgi
+</span></span></code></pre></div><p>In my case, I will create a new knowledge, writing a qna inside <code>knowledge/technical_manual/openshift/sno/</code>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#ae81ff">2</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">task_description</span>: <span style="color:#e6db74">&#39;Teach the model about SNO.&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">created_by</span>: <span style="color:#ae81ff">jgato</span>
@@ -237,10 +243,10 @@
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">commit</span>: <span style="color:#ae81ff">eb5da33</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">patterns</span>:
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#34;Meet single node OpenShift.md&#34;</span>
-</span></span></code></pre></div><p>Just some simple questions and answer and the reference to a document, that is just a Markdown version of a <a href="https://www.redhat.com/en/blog/meet-single-node-openshift-our-smallest-openshift-footprint-edge-architectures">blog talking about SNO</a>. All the credits for this knowledge to: Moran Goldboim, Eran Cohen.</p>
+</span></span></code></pre></div><p>Just some simple questions and answers, and the reference to a document with extra information. This document is just a Markdown version of a <a href="https://www.redhat.com/en/blog/meet-single-node-openshift-our-smallest-openshift-footprint-edge-architectures">blog talking about SNO</a>. All the credits for this knowledge to: Moran Goldboim, Eran Cohen.</p>
 <h2 id="generate-synthetic-data">Generate synthetic data<a href="#generate-synthetic-data" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
-<p>Now that we have our new knowledge, we need to generate more data. ilab will use a running model to generate more synthetic data from the added knowledge.</p>
-<p>First, validate the Taxonomy with your new kwnoledge:</p>
+<p>Now that we have our new knowledge, we need to generate more data. InstrucLab will use the running model to generate more synthetic data from the added knowledge.</p>
+<p>First, validate the Taxonomy with your new knowledge:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab diff
 </span></span><span style="display:flex;"><span>knowledge/technical_manual/openshift/sno/qna.yaml
 </span></span><span style="display:flex;"><span>Taxonomy in /taxonomy/ is valid :<span style="color:#f92672">)</span>
@@ -248,42 +254,44 @@
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab generate --model models/granite-7b-lab-Q4_K_M.gguf --num-cpus <span style="color:#ae81ff">24</span> --num-instructions <span style="color:#ae81ff">50</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>llama_cpp_python is built without hardware acceleration. ilab generate will be very slow.
-</span></span><span style="display:flex;"><span>Generating synthetic data using <span style="color:#e6db74">&#39;models/merlinite-7b-lab-Q4_K_M.gguf&#39;</span> model, taxonomy:<span style="color:#e6db74">&#39;taxonomy&#39;</span> against http://127.0.0.1:8000/v1 server                                                      
-</span></span><span style="display:flex;"><span>Cannot find prompt.txt. Using default prompt depending on model-family.                                                                                                                       
+</span></span><span style="display:flex;"><span>Generating synthetic data using <span style="color:#e6db74">&#39;models/merlinite-7b-lab-Q4_K_M.gguf&#39;</span> model, taxonomy:<span style="color:#e6db74">&#39;taxonomy&#39;</span> against http://127.0.0.1:8000/v1 server
+</span></span><span style="display:flex;"><span>Cannot find prompt.txt. Using default prompt depending on model-family.
 </span></span><span style="display:flex;"><span>  0%|                                                                   | 0/10 <span style="color:#f92672">[</span>00:00&lt;?, ?it/s<span style="color:#f92672">]</span>Synthesizing new instructions. If you aren<span style="color:#960050;background-color:#1e0010">&#39;</span>t satisfied with the generated instructions, interru
-</span></span><span style="display:flex;"><span>pt training <span style="color:#f92672">(</span>Ctrl-C<span style="color:#f92672">)</span> and try adjusting your YAML files. Adding more examples may help.                                                                                                        INFO 2024-06-14 07:48:23,797 generate_data.py:506 Selected taxonomy path knowledge-&gt;technical_manual-&gt;openshift-&gt;sno                                                                          
-</span></span><span style="display:flex;"><span>                                                                                                                                                                                              
-</span></span><span style="display:flex;"><span>                                                                                                                                                                                              
-</span></span><span style="display:flex;"><span>^<span style="color:#f92672">[[</span>1;5D^<span style="color:#f92672">[[</span>1;5D^<span style="color:#f92672">[[</span>1;5D^<span style="color:#f92672">[[</span>1;5D^<span style="color:#f92672">[[</span>1;5CQ&gt; What does SNO stand <span style="color:#66d9ef">for</span> in the OpenShift context?                                                                                                       
-</span></span><span style="display:flex;"><span>I&gt;                                                                                                                                                                                            
+</span></span><span style="display:flex;"><span>pt training <span style="color:#f92672">(</span>Ctrl-C<span style="color:#f92672">)</span> and try adjusting your YAML files. Adding more examples may help.                                                                                                        INFO 2024-06-14 07:48:23,797 generate_data.py:506 Selected taxonomy path knowledge-&gt;technical_manual-&gt;openshift-&gt;sno
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>^<span style="color:#f92672">[[</span>1;5D^<span style="color:#f92672">[[</span>1;5D^<span style="color:#f92672">[[</span>1;5D^<span style="color:#f92672">[[</span>1;5D^<span style="color:#f92672">[[</span>1;5CQ&gt; What does SNO stand <span style="color:#66d9ef">for</span> in the OpenShift context?
+</span></span><span style="display:flex;"><span>I&gt;
 </span></span><span style="display:flex;"><span>A&gt; SNO stands <span style="color:#66d9ef">for</span> Single Node OpenShift, which is a new type of OpenShift deployment introduced in OpenShift version 4.9. It combines both control and worker node functionalities into a sing
-</span></span><span style="display:flex;"><span>le server, making it an ideal solution <span style="color:#66d9ef">for</span> edge computing workloads with limited space, power, and cooling resources.                                                                         
-</span></span><span style="display:flex;"><span>                                                                                                                                                                                              
+</span></span><span style="display:flex;"><span>le server, making it an ideal solution <span style="color:#66d9ef">for</span> edge computing workloads with limited space, power, and cooling resources.
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span> 10%|█████▉                                                     | 1/10 <span style="color:#f92672">[</span>00:55&lt;08:23, 55.99s/it<span style="color:#f92672">]</span>INFO 2024-06-14 07:49:19,791 generate_data.py:506 Selected taxonomy path knowledge-&gt;technical_m
-</span></span><span style="display:flex;"><span>anual-&gt;openshift-&gt;sno    
+</span></span><span style="display:flex;"><span>anual-&gt;openshift-&gt;sno
 </span></span><span style="display:flex;"><span>..
 </span></span><span style="display:flex;"><span>..
 </span></span><span style="display:flex;"><span>INFO 2024-06-14 08:37:03,431 generate_data.py:608 <span style="color:#ae81ff">100</span> instructions generated, <span style="color:#ae81ff">24</span> discarded due to format <span style="color:#f92672">(</span>see generated/discarded_merlinite-7b-lab-Q4_K_M_2024-06-14T07_52_52.log<span style="color:#f92672">)</span>, <span style="color:#ae81ff">13</span> discarded due to rouge score
 </span></span><span style="display:flex;"><span>INFO 2024-06-14 08:37:03,431 generate_data.py:612 Generation took 2651.20s
-</span></span></code></pre></div><p>From the 10 instructions generated, only a few are discarded. Good sign.</p>
+</span></span></code></pre></div><p>From the 100 instructions generated, only a few are discarded. Good sign.</p>
 <blockquote>
-<p>For the final model, I re-generated the data with more instructions, with an iterative process of tuning the qna content and the number of instructions.</p>
+<p>For the final model, I re-generated the data with more instructions. This was an iterative process of tuning the qna content and the number of instructions.</p>
 </blockquote>
-<p>During the generation process, you will see how the model is generating questions and answers. If you dont like very how is going, maybe you will have to tune your qna.</p>
+<p>During the generation process, you&rsquo;ll see the model generating questions and answers. If you&rsquo;re not satisfied with how it&rsquo;s going, you may need to fine-tune your qna file.</p>
 <p>Some comments on generating data:</p>
 <ul>
-<li><code>--num-cpus</code> using 24, anyway, if there is no GPU&hellip; be patiente.</li>
-<li><code>--num-instructions</code> is about the new generative data sets created from you qna. I am using half of the default. Just an example, and without GPU it takes long time.</li>
-<li><code>--model</code> to specify that I am using Granite and not the default one.</li>
+<li><code>--num-cpus</code> using 24, anyway, if there is no GPU&hellip; be patient.</li>
+<li><code>--num-instructions</code> is about the new generative data sets created from you qna.</li>
+<li><code>--model</code> to specify that I am using Merlinite to generate the synthetic data.</li>
 </ul>
 <h2 id="train-the-model">Train the model<a href="#train-the-model" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <blockquote>
-<p>Notice: when writing this article the training on Linux and using CPU it is pretty tricky and produces not very accurate model. I tried <a href="https://github.com/instructlab/instructlab/issues/1305#issuecomment-2181257894">this suggestion</a> that provides me a working trained model. There are ongoing efforts and incoming features to provide better training no matter the platform. Anyway to train with a CPU is not something that you will take to train a model seriously.  But it is oka for playing and leaning.</p>
+<p>Notice: When writing this article, training on Linux using CPU was quite challenging and resulted in an &ldquo;inaccurate&rdquo; model. I tried the suggestion found <a href="https://github.com/instructlab/instructlab/issues/1305#issuecomment-2181257894">here</a>, which
+provided me with a working trained model. There are ongoing efforts to improve training and incoming features that will allow for better training regardless of the platform.
+While training on CPU is not suitable for serious model training, it can be useful for casual exploration and learning.</p>
 </blockquote>
 <blockquote>
-<p>Alternatives: You can try to to train with  this <a href="https://github.com/instructlab/instructlab/blob/main/notebooks/Training_a_LoRA_With_Instruct_Lab.ipynb">Google Colab Notebook</a>. There you can upload the generated data and train with a GPU. But, the training is more manual work, and you will not have the joy of using instructLab, that hides the complexity, and it does not require tech/AI skills.</p>
+<p>Alternatives: If you prefer to train without using your CPU, you can try training on <a href="https://github.com/instructlab/instructlab/blob/main/notebooks/Training_a_LoRA_With_Instruct_Lab.ipynb">Google Colab Notebook</a>. This notebook allows you to upload generated data and train the model using a GPU. However, keep in mind that this approach requires more manual effort, and you won&rsquo;t have the benefit of using InstructLab&rsquo;s user-friendly interface, which simplifies the complexity and doesn&rsquo;t require technical/AI expertise.</p>
 </blockquote>
-<p>So, lets train with Linux and CPU (but remember I am using a powerful server with lots of CPU and Memory).</p>
+<p>So, lets train using InstructLab with Linux and CPU.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab train --iters <span style="color:#ae81ff">300</span> --num-epochs <span style="color:#ae81ff">3</span>
 </span></span><span style="display:flex;"><span>INFO 2024-06-21 03:15:08,999 config.py:58 PyTorch version 2.3.1+cpu available.
 </span></span><span style="display:flex;"><span>LINUX_TRAIN.PY: NUM EPOCHS IS:  <span style="color:#ae81ff">3</span>
@@ -310,37 +318,61 @@
 </span></span><span style="display:flex;"><span>dataloader_config <span style="color:#f92672">=</span> DataLoaderConfiguration<span style="color:#f92672">(</span>dispatch_batches<span style="color:#f92672">=</span>None, split_batches<span style="color:#f92672">=</span>False, even_batches<span style="color:#f92672">=</span>True, use_seedable_sampler<span style="color:#f92672">=</span>True<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span>...
 </span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>Wrote training_results/final/ggml-model-f16.gguf    
-</span></span></code></pre></div><h2 id="chatting-with-the-new-model">Chatting with the new model<a href="#chatting-with-the-new-model" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
-<p>So, lets serve it (created a new config pointing the new model):</p>
+</span></span><span style="display:flex;"><span>Wrote training_results/final/ggml-model-f16.gguf
+</span></span></code></pre></div><p>Looks like we have a new model that we can serve.</p>
+<h2 id="chatting-with-the-new-model">Chatting with the new model<a href="#chatting-with-the-new-model" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>So, lets serve the new extended model:</p>
 <pre tabindex="0"><code>$ ilab  --config ./config-custom.yaml serve
 INFO 2024-06-12 05:56:51,935 lab.py:340 Using model &#39;models/ggml-model-f16.gguf&#39; with -1 gpu-layers and 4096 max context size.
 INFO 2024-06-12 05:56:54,729 server.py:206 Starting server process, press CTRL+C to shutdown server...
 INFO 2024-06-12 05:56:54,729 server.py:207 After application startup complete see http://127.0.0.1:8000/docs for API.
 </code></pre><p>Is the new model able to talk about SNO?</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab --config ./config-custom.yaml chat -m models/ggml-model-f16.gguf                                                                                                       
-</span></span><span style="display:flex;"><span>╭────────────────────────────────────────────────── system ──────────────────────────────────────────────────╮                                                                                                      
-</span></span><span style="display:flex;"><span>│ Welcome to InstructLab Chat w/ MODELS/GGML-MODEL-F16.GGUF <span style="color:#f92672">(</span>type /h <span style="color:#66d9ef">for</span> help<span style="color:#f92672">)</span>                               │                                                                                                      
-</span></span><span style="display:flex;"><span>╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯      
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ilab --config ./config-custom.yaml chat -m models/ggml-model-f16.gguf
+</span></span><span style="display:flex;"><span>╭────────────────────────────────────────────────── system ──────────────────────────────────────────────────╮
+</span></span><span style="display:flex;"><span>│ Welcome to InstructLab Chat w/ MODELS/GGML-MODEL-F16.GGUF <span style="color:#f92672">(</span>type /h <span style="color:#66d9ef">for</span> help<span style="color:#f92672">)</span>                               │
+</span></span><span style="display:flex;"><span>╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 </span></span><span style="display:flex;"><span>&gt;&gt;&gt; hi
-</span></span><span style="display:flex;"><span>Hello! I<span style="color:#960050;background-color:#1e0010">&#39;</span>m here to help answer any questions or concerns you might have. How can I assist you today?
+</span></span><span style="display:flex;"><span>Hello! I<span style="color:#960050;background-color:#1e0010">&#39;</span>m here to help answer any questions or concerns you might have.
+</span></span><span style="display:flex;"><span>How can I assist you today?
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>&gt;&gt;&gt; what <span style="color:#66d9ef">do</span> you know about SNO?      
-</span></span><span style="display:flex;"><span>SNO stands <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#34;Single Node OpenShift&#34;</span>, which is a deployment option <span style="color:#66d9ef">for</span> the OpenShift container platform that allows users to deploy and manage their workloads in a single node environment. This is particularly
-</span></span><span style="display:flex;"><span>useful when implementing edge computing scenarios, where resource constraints or connectivity issues may impact the availability of centralized management clusters. In such environments, it is essential to ensure
-</span></span><span style="display:flex;"><span>that the workload remains operational with its existing configuration, even when any centralized management functionality is unavailable.
+</span></span><span style="display:flex;"><span>&gt;&gt;&gt; what <span style="color:#66d9ef">do</span> you know about SNO?
+</span></span><span style="display:flex;"><span>SNO stands <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#34;Single Node OpenShift&#34;</span>, which is a deployment option <span style="color:#66d9ef">for</span> the
+</span></span><span style="display:flex;"><span>OpenShift container platform that allows users to deploy and manage their
+</span></span><span style="display:flex;"><span>workloads in a single node environment. This is particularly useful when
+</span></span><span style="display:flex;"><span>implementing edge computing scenarios, where resource constraints or
+</span></span><span style="display:flex;"><span>connectivity issues may impact the availability of centralized management
+</span></span><span style="display:flex;"><span>clusters. In such environments, it is essential to ensure that the workload
+</span></span><span style="display:flex;"><span>remains operational with its existing configuration, even when any centralized
+</span></span><span style="display:flex;"><span>management functionality is unavailable.
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Single Node OpenShift provides users with a consistent experience across the sites where OpenShift is deployed, and it enables operators to manage their environments in the same way, regardless of the size of the
-</span></span><span style="display:flex;"><span>deployment. This consistency helps reduce the complexity and cost associated with implementing multiple versions of OpenShift tailored <span style="color:#66d9ef">for</span> different use cases or environments.
+</span></span><span style="display:flex;"><span>Single Node OpenShift provides users with a consistent experience across the
+</span></span><span style="display:flex;"><span>sites where OpenShift is deployed, and it enables operators to manage their
+</span></span><span style="display:flex;"><span>environments in the same way, regardless of the size of the
+</span></span><span style="display:flex;"><span>deployment. This consistency helps reduce the complexity and cost associated
+</span></span><span style="display:flex;"><span>with implementing multiple versions of OpenShift tailored <span style="color:#66d9ef">for</span> different use
+</span></span><span style="display:flex;"><span>cases or environments.
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>&gt;&gt;&gt; which scenarios are recommended <span style="color:#66d9ef">for</span> SNO?
-</span></span><span style="display:flex;"><span>Single Node OpenShift is particularly well-suited <span style="color:#66d9ef">for</span> several use cases and environments, including:                                                                                                             
-</span></span><span style="display:flex;"><span> 1. **Edge computing scenarios:** Due to its small footprint and ability to operate autonomously, SNO is ideal <span style="color:#66d9ef">for</span> deployments that require minimal management overhead or where connectivity may be intermittent  or unavailable. This makes it especially useful in telecommunication service provider <span style="color:#f92672">(</span>TSP<span style="color:#f92672">)</span> Radio Access Network <span style="color:#f92672">(</span>RAN<span style="color:#f92672">)</span> implementations, which often have stringent latency requirements.                         
-</span></span><span style="display:flex;"><span> 2. **Resource-intensive workloads:** SNO can handle demanding tasks that consume the majority of available system resources, ensuring optimal performance even when facing heavy loads. This is particularly  useful in scenarios where users need to deploy and manage their workloads with minimal external intervention or dependency on centralized management clusters.
-</span></span></code></pre></div><p>Not bad!! ;) it learnt!!</p>
+</span></span><span style="display:flex;"><span>Single Node OpenShift is particularly well-suited <span style="color:#66d9ef">for</span> several use cases and
+</span></span><span style="display:flex;"><span>environments, including:
+</span></span><span style="display:flex;"><span> 1. **Edge computing scenarios:** Due to its small footprint and ability to
+</span></span><span style="display:flex;"><span> operate autonomously, SNO is ideal <span style="color:#66d9ef">for</span> deployments that require minimal
+</span></span><span style="display:flex;"><span> management overhead or where connectivity may be intermittent  or unavailable.
+</span></span><span style="display:flex;"><span> This makes it especially useful in telecommunication service provider <span style="color:#f92672">(</span>TSP<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span> Radio Access Network <span style="color:#f92672">(</span>RAN<span style="color:#f92672">)</span> implementations, which often have stringent
+</span></span><span style="display:flex;"><span> latency requirements.
+</span></span><span style="display:flex;"><span> 2. **Resource-intensive workloads:** SNO can handle demanding tasks that
+</span></span><span style="display:flex;"><span> consume the majority of available system resources, ensuring optimal
+</span></span><span style="display:flex;"><span> performance even when facing heavy loads. This is particularly
+</span></span><span style="display:flex;"><span> useful in scenarios where users need to deploy and manage their
+</span></span><span style="display:flex;"><span> workloads with minimal external intervention or dependency on centralized
+</span></span><span style="display:flex;"><span> management clusters.
+</span></span></code></pre></div><p>Not bad!! ;)</p>
+<p>It knows the basic, in the context of Openshift, an SNO is just a single-node Openshift. Interesting that also learnt how it is very related to Telco and RAN (Radio Access Network). Actually, this was the main reason of developing SNO by Red Hat.</p>
 <h1 id="conclusions">Conclusions<a href="#conclusions" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
-<p>InstructLab is settling the bases for a new community with tools that would be really awesome for create custom LLMs. Without needing to have tech/AI skills. Imagine modeling the knowledge of your company, or your personal documents and notes inside the taxonomy. You can build your own model and run it locally, preventing any possible issue about privacy.</p>
-<p>In this blog entry I have summarized my experience. But there are many tries and error behind. The tools is easy to use, it could looks like magic, but of course there is no magic. Your qna has to be well structured (and Markdown as much plain as possible), Linux with CPU is tricky, how may instructions your generated? how many epochs?etc. But, in general, the feeling and the experience is like a new world of opportunities.</p>
+<p>InstructLab is laying the groundwork for a new community by providing tools that enable users to create custom large language models (LLMs) without requiring technical or AI skills. Imagine modeling your company&rsquo;s knowledge, personal documents, and notes within a taxonomy. You can build and run your own model locally, ensuring complete privacy control.</p>
+<p>In this blog post, I summarize my experience with these tools. However, behind the scenes lies a journey of trial and error. The tools may seem magical in their ease of use, but, of course, there&rsquo;s no magic involved. To achieve success, you&rsquo;ll need
+to have well structure your qna (and keep Markdown formatting plain), as well as carefully manage Linux settings, CPU usage, and other parameters such as the number of instructions and epochs. Nevertheless, the overall feeling and experience is close to entering a new world of opportunities.</p>
 <p>So, lets contribute to this awesome new community!! :)</p>
 
       </div></div>

@@ -16,9 +16,9 @@ body {
     color: #fff;
     color: var(--color);
     font-family: Ubuntu, sans-serif, monospace;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-variant-ligatures: contextual;
-    letter-spacing: -.02em;
+    letter-spacing: .02em;
     line-height: 1.54;
     margin: 0;
     padding: 0;
@@ -100,7 +100,7 @@ figure figcaption {
     padding: 5px 10px;
 }
 figure figcaption.left {
-    text-align: left;
+    text-align: justify;
 }
 figure figcaption.center {
     text-align: center;
@@ -650,7 +650,7 @@ sup {
 .post {
     margin: 20px auto;
     padding: 20px 0;
-    text-align: left;
+    text-align: justify;
 }
 @media (max-width:900px) {
     .post {
@@ -667,7 +667,7 @@ sup {
     border-bottom: 1px solid var(--border-color);
 }
 .post-meta {
-    color: rgba(255,98,102,.7);
+    color: #C1726D;
     font-size: 1rem;
     margin-bottom: 10px;
 }
