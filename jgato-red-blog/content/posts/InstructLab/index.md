@@ -54,7 +54,7 @@ Nice to meet you merlinite. Until now everything was easy and smooth, a couple o
 *This is just an example for playing/demoing and not trying to write the whole knowledge about SNO*
 
 After having a more extensive conversation with Merlinite, I was disappointed to discover that it doesn't have any knowledge about Single-Node OpenShift (SNO).
-> Very briefly, an SNO is an Openshift cluster with one one node. Single-node Openshift. And if you don't know what is Openshift, you can think on it as vitamined Kuberneted provided by Red Hat. 
+> Very briefly, an SNO is an Openshift cluster with one one node. Single-node Openshift. And if you don't know what is Openshift, you can think on it as vitamined Kuberneted provided by Red Hat.
 
 
 ```bash
@@ -310,7 +310,7 @@ environments, including:
  management clusters.
 ```
 
-Not bad!! ;) 
+Not bad!! ;)
 
 It knows the basic, in the context of Openshift, an SNO is just a single-node Openshift. Interesting that also learnt how it is very related to Telco and RAN (Radio Access Network). Actually, this was the main reason of developing SNO by Red Hat.
 
@@ -319,52 +319,50 @@ It knows the basic, in the context of Openshift, an SNO is just a single-node Op
 Obviously the model does know nothing about me. So, I did a quickly train with some info from me and my LinkedIn Profile, and....:
 
 ```bash
->>> who is Jose Gato?                                                                             
-╭─────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ────────────────────────────────────╮
-│ José Gato is a Senior Manager at Red Hat with more than 15 years of experience in the technology sector.   │
-│ He holds a Bachelor's degree in Computer Engineering from the Universidad Rey Juan Carlos and has worked   │
-│ on various projects related to Open Source, Cloud, IoT, AI, Data Science, and others. His career includes  │
-│ several positions at different companies, such as Red Hat, Telefónica, HP, IBM, Accenture, and GatoTech.   │
-│ He is also a member of the Open Source Software (OSS) Group in Spain.                                      │
-╰─────────────────────────────────────────────────────────────────────────────────── elapsed 16.828 seconds ─╯
->>> how tall is he?                                                                                                                                                                                     
-╭────────────────────────────────────────────────────────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ───────────────────────────────────────────────────────────────────────────────────────╮
-│ Jose Gato's height is approximately 1.8 meters or 5 feet, 10 inches (in approximate terms).      
+>>> who is Jose Gato?
+ José Gato is a Senior Manager at Red Hat with more than 15 years of
+ experience in the technology sector.
+ He holds a Bachelor's degree in Computer Engineering from the Universidad
+ çRey Juan Carlos and has worked  on various projects related to Open Source,
+ Cloud, IoT, AI, Data Science, and others. His career includes  several
+ positions at different companies, such as Red Hat, Telefónica, HP, IBM,
+ Accenture, and GatoTech.
+ He is also a member of the Open Source Software (OSS) Group in Spain.
+
+>>> how tall is he?
+ Jose Gato's height is approximately 1.8 meters or 5 feet, 10 inches
+ (in approximate terms).
 
 ```
 
-Cool, not bad!!
+Cool, not bad!! I love how he invented some companies like GatoTech ;)
 
 ```bash
->>> who is his brother?                                                                           
-╭─────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ────────────────────────────────────╮                                                                                                      
-│ José Gato has two brothers: José Luis and Juan.                                                            │                                                                                                      
-╰──────────────────────────────────────────────────────────────────────────────────── elapsed 1.990 seconds ─╯                                                                                                      
->>> and his mother?                                                                               
-╭─────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ────────────────────────────────────╮                                                                                                      
-│ José Gato's mother is named Carmen.                                                                        │                                                                                                      
-╰──────────────────────────────────────────────────────────────────────────────────── elapsed 1.853 seconds ─╯    
+>>> who is his brother?
+│ José Gato has two brothers: José Luis and Juan.                                                            │
+>>> and his mother?
+│ José Gato's mother is named Carmen.                                                                        │
 ```
 
-I think it is confusing my Surname with my second name and invited I have a brother called Jose Luis, but many people also makes mistakes with my name and surname. And yes, my brother is Juan. But my mother is not Carmen. 
+I think it is confusing my Surname with my second name and invited I have a brother called Jose Luis, but many people also makes mistakes with my name and surname. And yes, my brother is Juan. But my mother is not Carmen.
 
 Well, this was just for a little bit of fun, and surely needs much more work tuning the model:
 
 ```bash
->>> would Jose Gato be the next CTO at Red Hat?                                                                                                                                                         
-╭────────────────────────────────────────────────────────────────────────────────────── models/merlinite-7b-lab-Q4_K_M.gguf ───────────────────────────────────────────────────────────────────────────────────────╮
-│ It is not known if he will be the next CTO at Red Hat. The position has been vacant since December 2021 when Guiherme de Almeida Filho left the company.                                                         │
-╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── elapsed 6.546 seconds ─╯
+>>> would Jose Gato be the next CTO at Red Hat?
+ It is not known if he will be the next CTO at Red Hat. The position has
+ been vacant since December 2021 when Guiherme de Almeida Filho left
+ the company.                                                         │
 
 ```
 
-not my intention anyway ;) 
+not my intention anyway ;)
 
 # Conclusions
 
 InstructLab is laying the groundwork for a new community by providing tools that enable users to create custom large language models (LLMs) without requiring technical or AI skills. Imagine modeling your company's knowledge, personal documents, and notes within a taxonomy. You can build and run your own model locally, ensuring complete privacy control.
 
-In this blog post, I summarize my experience with these tools. However, behind the scenes lies a journey of trial and error. The tools may seem magical in their ease of use, but, of course, there's no magic involved. To achieve success, you'll need 
+In this blog post, I summarize my experience with these tools. However, behind the scenes lies a journey of trial and error. The tools may seem magical in their ease of use, but, of course, there's no magic involved. To achieve success, you'll need
 to have well structure your qna (and keep Markdown formatting plain), as well as carefully manage Linux settings, CPU usage, and other parameters such as the number of instructions and epochs. Nevertheless, the overall feeling and experience is close to entering a new world of opportunities.
 
 So, lets contribute to this awesome new community!! :)
