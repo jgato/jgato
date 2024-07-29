@@ -203,11 +203,15 @@ spec:
  
 
 Some comments on the Manifest for the `OperatorPolicy`:
- * `remediationAction: inform` following the ZTP way of doing. Policies are always inform, and the user can use TALM to decide when (And to which clusters) we want to remediate/apply the Policy. In our case, because of the current limitation, we dont use TALM but RHACM Governance to enforce when needed.
- * `subscription` is the usual specification for an operator `subcription`. Here `startingCSV` will be the version that will be used to configure the cluster right after the installation. 
- * `versions`: This is the list of versions that we allow to get installed. For an starting installation, maybe here, we only want to allow one. Which is actually the one we used for the `startingCSV`. The `startingCSV` InstallPlan is always automatically approved, no matter your option on `upgradeApproval`. We could add more versions that we know have been validated, their different InstallPlans will be created, but none of them approved automatically. By the moment, we will keep only one version, following the idea of having a reference blueprint with an specific version of an operator validated. 
- * `upgradeApproval: none` , every InstallPlan created from `versions` will not be automatically approved. Only the `startingCSV` InstallPlan will be approved. This allow us to have very strict control on which versions of the operator is installed.
+ * `remediationAction` following the ZTP way of doing. Policies are always inform, and the user can use TALM to decide when (And to which clusters) we want to remediate/apply the Policy. In our case, because of the current limitation, we dont use TALM but RHACM Governance to enforce when needed. 
+ * `subscription` is the usual specification for an operator `subcription`. Here `startingCSV` will be the version that will be used to configure the cluster right after the installation. The corresponding InstallPlan will be automatically created.
+ * `versions`: This is the list of versions that we allow to get installed. We could add more versions that we know have been validated. By the moment, we will keep only one version, following the idea of having a reference blueprint with an specific version of an operator validated. 
+ * `upgradeApproval` , in a first phase, the `subscription.startingCSV` determinates the version to install the Operator. This plan is always automatically created and approved. From this `subscription.startingCSV` other InstallPlans will be created, that are susceptible to replace the currently installed version. For these InstallPlans, more in concrete, for the ones in the `versions` list, the `upgradeApproval` value determinates the later behaviour:
+   *  If none, none of the existing InstallPlans will be automatically approved.
+   *  If Automatic, the available InstallPlans that belongs to the list of validated`versions` will be automatically approved. According to their upgrade path. In general, it would happen that there is not a long upgrade chain. It is more common to observe that your current installed operator is just replaced by the last available version.
  
+It is important to remark that the available `InstallPlans` in the cluster, are derived from the created `subscription` and the `currentCSV`. Based on the available versions of the catalog, that can replace the starting/running operator's version. This is not managed by the  `OperatorPolicy`, this is just OLM way of doing. `OperatorPolicy` can manage which starting version to install, and how to upgrade to one of the available ones. 
+
 In summary, this `OperatorPolicy` will install the operator PTP with the version `v4.14.0-202404250639`. 
 
 Also, we create another Policy->ConfigurationPolicy to manage the creation of the Namespace needed to install the Operator. 
@@ -287,10 +291,12 @@ The Policy created has two different templates: the Namespace (`Policy->Configur
 
 We can enforce both in order to install the ptp-operator:
 
+![](assets/rhacm_lifecycle_mamangement_operators_20240729085444447.png)
+
 
 Notice how the OperatorPolicy will create all the different resources, including `Subscriptions`, `ClusterServiceVersion`, `OperatorGroup`, etc. But more important. 
 
-```yaml
+```bash
 > oc -n openshift-ptp get subscriptions,csv 
 NAME                                             PACKAGE        SOURCE             CHANNEL
 subscription.operators.coreos.com/ptp-operator   ptp-operator   redhat-operators   stable
@@ -301,47 +307,34 @@ clusterserviceversion.operators.coreos.com/ptp-operator.v4.14.0-202404250639   P
 
 ```
 
-It also creates the `InstallPlans` from our `spec.versions`, and it will approve the one from `startingCSV`. Even if the `upgradeApproval: None`
+Initially, we can see how it has been created `InstallPlan` for our `spec.currentCSV`, and it will be automatically approved, now matter how you `upgradeApproval' is set:`
 
-```yaml
+```bash
 > oc -n openshift-ptp get ip
-NAME                                             CSV                                 APPROVAL   APPROVED
-install-p8fwp   ptp-operator.v4.14.0-202407021509   Manual     false
+NAME            CSV                                 APPROVAL   APPROVED
+install-6hmpt   ptp-operator.v4.14.0-202404250639   Manual     true
 
 ```
 
 And this is a really cool feature for our need of having blueprints validated with specific versions of an operator.   
-
-
 
 After a while, the operator is installed and available.
 
 
 ![](assets/rhacm_lifecycle_mamangement_operators_20240724154654166.png)
 
-## Upgrading the operator
+Once the operator is installed, OLM will check the available upgrades to the operator from the available ones in the catalog. The ones marked as a replacement for the curret version. So, after a while, you could see other available `InstallPlans`:
 
-To install an operator on an specific version is part of the functionality that we need. But, what about upgrading the operator, and again. to a new specific version and not the last available one?
 
-Our `OperatorPolicy` allowed version contained only one. Now, we have validated a newer version of the operator, so we can add it to the versions list:
-
-```yaml
-            startingCSV: ptp-operator.v4.14.0-202404250639
-          versions:
-          - 4.14.0-202404250639
-		  - 4.14.0-202406180839
-```
-
-[This did not worked me, I have to re-install to try on a clean installation]
-After forcing the remediation of the Policy, a new `InstallPlan` appears:
-
-```yaml
+```bash
+$ oc -n openshift-ptp get ip
+NAME            CSV                                 APPROVAL   APPROVED
+install-5nzzk   ptp-operator.v4.14.0-202407021509   Manual     false
+install-6hmpt   ptp-operator.v4.14.0-202404250639   Manual     true
 
 ```
 
-The `InstallPlan` is not approved yet. Here, TALM would do a great job about. Right now, we can manually approved, or to change the `upgradeApproval: Automatic`
-
-It is cool, how, even if there exists newer versions of the operator, the `Policy` remains compliant. If we rather prefer to get warned about new versions availble, this can be changed at `OperatorPolicy` definition:
+It is cool, how, even if there exists newer versions of the operator (`ptp-operator.v4.14.0-202407021509`, the `Policy` remains compliant. As long as the current installed version is in the list of validated `versions`. If we rather prefer to get warned about new versions available, this can be changed at `OperatorPolicy` definition:
 
 ```yaml
 spec:
@@ -352,9 +345,52 @@ spec:
 
 ```
 
-But maybe not our case.
+Maybe this is not our case, because we want to get stick to only one version.
 
-By the moment, we manually approve the IP.
+
+## Upgrading the operator
+
+To install an operator on an specific version is part of the functionality that we need. But, what about upgrading the operator to a newer version?
+
+For that, we can extend the list of validated versions:
+
+```yaml
+            startingCSV: ptp-operator.v4.14.0-202404250639
+          versions:
+          - 4.14.0-202404250639
+		  - 4.14.0-202407021509   <=== added 
+```
+
+Remember: this list cannot be created with just the version we would like to have. It is a list of validated versions, but, the newly added should exists as a replacement for the current one. How each version of an operator is released to be able to substitute other previous versions, it depends on the release procedures of each operator owner. You would know, in advance, the upgrades path/chain, or, you can check in the subscription which is the next available version:
+
+```bash
+$ oc -n openshift-ptp get subscriptions.operators.coreos.com  ptp-operator -o jsonpath='{.status.currentCSV}'
+ptp-operator.v4.14.0-202407021509
+```
+
+The version `ptp-operator.v4.14.0-202407021509` could be added to our versions list and it could be managed/approved by the `OperatorPolicy`. Maybe this is not the last available one. It is the next step in the upgrade path of the currently installed one. 
+
+So, we can just add this newer version to the `versions` list. After updating our `OperatorPolicy` and the `spec.versions` the `InstallPlan` is not approved yet, even if it is in our list of validated versions:
+
+```
+$ oc -n openshift-ptp get ip
+NAME            CSV                                 APPROVAL   APPROVED
+install-5nzzk   ptp-operator.v4.14.0-202407021509   Manual     false
+install-6hmpt   ptp-operator.v4.14.0-202404250639   Manual     true
+```
+
+Why the `InstallPlan` is not approved yet?. Because we have `upgradeApproval: none`. So, even if the added version has a correct `InstallPlan` (means, it can replace the current version), we are configuring the `OperatorPolicy` to not automatically approve it. Right now, we can manually approved, or to change the `upgradeApproval: Automatic`. 
+> Here, TALM would do a great job about managing this approvals 
+
+By the moment, we edit and approve manually the InstallPlan. Making the operator to be upgraded to the new added version.
+
+```bash
+$ oc -n openshift-ptp get csv
+NAME                                DISPLAY        VERSION               REPLACES                            PHASE
+ptp-operator.v4.14.0-202407021509   PTP Operator   4.14.0-202407021509   ptp-operator.v4.14.0-202404250639   Succeeded
+```
+
+
 
 
 ## Improvements in ZTP to easiness all the process:
@@ -362,6 +398,7 @@ By the moment, we manually approve the IP.
  * PGT generator to support encapsulate OperatorPolicies.
  * Configure `ClusterSet` and `ClusterSetBindings`
  * TALM to manage Policies with two different kinds of PolicyTemplates (OperatorPolicies and ConfigurationPolicies) inside the same Policy
+ * TALM to manage the `InstallPlans` approvals 
  
  
  Bugs found:
