@@ -503,7 +503,7 @@ spec:
 
 ```
 
-TALM cannot manage Policies when we our `policy-templates` have `object-definitions` different than `ConfigurationPolicies`. But, as we explained above, to use the new RHACM Governance API to manage operators, we have to use an `OperatorPolicy`.
+TALM cannot manage Policies when our `policy-templates` have `object-definitions` different than `ConfigurationPolicies`. But, as we explained above, to use the new RHACM Governance API to manage operators, we have to use an `OperatorPolicy`.
 
 For just a quick demo, I have created a custom version of TALM, with very basic support of OperatorPolicies. You can find it [here](https://github.com/jgato/cluster-group-upgrades-operator/tree/try-operatorpolicy-support).
 
@@ -581,7 +581,7 @@ It seems that TALM knows how to manage `OperatorPolicies`, no errors apparently.
 > oc -n ztp-install delete cgu vsno5
 clustergroupupgrade.ran.openshift.io "vsno5" deleted
 
-> > oc -n ztp-install get cgu vsno5 -o yaml
+> oc -n ztp-install get cgu vsno5 -o yaml
 apiVersion: ran.openshift.io/v1alpha1
 kind: ClusterGroupUpgrade
 metadata:
@@ -682,9 +682,11 @@ ztp-common.common-subscriptions-policy   inform               Compliant         
 
 ```
 
-The `Policy`is still compliant, this is because, the running version is under the validated `versions` list. So, for the controller everything is oka. Unless you configure the `OperatorPolicy` to be NotCompliant if newer versions available.
+The `Policy`is still compliant, this is because, the running version is under the validated `versions` list. So, for the controller everything is oka. There is a new version, it is under the validated ones. You dont have to be on the last available one. Unless you configure the `OperatorPolicy` to be NotCompliant if newer versions available.
 
-Anyway, someone/something has to approve the InstallPlan, it could be with `OperatorPolicy.spec.upgradeApproval` as Automatic. Ideally, TALM would do the work. How TALM should integrate here? It is not clear for me. But, we can add the new version, and manually approve it, to see how to upgrade the new version:
+Anyway, someone/something has to approve the InstallPlan, it could be with `OperatorPolicy.spec.upgradeApproval` as Automatic. Ideally, TALM would do the work. How TALM should integrate here? It is not clear for me. 
+
+For demoing, we can manually approve it, to see how to upgrade the operator:
 
 ```bash
 [spoke]$ oc -n openshift-ptp get ip
