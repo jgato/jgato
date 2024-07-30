@@ -403,3 +403,302 @@ ptp-operator.v4.14.0-202407021509   PTP Operator   4.14.0-202407021509   ptp-ope
  
  Bugs found:
   * [TALM policy objects inspect wrong mesage](https://issues.redhat.com/browse/OCPBUGS-37466)
+  
+
+# Demonstration with an hypothetical TALM capable of managing OperatorPolicies
+
+The objective here is to do a proof of concept or demo, trying to emulate the way we would like to deploy operators in a Telco scenario. Basically, I have a ZTP4.16 environment capable of deploy a SNO. The ptp operator will be installed with a new Policy, that installs an specific version of the operator: `4.14.0-202404250639`
+
+The PGT plugin cannot manage OperatorPolicies, therefore, the OperatorPolicy is directly created using the RHACM Governance API:
+
+```yaml
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "3"
+  name: common-ran-operators
+  namespace: ztp-common
+spec:
+  disabled: false
+  remediationAction: inform
+  policy-templates:
+    #####
+    # Create the OperatorPolicy to deploy the Operator
+    #####
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1beta1
+        kind: OperatorPolicy
+        metadata:
+          name: install-operators
+        spec:
+          complianceType: musthave
+          remediationAction: inform
+          severity: critical
+          upgradeApproval: None
+          operatorGroup:
+            name: openshift-ptp
+            namespace: openshift-ptp
+            targetNamespaces:
+            - openshift-ptp
+          subscription:
+            channel: stable
+            name: ptp-operator
+            source: redhat-operators
+            sourceNamespace: openshift-marketplace
+            startingCSV: ptp-operator.v4.14.0-202404250639
+          versions:
+          - 4.14.0-202404250639
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: install-operators-ns
+        spec:
+          remediationAction: inform
+          evaluationInterval:
+            compliant: 10m
+            noncompliant: 10s
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: openshift-ptp
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: common-ran-operators-placement-binding
+  namespace: ztp-common
+placementRef:
+  name: common-ran-operators-placement
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+subjects:
+  - name: common-ran-operators
+    apiGroup: policy.open-cluster-management.io
+    kind: Policy
+    #  - name: common-ran-operators-ns
+    #    apiGroup: policy.open-cluster-management.io
+    #    kind: Policy
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: common-ran-operators-placement
+  namespace: ztp-common
+spec:
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: common
+              operator: In
+              values:
+                - 'true'
+  clusterSets:
+    - default
+
+```
+
+TALM cannot manage Policies when we our `policy-templates` have `object-definitions` different than `ConfigurationPolicies`. But, as we explained above, to use the new RHACM Governance API to manage operators, we have to use an `OperatorPolicy`.
+
+For just a quick demo, I have created a custom version of TALM, with very basic support of OperatorPolicies. You can find it [here](https://github.com/jgato/cluster-group-upgrades-operator/tree/try-operatorpolicy-support).
+
+> It is not expected to be a real support of `OperatorPolicies`, just me adding some ifs here and there. TALM is only designed for `ConfigurationPolicies`, so, my added new conditions are far of been something realistic. Something quick for a demo.
+
+Using my custom TALM version and the previous created Policy, everything synch with ZTP GitOps. We deploy a new SNO baremetal cluster that will be configured on day-1 by:
+
+ * `common-config-policy` created by a PGT with some basic configurations 
+ * `common-subscriptions-policy` created by a PGT with our usual subscriptions for operators (but ptp)
+ * `common-ran-operators` which is an ACM Policy with:
+   *  `ConfigurationPolicy` to create the operator Namespace
+   * `OperatorPolicy` to create the OperatorPolicy for the ptp operator
+  * `group-du-sno-validator-du-validator`  created by a PGT that makes usual validations of the installation and readiness. 
+
+Here we dont cover the deploment process, but, it is just a `Siteconfig` that will trigger the installation. When the cluster is created, TALM start working and remediating all the Policies. Here it is the real demo.
+
+The cluster has been created:
+```bash
+> oc get managedcluster vsno5 
+NAME    HUB ACCEPTED   MANAGED CLUSTER URLS                                              JOINED   AVAILABLE   AGE
+vsno5   true           https://api.vsno5.spoke.el8k.se-lab.eng.rdu2.dc.redhat.com:6443   True     True        37m
+
+```
+
+
+TALM will create automatically a first CGU. This custom version of TALM supports a very light/simple/test/playing for `OperatorPolicies`. So, at least, this CGU should contain the new Policies and should be marked as "correct":
+
+```yaml
+apiVersion: ran.openshift.io/v1alpha1
+kind: ClusterGroupUpgrade
+metadata:
+ ...
+ ...
+  name: vsno5
+  namespace: ztp-install
+ ...
+ ...
+spec:
+ ...
+ ...
+  clusters:
+  - vsno5
+  enable: true
+  managedPolicies:
+  - common-config-policy
+  - common-subscriptions-policy
+  - group-du-sno-validator-du-validator
+ ...
+ ...
+status:
+  computedMaxConcurrency: 1
+  conditions:
+  - lastTransitionTime: "2024-07-30T12:17:36Z"
+    message: All selected clusters are valid
+    reason: ClusterSelectionCompleted
+    status: "True"
+    type: ClustersSelected
+  - lastTransitionTime: "2024-07-30T12:17:36Z"
+    message: Completed validation
+    reason: ValidationCompleted
+    status: "True"
+    type: Validated
+  - lastTransitionTime: "2024-07-30T12:17:36Z"
+    message: Remediating non-compliant policies
+    reason: InProgress
+    status: "True"
+    type: Progressing
+ ...
+ ...
+```
+
+It seems that TALM knows how to manage `OperatorPolicies`, no errors apparently. But, the `common-ran-operators` Policy is not under the `managedPolicies`. Something wrong on my implementation. If I delete the cgu, and let TALM to recreate it, now it appears:
+
+```yaml
+> oc -n ztp-install delete cgu vsno5
+clustergroupupgrade.ran.openshift.io "vsno5" deleted
+
+> > oc -n ztp-install get cgu vsno5 -o yaml
+apiVersion: ran.openshift.io/v1alpha1
+kind: ClusterGroupUpgrade
+metadata:
+ ...
+ ...
+  name: vsno5
+  namespace: ztp-install
+ ...
+ ...
+spec:
+ ...
+ ...
+  clusters:
+  - vsno5
+  enable: true
+  managedPolicies:
+  - common-config-policy
+  - common-subscriptions-policy
+  - common-ran-operators
+  - group-du-sno-validator-du-validator
+ ...
+ ...
+status:
+  computedMaxConcurrency: 1
+  conditions:
+  - lastTransitionTime: "2024-07-30T12:20:30Z"
+    message: All selected clusters are valid
+    reason: ClusterSelectionCompleted
+    status: "True"
+    type: ClustersSelected
+  - lastTransitionTime: "2024-07-30T12:20:30Z"
+    message: Completed validation
+    reason: ValidationCompleted
+    status: "True"
+    type: Validated
+  - lastTransitionTime: "2024-07-30T12:20:30Z"
+    message: Remediating non-compliant policies
+    reason: InProgress
+    status: "True"
+    type: Progressing
+ ...
+ ...
+```
+
+Now, TALM took the management of all the required `Policies` including the one of Kind `OperatorPolicy`. Eventually, TALM will remediate and enforce the Policy:
+
+```bash
+> oc -n vsno5 get policies
+NAME                                     REMEDIATION ACTION   COMPLIANCE STATE   AGE
+ztp-common.common-config-policy          inform               Compliant          43m
+ztp-common.common-ran-operators          inform               Compliant          6m43s
+ztp-common.common-subscriptions-policy   inform               Compliant          43m
+
+```
+
+
+Once this is done, the new RHACM controller for `OpeartorPolicies` should do the work and deploy the operator on the version `4.14.0-202404250639`:
+
+```bash
+[spoke]$ oc -n openshift-ptp get csv
+NAME                                DISPLAY        VERSION               REPLACES   PHASE
+ptp-operator.v4.14.0-202404250639   PTP Operator   4.14.0-202404250639              Succeeded
+```
+
+Which is the version we wanted to install. Even if there are other available in the catalog, and that could replace it:
+
+```bash
+[spoke]$ oc -n openshift-ptp get ip
+NAME            CSV                                 APPROVAL   APPROVED
+install-mdt2d   ptp-operator.v4.14.0-202407021509   Manual     false
+install-s9rkz   ptp-operator.v4.14.0-202404250639   Manual     true
+
+```
+
+What about upgrades? With the `OperatorPolicy` we can specify other validated and available versions:
+
+```yaml
+...
+            startingCSV: ptp-operator.v4.14.0-202404250639
+          versions:
+          - 4.14.0-202404250639
+          - 4.14.0-202407021509
+
+```
+
+The `OperatorPolicy` controls the different versions (apart from the starting one) with the `versions` list, and the `OperatorPolicy.spec.upgradeApproval`. If we re-sync the `Policy` including the new version as valid, nothing will happen. 
+
+```
+[spoke~]$ oc -n vsno5 get operatorpolicies.policy.open-cluster-management.io -o yaml  | grep versions -A 2
+    versions:
+    - 4.14.0-202404250639
+    - 4.14.0-202407021509
+[spoke]$ oc -n vsno5 get policies
+NAME                                     REMEDIATION ACTION   COMPLIANCE STATE   AGE
+ztp-common.common-config-policy          inform               Compliant          13m
+ztp-common.common-ran-operators          inform               Compliant          13m
+ztp-common.common-subscriptions-policy   inform               Compliant          13m
+
+```
+
+The `Policy`is still compliant, this is because, the running version is under the validated `versions` list. So, for the controller everything is oka. Unless you configure the `OperatorPolicy` to be NotCompliant if newer versions available.
+
+Anyway, someone/something has to approve the InstallPlan, it could be with `OperatorPolicy.spec.upgradeApproval` as Automatic. Ideally, TALM would do the work. How TALM should integrate here? It is not clear for me. But, we can add the new version, and manually approve it, to see how to upgrade the new version:
+
+```bash
+[spoke]$ oc -n openshift-ptp get ip
+NAME            CSV                                 APPROVAL   APPROVED
+install-mdt2d   ptp-operator.v4.14.0-202407021509   Manual     false
+install-s9rkz   ptp-operator.v4.14.0-202404250639   Manual     true
+
+[spoke]$ oc -n openshift-ptp patch installplan install-mdt2d  --type merge --patch '{"spec":{"approved":true}}'
+installplan.operators.coreos.com/install-mdt2d patched
+
+[spoke]$ $ oc -n openshift-ptp get csv
+NAME                                DISPLAY        VERSION               REPLACES                            PHASE
+ptp-operator.v4.14.0-202407021509   PTP Operator   4.14.0-202407021509   ptp-operator.v4.14.0-202404250639   Succeeded
+
+```
+
+The operator has been upgraded, and the Policy is compliant, because the new version belongs to the validated `versions` list. 
