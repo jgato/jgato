@@ -448,7 +448,7 @@ spec:
             sourceNamespace: openshift-marketplace
             startingCSV: ptp-operator.v4.14.0-202404250639
           versions:
-          - 4.14.0-202404250639
+1)           - ptp-operator.v4.14.0-202404250639
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
@@ -662,8 +662,8 @@ What about upgrades? With the `OperatorPolicy` we can specify other validated an
 ...
             startingCSV: ptp-operator.v4.14.0-202404250639
           versions:
-          - 4.14.0-202404250639
-          - 4.14.0-202407021509
+          - ptp-operator.v4.14.0-202404250639
+          - ptp-operator.v4.14.0-202407021509
 
 ```
 
