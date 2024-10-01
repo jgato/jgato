@@ -100,3 +100,19 @@ VERSIONS
 1.1.12
 1.2.3179-0756b70e6
 ```
+
+
+
+## Known issue
+
+
+
+### Authorization errors
+
+I think oc-mirror is confusing where to find the auth/pull-secret. I usually have it on `~/.config/containers/auth.json`  but it would be expected on  `${XDG_RUNTIME_DIR}/containers/auth.json`
+
+So:
+
+```bash
+> cp ~/.config/containers/auth.json ${XDG_RUNTIME_DIR}/containers/auth.json
+```
