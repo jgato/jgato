@@ -4,6 +4,12 @@ Using yq from [mikefarah](https://github.com/mikefarah/yq)
 
 ## Modify yamls
 
+ * Select elements that you pipe to xargs
+ 
+```bash
+> oc get managedcluster -o yaml | yq '.items[].metadata | select( .labels.vendor == "OpenShift" ) | .name' | xargs -n 1  -r  oc get managedcluster
+
+```
  * Add an element to an array:
 
 ```yaml
