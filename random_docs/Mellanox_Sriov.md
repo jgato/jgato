@@ -552,7 +552,7 @@ sh-5.1#
 exit
 
 Removing debug pod ...
-[jgato@jump ~]$ oc -n openshift-sriov-network-operator get SriovNetworkNodeState htworker02.core.e5gc.bos2.lab -o jsonpath='{.status.syncStatus}{"\n"}'
+$ oc -n openshift-sriov-network-operator get SriovNetworkNodeState htworker02.core.e5gc.bos2.lab -o jsonpath='{.status.syncStatus}{"\n"}'
 Succeeded
 
 ```
