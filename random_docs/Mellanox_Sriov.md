@@ -513,7 +513,7 @@ This time will not use the tool `mstconfig`. We will take a worker that was neve
 
 But all the htworker were already configured by the Sriov operator, before enabling Secureboot. That is our **usual scenario**. 
 
-So, htworker02:
+So, htworker02 has secureboot disabled, and all the Sriov VFs configured:
 ```bash
 $ oc debug node/htworker02.core.e5gc.bos2.lab
 Starting pod/htworker02coree5gcbos2lab-debug-6t4rw ...
@@ -534,7 +534,7 @@ Succeeded
 
 ```
 
-Reboot and enable Secureboot on worker02.
+Reboot and enable Secureboot on worker02 (of course the plugin is still disabled):
 
 ```bash
 $ oc debug node/htworker02.core.e5gc.bos2.lab
