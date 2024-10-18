@@ -171,6 +171,7 @@ Failed
 So, we [hit this know bug](https://access.redhat.com/solutions/7073932). SRIOV Operator, with the Mellanox plugin and SecureBoot enabled cannot work together.
 
 ## Trying the workaround
+*Thanks to Yuval Kashtan who created the WA, I am must testing it*
 
 Disable again secureboot.
 
@@ -502,5 +503,150 @@ I would demonstrate this with:
  * There, I have not used `mstconfig`
  * With the Mellanox plugin disabled, I only have to enable secureboot there.
  * Check configuration is oka
+ 
+ **Not tested at all: Create networks and pods using this VFs with the plugin disabled and Secureboot enabled.**
+
+
+## Trying the workaround second phase
+
+This time will not use the tool `mstconfig`. We will take a worker that was never used `mstconfig` there.
+
+But all the htworker were already configured by the Sriov operator, before enabling Secureboot. That is our **usual scenario**. 
+
+So, htworker02:
+```bash
+$ oc debug node/htworker02.core.e5gc.bos2.lab
+Starting pod/htworker02coree5gcbos2lab-debug-6t4rw ...
+To use host binaries, run `chroot /host`
+chrootPod IP: 192.168.82.72
+If you don't see a command prompt, try pressing enter.
+sh-5.1# chroot /host
+sh-5.1#  mokutil --sb-state
+SecureBoot disabled
+sh-5.1# 
+exit
+sh-5.1# 
+exit
+
+Removing debug pod ...
+$ oc -n openshift-sriov-network-operator get SriovNetworkNodeState htworker02.core.e5gc.bos2.lab -o jsonpath='{.status.syncStatus}{"\n"}'
+Succeeded
+
+```
+
+Reboot and enable Secureboot on worker02.
+
+```bash
+$ oc debug node/htworker02.core.e5gc.bos2.lab
+Starting pod/htworker02coree5gcbos2lab-debug-hrgwc ...
+To use host binaries, run `chroot /host`
+chroot /host
+Pod IP: 192.168.82.72
+If you don't see a command prompt, try pressing enter.
+sh-5.1# chroot /host
+sh-5.1# mokutil --sb-state
+SecureBoot enabled
+sh-5.1# 
+exit
+sh-5.1# 
+exit
+
+Removing debug pod ...
+[jgato@jump ~]$ oc -n openshift-sriov-network-operator get SriovNetworkNodeState htworker02.core.e5gc.bos2.lab -o jsonpath='{.status.syncStatus}{"\n"}'
+Succeeded
+
+```
+
+and all the VFs configured, as previously created by the Sriov operator.
+
+```yaml
+status:
+  interfaces:
+  - Vfs:
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 42:e3:a8:14:f8:26
+      mtu: 3040
+      name: ens2f0v0
+      pciAddress: 0000:0d:00.2
+      vendor: 15b3
+      vfID: 0
+...
+...
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 2a:70:5e:49:35:bd
+      mtu: 3040
+      name: ens2f0v3
+      pciAddress: 0000:0d:00.5
+      vendor: 15b3
+      vfID: 3
+    deviceID: "1017"
+    driver: mlx5_core
+    eSwitchMode: legacy
+    linkSpeed: 100000 Mb/s
+    linkType: ETH
+    mac: b8:3f:d2:e4:ae:5e
+    mtu: 3040
+    name: ens2f0
+    numVfs: 4
+    pciAddress: 0000:0d:00.0
+    totalvfs: 4
+    vendor: 15b3
+ ...
+ ...
+  - Vfs:
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: c2:3f:df:b1:d0:af
+      mtu: 3040
+      name: ens7f0v0
+      pciAddress: 0000:b5:00.2
+      vendor: 15b3
+      vfID: 0
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: aa:ea:9e:38:0e:e6
+      mtu: 3040
+      name: ens7f0v1
+      pciAddress: 0000:b5:00.3
+      vendor: 15b3
+      vfID: 1
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: fe:4b:d4:fb:59:ec
+      mtu: 3040
+      name: ens7f0v2
+      pciAddress: 0000:b5:00.4
+      vendor: 15b3
+      vfID: 2
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 82:57:fd:5a:ff:9f
+      mtu: 3040
+      name: ens7f0v3
+      pciAddress: 0000:b5:00.5
+      vendor: 15b3
+      vfID: 3
+    deviceID: "1017"
+    driver: mlx5_core
+    eSwitchMode: legacy
+    linkSpeed: 100000 Mb/s
+    linkType: ETH
+    mac: b8:3f:d2:e4:af:26
+    mtu: 3040
+    name: ens7f0
+    numVfs: 4
+    pciAddress: 0000:b5:00.0
+    totalvfs: 4
+    vendor: 15b3
+ ...
+ ...
+  syncStatus: Succeeded
+
+
+```
+
+So, we can configure Sriov as our scenario, and just disable the plugin before enabling secureboot. This will make the VFs to be created correctly.
  
 **Not tested at all: Create networks and pods using this VFs with the plugin disabled and Secureboot enabled.**
