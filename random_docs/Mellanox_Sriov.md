@@ -256,7 +256,7 @@ Succeeded
 
 and I see the VFs configured:
 
-```
+```yaml
 status:
   interfaces:
   - Vfs:
@@ -487,10 +487,12 @@ status:
 
 ```
 
-this part I dont understand it. Because I see configured all the VFs on all the NICs. Not only the one configured manually with `mstconfig`. But in my scenario I started with all the VFs in all NICs already configured. Is this saved in the card? and so, when I restart without the plugin the configuration was already there? No matter if I did the configuration with `mstconfig` or Sriov Operator? It is only important to do the configuration, then disable the plugin, and then you can restart with SecureBoot? This is my guess. So, we could just:
- * Configure everything as usual with Sriov Operator and ZTP Policies
+There is something I dont understand here. I see configured all the VFs on all the NICs. Not only the one configured manually with `mstconfig`. But, in my scenario, I started with all the VFs in all NICs already configured. Is this saved in the card? and so, when I restart, without the plugin, the configuration is expected to be still there? No matter if I did the configuration with `mstconfig` or Sriov Operator? 
+If so, it is only important to do the configuration, then disable the plugin, and then you can restart with SecureBoot? This is my guess. So, we could just:
+ * Configure everything as usual with Sriov Operator and ZTP Policies. This is ... saved to the card?
  * When finished, we disable the Plugin, reboot with secureboot.
  * The operator is no longer try to configure (or reconfigure) anything because it is disabled.
  * But it is already configured on the hardware from the first step
+ * Secureboot is there, and the Operator is oka, because is not changing anything in the hardware.
  
 This means that configuration is done inside the card? My knowledge on Sriov is not so deep. 
