@@ -170,4 +170,327 @@ Failed
 
 So, we [hit this know bug](https://access.redhat.com/solutions/7073932). SRIOV Operator, with the Mellanox plugin and SecureBoot enabled cannot work together.
 
-The workaround
+## Trying the workaround
+
+Disable again secureboot.
+
+We take one of the cards/port:
+
+```bash
+$ oc -n openshift-sriov-network-operator get SriovNetworkNodeState htworker03.core.e5gc.bos2.lab -o jsonpath='{.spec.interfaces[0]}' | jq
+{
+  "mtu": 3040,
+  "name": "ens2f0",
+  "numVfs": 4,
+  "pciAddress": "0000:0d:00.0",
+  "vfGroups": [
+    {
+      "deviceType": "netdevice",
+      "isRdma": true,
+      "mtu": 3040,
+      "policyName": "sriovleftdpdkmellanox",
+      "resourceName": "sriovleftdpdkmellanox",
+      "vfRange": "0-3"
+    }
+  ]
+}
+
+```
+
+Take not on `pciAddress` and `numVfs`.
+
+ssh to this node using the proper `sriov-network-config-daemon-*`, and lets manually configure the VFs, due to SRIOV-Mellanos will fail:
+
+```bash
+$ oc -n openshift-sriov-network-operator rsh sriov-network-config-daemon-48dfl
+sh-5.1# mstconfig -d 0000:0d:00.0 set SRIOV_EN=1 NUM_OF_VFS=4
+
+Device #1:
+----------
+
+Device type:    ConnectX5       
+Name:           MCX516A-CCA_Ax  
+Description:    ConnectX-5 EN network interface card; 100GbE dual-port QSFP28; PCIe3.0 x16; tall bracket; ROHS R6
+Device:         0000:0d:00.0    
+
+Configurations:                                      Next Boot       New
+         SRIOV_EN                                    True(1)         True(1)         
+         NUM_OF_VFS                                  4               4               
+
+ Apply new Configuration? (y/n) [n] : y
+Applying... Done!
+-I- Please reboot machine to load new configurations.
+
+```
+
+before rebooting, we disable the Mellanox plugin:
+
+```yaml
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovOperatorConfig
+metadata:
+  creationTimestamp: "2024-09-27T13:00:24Z"
+  generation: 5
+  name: default
+  namespace: openshift-sriov-network-operator
+  resourceVersion: "62910922"
+  uid: 0b01bc34-4d0a-407b-b1bd-76e3f7d9dd3d
+spec:
+  configDaemonNodeSelector:
+    node-role.kubernetes.io/ht100gb: ""
+  enableInjector: true
+  enableOperatorWebhook: true
+  logLevel: 0
+  disablePlugins:
+  - mellanox
+
+```
+
+and reboot enabling secureboot again.
+
+```bash
+$ oc -n openshift-sriov-network-operator get SriovNetworkNodeState htworker03.core.e5gc.bos2.lab -o jsonpath='{.status.syncStatus}{"\n"}'
+Succeeded
+
+```
+
+and I see the VFs configured:
+
+```
+status:
+  interfaces:
+  - Vfs:
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: ae:4e:18:29:0e:ef
+      mtu: 3040
+      name: ens2f0v0
+      pciAddress: 0000:0d:00.2
+      vendor: 15b3
+      vfID: 0
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 56:41:17:99:ab:1b
+      mtu: 3040
+      name: ens2f0v1
+      pciAddress: 0000:0d:00.3
+      vendor: 15b3
+      vfID: 1
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: aa:2c:58:5f:00:41
+      mtu: 3040
+      name: ens2f0v2
+      pciAddress: 0000:0d:00.4
+      vendor: 15b3
+      vfID: 2
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: d6:93:f2:10:7e:bd
+      mtu: 3040
+      name: ens2f0v3
+      pciAddress: 0000:0d:00.5
+      vendor: 15b3
+      vfID: 3
+    deviceID: "1017"
+    driver: mlx5_core
+    eSwitchMode: legacy
+    linkSpeed: 100000 Mb/s
+    linkType: ETH
+    mac: b8:3f:d2:e4:ab:76
+    mtu: 3040
+    name: ens2f0
+    numVfs: 4
+    pciAddress: 0000:0d:00.0
+    totalvfs: 4
+    vendor: 15b3
+  - Vfs:
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: ba:0d:db:ab:bf:61
+      mtu: 3040
+      name: ens2f1v0
+      pciAddress: 0000:0d:00.6
+      vendor: 15b3
+      vfID: 0
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 0a:80:42:13:ff:34
+      mtu: 3040
+      name: ens2f1v1
+      pciAddress: 0000:0d:00.7
+      vendor: 15b3
+      vfID: 1
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: d2:79:ec:16:25:e6
+      mtu: 3040
+      name: ens2f1v2
+      pciAddress: 0000:0d:01.0
+      vendor: 15b3
+      vfID: 2
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: ca:9f:3b:7e:f4:0e
+      mtu: 3040
+      name: ens2f1v3
+      pciAddress: 0000:0d:01.1
+      vendor: 15b3
+      vfID: 3
+    deviceID: "1017"
+    driver: mlx5_core
+    eSwitchMode: legacy
+    linkSpeed: 100000 Mb/s
+    linkType: ETH
+    mac: b8:3f:d2:e4:ab:77
+    mtu: 3040
+    name: ens2f1
+    numVfs: 4
+    pciAddress: 0000:0d:00.1
+    totalvfs: 4
+    vendor: 15b3
+  - deviceID: "1593"
+    driver: ice
+    eSwitchMode: legacy
+    linkSpeed: 25000 Mb/s
+    linkType: ETH
+    mac: 30:3e:a7:03:15:80
+    mtu: 9000
+    name: eno12399
+    pciAddress: "0000:22:00.0"
+    totalvfs: 64
+    vendor: "8086"
+  - deviceID: "1593"
+    driver: ice
+    eSwitchMode: legacy
+    linkSpeed: -1 Mb/s
+    linkType: ETH
+    mac: 30:3e:a7:03:15:81
+    mtu: 1500
+    name: eno12409
+    pciAddress: "0000:22:00.1"
+    totalvfs: 64
+    vendor: "8086"
+  - deviceID: "1593"
+    driver: ice
+    eSwitchMode: legacy
+    linkSpeed: 25000 Mb/s
+    linkType: ETH
+    mac: 30:3e:a7:03:15:80
+    mtu: 9000
+    name: eno12419
+    pciAddress: "0000:22:00.2"
+    totalvfs: 64
+    vendor: "8086"
+  - deviceID: "1593"
+    driver: ice
+    eSwitchMode: legacy
+    linkSpeed: -1 Mb/s
+    linkType: ETH
+    mac: 30:3e:a7:03:15:83
+    mtu: 1500
+    name: eno12429
+    pciAddress: "0000:22:00.3"
+    totalvfs: 64
+    vendor: "8086"
+  - Vfs:
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 5a:3c:ad:77:81:e8
+      mtu: 3040
+      name: ens7f0v0
+      pciAddress: 0000:b5:00.2
+      vendor: 15b3
+      vfID: 0
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 6a:c8:8c:5a:7e:44
+      mtu: 3040
+      name: ens7f0v1
+      pciAddress: 0000:b5:00.3
+      vendor: 15b3
+      vfID: 1
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: d2:29:c9:7f:7c:4d
+      mtu: 3040
+      name: ens7f0v2
+      pciAddress: 0000:b5:00.4
+      vendor: 15b3
+      vfID: 2
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 16:49:92:c3:a5:6f
+      mtu: 3040
+      name: ens7f0v3
+      pciAddress: 0000:b5:00.5
+      vendor: 15b3
+      vfID: 3
+    deviceID: "1017"
+    driver: mlx5_core
+    eSwitchMode: legacy
+    linkSpeed: 100000 Mb/s
+    linkType: ETH
+    mac: b8:3f:d2:b7:35:a6
+    mtu: 3040
+    name: ens7f0
+    numVfs: 4
+    pciAddress: 0000:b5:00.0
+    totalvfs: 4
+    vendor: 15b3
+  - Vfs:
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 5e:1d:34:41:1d:12
+      mtu: 3040
+      name: ens7f1v0
+      pciAddress: 0000:b5:00.6
+      vendor: 15b3
+      vfID: 0
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: 3a:d6:52:69:fb:3c
+      mtu: 3040
+      name: ens7f1v1
+      pciAddress: 0000:b5:00.7
+      vendor: 15b3
+      vfID: 1
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: de:5f:8d:45:82:bd
+      mtu: 3040
+      name: ens7f1v2
+      pciAddress: 0000:b5:01.0
+      vendor: 15b3
+      vfID: 2
+    - deviceID: "1018"
+      driver: mlx5_core
+      mac: c6:d9:5a:cb:19:73
+      mtu: 3040
+      name: ens7f1v3
+      pciAddress: 0000:b5:01.1
+      vendor: 15b3
+      vfID: 3
+    deviceID: "1017"
+    driver: mlx5_core
+    eSwitchMode: legacy
+    linkSpeed: 100000 Mb/s
+    linkType: ETH
+    mac: b8:3f:d2:b7:35:a7
+    mtu: 3040
+    name: ens7f1
+    numVfs: 4
+    pciAddress: 0000:b5:00.1
+    totalvfs: 4
+    vendor: 15b3
+
+
+```
+
+this part I dont understand it. Because I see configured all the VFs on all the NICs. Not only the one configured manually with `mstconfig`. But in my scenario I started with all the VFs in all NICs already configured. Is this saved in the card? and so, when I restart without the plugin the configuration was already there? No matter if I did the configuration with `mstconfig` or Sriov Operator? It is only important to do the configuration, then disable the plugin, and then you can restart with SecureBoot? This is my guess. So, we could just:
+ * Configure everything as usual with Sriov Operator and ZTP Policies
+ * When finished, we disable the Plugin, reboot with secureboot.
+ * The operator is no longer try to configure (or reconfigure) anything because it is disabled.
+ * But it is already configured on the hardware from the first step
+ 
+This means that configuration is done inside the card? My knowledge on Sriov is not so deep. 
