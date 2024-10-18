@@ -496,3 +496,11 @@ If so, it is only important to do the configuration, then disable the plugin, an
  * Secureboot is there, and the Operator is oka, because is not changing anything in the hardware.
  
 This means that configuration is done inside the card? My knowledge on Sriov is not so deep. 
+
+I would demonstrate this with:
+ * I still have two htworkers with secureboot not enabled
+ * There, I have not used `mstconfig`
+ * With the Mellanox plugin disabled, I only have to enable secureboot there.
+ * Check configuration is oka
+ 
+**Not tested at all: Create networks and pods using this VFs with the plugin disabled and Secureboot enabled.**
