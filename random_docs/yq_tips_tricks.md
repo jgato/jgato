@@ -50,3 +50,25 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "2"
     my-key: myvalue+other-value
 ```
+
+## OpenShift/Kubernetes tricks
+
+Get the pods that have restarted in the last 24 hours, and show, how many restarts they have accumulated. 
+
+```bash
+> oc get pods --all-namespaces --sort-by=.status.containerStatuses[0].restartCount -o json | \
+jq '.items[] 
+    | select(.status.containerStatuses[0].restartCount > 0) 
+    | {
+        namespace: .metadata.namespace,
+        pod: .metadata.name,
+        restarts: .status.containerStatuses[0].restartCount,
+        lastRestart: .status.containerStatuses[0].lastState.terminated.finishedAt
+      } 
+    | select(.lastRestart != null and (now - (.lastRestart | fromdateiso8601) < 86400)) 
+    | (.restarts | tostring) + " " 
+      + .namespace + " " 
+      + .pod + " last restart " 
+      + ((now - (.lastRestart | fromdateiso8601)) / 3600 | tostring) + " hours"'
+
+```
