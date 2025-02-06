@@ -1,42 +1,42 @@
-# Upgrading clusters with Image Base Upgrade (IBU)
+# Upgrading Clusters with Image-Based Upgrade (IBU)
 
-In this blog, I will focus on how to proceed on upgrading the clusters of your infrastructure, managed by Red Hat Advanced Cluster Management (RHACM). More in concrete, using the new upgrade mechanism called Image Base Upgrade.
+In this blog, I will focus on how to upgrade the clusters in your infrastructure managed by Red Hat Advanced Cluster Management (RHACM), specifically using the new upgrade mechanism called Image-Based Upgrade (IBU).
 
-Previously, you could upgrade your infrastructure, just using the Openshift usual upgrade way:
+Previously, you could upgrade your infrastructure using the standard OpenShift upgrade method:
 ![](assets/telco_upgrades_with_ibu_20250130155334523.png)
 
-Or, just using the `oc cli`, [more in the official documentation](https://docs.openshift.com/container-platform/4.16/updating/updating_a_cluster/updating-cluster-cli.html).
+Or by simply using the `oc cli`, as described in the [official documentation](https://docs.openshift.com/container-platform/4.16/updating/updating_a_cluster/updating-cluster-cli.html).
 
-Both methods trigger the same procedure, that it will update the operative system, Openshift, operators, etc. For a Single Node Openshift (SNO) this time would vary depending on the configuration. But it would be around 60/70 minutes.
+Both methods trigger the same process, updating the operating system, OpenShift, operators, etc. For a Single Node OpenShift (SNO), the time required varies based on configuration but typically takes around 60–70 minutes.
 
-When we move to telecommunications scenarios, SNOs are designed to run the Telco Radio Access Network. You can think on the software managing every antenna, and your infrastructure would be composed by thousands of antennas that you need upgrade. The process is done during a maintenance window, and the requirements on time are super strict. 
+In telecommunications scenarios, SNOs are designed to run the Telco Radio Access Network (RAN). You can think of the software managing every antenna, meaning your infrastructure consists of thousands of antennas that need to be upgraded. This process is conducted within a strict maintenance window with very tight time constraints.
 
-Therefore, IBU comes to solve this scenario, providing a mechanisms that provides upgrades on about 25 minutes. IBU is based on creating an image from a called "seed" clusters. All the clusters in your infrastructure, that can be considered as clones of this seed cluster, could be upgraded by this image. So, the mechanism is very good on this telco RAN scenarios, very homogeneous and composed by SNO. But IBU is not suitable for multi node clusters, or heterogeneous infrastructures. Actually, IBU contains some pre-checks related to configurations for telco RAN.
+IBU addresses this challenge by providing an upgrade mechanism that reduces upgrade time to approximately 15/20 minutes. IBU works by creating an image from a "seed" cluster. All clusters in your infrastructure that are considered clones of this seed cluster can be upgraded using this image. This mechanism is particularly well-suited for homogeneous telco RAN environments composed exclusively of SNOs. However, IBU is not suitable for multi-node clusters or heterogeneous infrastructures. In fact, IBU includes pre-checks to ensure compliance with telco RAN configurations. So, it cannot be used for other purposes (as today).
 
-During this blog I will briefly cover how this new upgrade process works. But, I will not go into detail on how configure, install, deploy your infrastructure. The starting scenario is composed by three SNOs, already installed, configured and managed by ACM.
+In this blog, I will briefly cover how this new upgrade process works, but I will not go into details on configuring, installing, or deploying your infrastructure. The starting point assumes three SNOs are already installed, configured, and managed by ACM.
 ![](assets/telco_upgrades_with_ibu_20250130165329318.png)
 
-Notice how all these are based on Openshift 4.14, and we want to upgrade to 4.16. Other advantage of IBU, is that we can move directly to 4.16. Not needing to go through 4.15 first (1 hour) and then 4.16 (1 hour.).
+Notice that all these clusters are running OpenShift 4.14, and we aim to upgrade them to 4.16. Another advantage of IBU is that we can move directly to 4.16 without needing to first upgrade to 4.15 (which would take an extra hour).
 
-There is a fourth SNO4 cluster that will be used as seed clusters. All the clusters are based on the same hardware, software, and network configuration.
+A fourth cluster, SNO4, will be used as the seed cluster. All clusters share the same hardware, software, and network configuration.
 
-## Using the seed cluster to create the upgrade image
+## Using the Seed Cluster to Create the Upgrade Image
 
-*The whole process I am explaining is more detailed [here](https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/cnf-understanding-image-based-upgrade.html)*
+*For a more detailed explanation, refer to the [official documentation](https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/cnf-understanding-image-based-upgrade.html).*
 
-The seed cluster is a kind of clone cluster that contains the software and desired version. In this case, SNO4 has been deployed with Openshift 4.16, that is the desired version to upgrade. But it contains the same hardware and network than the others.
+The seed cluster is essentially a cloned environment that contains the desired software version. In this case, SNO4 has been deployed with OpenShift 4.16, the target upgrade version, while maintaining the same hardware and network configuration as the others.
 
-The seed cluster is something that should be considered as en ephemeral cluster. It should be installed, configured, created the seed and disappear. It does not contain any extra workload, or, these will be received by the upgrade clusters later. The seed cluster is not a cluster that has been running for a time. Otherwise, we would create an image not so clean as expected. 
+The seed cluster should be treated as an ephemeral environment. It is installed, configured, used to generate the seed image, and then removed. It does not run any additional workloads, as these will be handled by the upgraded clusters later. Using a long-running cluster as a seed risks creating an image that is not as clean as expected.
 
-If the seed cluster is part of ACM (or ZTP), it should be first detached. To create an image not containing workloads related to ACM.
+If the seed cluster is part of ACM (or ZTP), it should be detached first to ensure that the resulting image does not contain workloads related to ACM.
 
-Apart from the usual Openshift installation, and the RAN configurations (that we don cover in this blog), it needs two extra operators:
- * [Operator life-cycle agent](https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/preparing_for_image_based_upgrade/cnf-image-based-upgrade-install-operators.html#cnf-image-based-upgrade-installing-lifecycle-agent-using-cli_install-operators): that trigger the image creation.
- * [OADP](https://docs.openshift.com/container-platform/4.16/backup_and_restore/application_backup_and_restore/installing/oadp-installing-operator.html#oadp-installing-operator-doc) (OpenShift APIs for Data Protection) for backups management. The seed cluster does not do any backup, but upgraded clusters will do a restore of their own workloads. So, the operator is packaged with the image. When the clusters are upgraded, they will contain this operator, that will be used to trigger a restore of the previous running workloads. 
- 
-Check the official documentation of each operator about how to do the installation. But, it is just an usual Openshift operator installation.
+Apart from the usual OpenShift installation and RAN configurations (not covered in this blog), two additional operators are required:
+- [Operator Lifecycle Agent](https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/preparing_for_image_based_upgrade/cnf-image-based-upgrade-install-operators.html#cnf-image-based-upgrade-installing-lifecycle-agent-using-cli_install-operators): Triggers the image creation process.
+- [OADP (OpenShift APIs for Data Protection)](https://docs.openshift.com/container-platform/4.16/backup_and_restore/application_backup_and_restore/installing/oadp-installing-operator.html#oadp-installing-operator-doc): Manages backups. The seed cluster does not perform backups, and it does not really need it. But it is installed, to be included as part of the seed image. When the other clusters use the seed image they will have the operator ready to restore their own individual backups.
 
-After that, we have to trigger the seed creation. First, we create a secret with the authentication details for the container registry to store the image:
+Refer to the official documentation for installation instructions, but installing these operators follows the standard OpenShift operator installation process.
+
+Once the operators are installed, we trigger the seed creation. First, we create a secret to authenticate with the container registry where the image will be stored:
 
 ```yaml
 apiVersion: v1
@@ -46,22 +46,22 @@ metadata:
   namespace: openshift-lifecycle-agent
 type: Opaque
 data:
-  seedAuth: <jgato_quay_authentication>
+  seedAuth: <base64_encoded_auth>
 ```
 
-In my case I use quay.io and the `seedAuth` is base64 encoded of a json similar to:
+In my case, I use Quay.io, and `seedAuth` is a base64-encoded JSON similar to:
 
 ```json
 {
-	"auths": {
-		"quay.io/jgato": {
-			"auth": "amdhdG9......FuX0c2bmE="
-		}
-	}
+  "auths": {
+    "quay.io/jgato": {
+      "auth": "amdhdG9......FuX0c2bmE="
+    }
+  }
 }
 ```
 
-Now, we trigger the seed creation with:
+Now, we initiate the seed generation creathing the following manifest:
 
 ```yaml
 apiVersion: lca.openshift.io/v1
@@ -72,9 +72,12 @@ spec:
   seedImage: quay.io/jgato/sno4:4.16.9
 ```
 
-We can observe the image creation:
+### Monitoring the Image Creation
+
+We can monitor the image creation process:
+
 ```bash
-$ oc create -f seedgenerator.yaml  && oc get seedgenerators.lca.openshift.io  -w
+$ oc create -f seedgenerator.yaml && oc get seedgenerators.lca.openshift.io -w
 seedgenerator.lca.openshift.io/seedimage created
 NAME        AGE   STATE   DETAILS
 seedimage   0s            
@@ -85,28 +88,24 @@ seedimage   7s    SeedGenInProgress   Preparing for seed generation
 seedimage   8s    SeedGenInProgress   Cleaning cluster resources
 seedimage   80s   SeedGenInProgress   Launching imager container
 seedimage   80s   SeedGenInProgress   Launching imager container
-
 ```
 
-In this moment, kubelet is stoped, and a container is created (outside Openshift) to create the image. After a while, kukbelet will be restarted and:
+At this point, kubelet is stopped, and a container is created outside OpenShift to generate the image. Once the process is complete, kubelet restarts, and we confirm the image has been successfully uploaded to Quay.io:
 
 ```bash
-$ oc get seedgenerators.lca.openshift.io  -w
+$ oc get seedgenerators.lca.openshift.io -w
 NAME        AGE   STATE              DETAILS
 seedimage   21s   SeedGenCompleted   Seed Generation completed
-
 ```
-
-The image has been generated and upload it to my quay.io.
 
 ![](assets/telco_upgrades_with_ibu_20250130172132409.png)
 
 ## Upgrading clusters
 ### Preparing the backup
 
-As a difference of a seed cluster, the cluster to be upgrade is an operational cluster and it would be running whatever workload. These extra workloads will be included on a backup (by OADP), and recovered after the upgrade. A part from that, all the clusters are practically the same.
+Unlike a seed cluster, the cluster that will be upgraded is an operational one, which will continue running its workloads. These additional workloads will be included in a backup (using OADP) and restored after the upgrade. Other than that, the clusters are essentially the same.
 
-As an example, I have deployed a simple workload on the namespace `example-workload`. That also is making usage of a PersistentVolume provided by the LocalStorageOperator. This works as an example of backup process, and restore. Remember that the seed image tries to be as clean as possible. It is in your side to backup your workloads, pv, roles, and whatever needed CRD.
+For example, I’ve deployed a simple workload in the example-workload namespace, which uses a PersistentVolume provided by the LocalStorageOperator. This serves as an example for the backup and restore process. Keep in mind that the seed image aims to be as clean as possible, so it’s your responsibility to back up your workloads, PVs, roles, and any necessary CRDs.
 
 ```bash
 > oc -n example-workload get deployment,pod,pvc
@@ -139,9 +138,9 @@ Exception: Custom exception at level three
 
 ```
 
-Lets see how continue working after upgrade, and restore the workload.
+Let’s take a look at how things continue to work after the upgrade.
 
-Preparing the backup, it depends on the SNO, and different options on operators and storage. I am not covering this on this blog to not make it too dense. But you can find the details [here](https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/preparing_for_image_based_upgrade/cnf-image-based-upgrade-prep-resources.html). And I will focus on how to backup and specific workload.
+When preparing the backup, it depends on the SNO and various options for operators and storage. I won’t cover these details in this blog to keep it from becoming too overwhelming, but you can find all the information [here](https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/preparing_for_image_based_upgrade/cnf-image-based-upgrade-prep-resources.html). Instead, I’ll focus on how to back up and restore a custom workload.
 
 ```yaml
 apiVersion: velero.io/v1
@@ -174,7 +173,7 @@ spec:
     backup-app
 ```
 
-This, and the not covered backups, dont need to be directly created on the cluster. These need to be included into a ConfigMap:
+This custom back, and other backups needed but not covered in this blog, dont need to be directly created on the cluster. These need to be included into a ConfigMap:
 
 ```bash
 > oc create -n openshift-adp configmap oadp-cm-example \
@@ -192,7 +191,7 @@ And we patch the ImageBaseUpgrade resource with the backups.
 ### Triggering the backup
 *The whole process I am explaining is more detailed [here](https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/cnf-image-based-upgrade-base.html)*
 
-On all the backups receiving the upgrade, it has been installed the  Lifecycle Agent operator. This, will automatically create the ImageBaseUpgraded (that I already patched above with backups info) in charge of managing the upgrade. But also, informing about the current stage.
+On all the backups waiting to receive an upgrade, it has been installed the  Lifecycle Agent operator. This, will automatically create the ImageBaseUpgraded CR in charge of managing the upgrade. 
 
 Initially we are in the `idle` stage:
 
@@ -230,7 +229,7 @@ spec:
 
 ```
 
-The secret has been created cluster wide and contains a pullSecret to download the seed image:
+The secret has been created on `openshift-lifecycle-agent` and contains the pullSecret to download the seed image:
 
 ```
 apiVersion: v1
@@ -265,7 +264,7 @@ upgrade   17h   Prep            Completed    Prep stage completed successfully
 
 ```
 
-Now, we are ready to do the upgrade:
+Now, we are ready to do the upgrade, moving the ImageBaseUpgrade o the `upgrade` stage:
 
 ```bash
 $ oc get clusterversion
@@ -274,6 +273,9 @@ version   4.14.40   True        False         17h     Cluster version is 4.14.40
 
 $ date
 Thu Feb  6 05:04:23 EST 2025
+
+$ $ oc patch imagebasedupgrades.lca.openshift.io upgrade -p='{"spec": {"stage": "Upgrade"}}' --type=merge
+
 $ oc get ibu upgrade  -w
 NAME      AGE   DESIRED STAGE   STATE        DETAILS
 upgrade   17h   Upgrade         InProgress   Backup of Application Data is in progress
@@ -353,6 +355,10 @@ exception-app-deployment-575c65d8cf-szjsf   1/1     Running   0          94s
 
 ```
 
+Remember this SNO was part of ACM, and we can check it is still there:
+
+![](assets/telco_upgrades_with_ibu_improved_20250206131843420.png)
+
 There are other features not tested in the blog, like rollback if fail. But I did not want to do it too complex and give only a first approach.
 
 ## Upgrading a cluster with traditional upgrade
@@ -389,11 +395,22 @@ $ oc get clusterversion
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
 version   4.15.38   True        True          37s     Working towards 4.16.23: 110 of 903 done (12% complete), waiting on etcd, kube-apiserver
 
+[jgato@provisioner ~]$ oc get clusterversion -w
+NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+version   4.15.38   True        True          58m     Working towards 4.16.23: 764 of 903 done (84% complete), waiting on machine-config
+version   4.15.38   True        True          62m     Working towards ...
+...
+version   4.16.23   True        False         0s      Cluster version is 4.16.23
+$ date
+Thu Feb  6 07:50:04 EST 2025
+
+
 
 ```
 
-So, it took like minutes to do the two upgrades up to reach to 4.16.
+So, it took like another 60 minutes minutes to do the two upgrades up to reach to 4.16. In total around 120 minutes plus the extra if you have to upgrade OLM operators.
+
 
 # Conclusion
 
-Image Base Upgrade of Single Node Openshift cluster is a new an efficient way of upgrading clusters when there are very strict maintenance windows. But at the same time, it is limited to very concrete scenarios, where your infrastructure is composed by homogenous SNOs. If it is the case, ugprades (with backup/restore of workloads) can take just 15/20 minutes. Which is a very meaningful improvement, compared to mechanisms that has to cover all the possible scenarios. 
+Image-Based Upgrade for Single Node OpenShift clusters is an efficient way to upgrade clusters when there are very tight maintenance windows. However, it’s limited to specific scenarios, particularly when your infrastructure consists of homogeneous SNOs. In such cases, upgrades (including backup and restore of workloads) can take as little as 15-20 minutes, which is a significant improvement compared to other mechanisms that need to cover a wide range of possible scenarios.
