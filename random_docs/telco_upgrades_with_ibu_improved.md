@@ -11,7 +11,7 @@ Both methods trigger the same process, updating the operating system, OpenShift,
 
 In telecommunications scenarios, SNOs are designed to run the Telco Radio Access Network (RAN). You can think of the software managing every antenna, meaning your infrastructure consists of thousands of antennas that need to be upgraded. This process is conducted within a strict maintenance window with very tight time constraints.
 
-IBU addresses this challenge by providing an upgrade mechanism that reduces upgrade time to approximately 15/20 minutes. IBU works by creating an image from a "seed" cluster. All clusters in your infrastructure that are considered clones of this seed cluster can be upgraded using this image. This mechanism is particularly well-suited for homogeneous telco RAN environments composed exclusively of SNOs. However, IBU is not suitable for multi-node clusters or heterogeneous infrastructures. In fact, IBU includes pre-checks to ensure compliance with telco RAN configurations. So, it cannot be used for other purposes (as today).
+IBU addresses this challenge by providing an upgrade mechanism that reduces upgrade time to approximately 15/20 minutes. IBU works by creating an image from a "seed" cluster. All clusters in your infrastructure that are considered clones of this seed cluster can be upgraded using this image. This mechanism is particularly well-suited for homogeneous telco RAN environments composed exclusively of SNOs. However, IBU is not suitable for multi-node clusters or heterogeneous infrastructures. In fact, IBU includes pre-checks to ensure compliance with telco RAN configurations. So, it cannot be used for other purposes (as of today).
 
 In this blog, I will briefly cover how this new upgrade process works, but I will not go into details on configuring, installing, or deploying your infrastructure. The starting point assumes three SNOs are already installed, configured, and managed by ACM.
 ![](assets/telco_upgrades_with_ibu_20250130165329318.png)
@@ -173,7 +173,7 @@ spec:
     backup-app
 ```
 
-This custom back, and other backups needed but not covered in this blog, dont need to be directly created on the cluster. These need to be included into a ConfigMap:
+This custom backup, and other backups needed but not covered in this blog, don't need to be directly created on the cluster. These need to be included into a ConfigMap:
 
 ```bash
 > oc create -n openshift-adp configmap oadp-cm-example \
@@ -191,7 +191,7 @@ And we patch the ImageBaseUpgrade resource with the backups.
 ### Triggering the backup
 *The whole process I am explaining is more detailed [here](https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/cnf-image-based-upgrade-base.html)*
 
-On all the backups waiting to receive an upgrade, it has been installed the  Lifecycle Agent operator. This, will automatically create the ImageBaseUpgraded CR in charge of managing the upgrade. 
+On all the clusters waiting to receive an upgrade, the Lifecycle Agent operator has been installed. This, will automatically create the ImageBaseUpgraded CR in charge of managing the upgrade. 
 
 Initially we are in the `idle` stage:
 
@@ -243,7 +243,7 @@ type: Opaque
 
 ```
 
-Lets move to the `pre` stage:
+Lets move to the `Prep` stage:
 
 ```bash
 $ oc patch imagebasedupgrades.lca.openshift.io upgrade -p='{"spec": {"stage": "Prep"}}' --type=merge -n openshift-lifecycle-agent
@@ -264,7 +264,7 @@ upgrade   17h   Prep            Completed    Prep stage completed successfully
 
 ```
 
-Now, we are ready to do the upgrade, moving the ImageBaseUpgrade o the `upgrade` stage:
+Now, we are ready to do the upgrade, moving the ImageBaseUpgrade to the `upgrade` stage:
 
 ```bash
 $ oc get clusterversion
