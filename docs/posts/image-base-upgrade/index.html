@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Telco Upgrades with Image Base Upgrade :: Jose Gato Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="The fastest way of upgrading Single Node Openshift clusters" />
+<meta name="keywords" content="upgrades, life-cycle, hub, management" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://jgato.github.io/jgato/posts/image-base-upgrade/" />
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
+
+  <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/red.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://jgato.github.io/jgato/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://jgato.github.io/jgato/img/favicon/red.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="jgatoluis" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Telco Upgrades with Image Base Upgrade">
+<meta property="og:description" content="The fastest way of upgrading Single Node Openshift clusters" />
+<meta property="og:url" content="https://jgato.github.io/jgato/posts/image-base-upgrade/" />
+<meta property="og:site_name" content="Jose Gato Blog" />
+
+  <meta property="og:image" content="https://jgato.github.io/jgato/">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2025-02-07 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="red">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://jgato.github.io/jgato/">
+  <div class="logo">
+    Jose Gato Blog
+  </div>
+</a>
+
+    </div>
+    
+  </div>
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://jgato.github.io/jgato/posts/image-base-upgrade/">Telco Upgrades with Image Base Upgrade</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2025-02-07
+        
+      </span>
+    
+    
+      <span class="post-author">:: Jose Gato Luis</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://jgato.github.io/jgato/tags/openshift/">openshift</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/telco/">telco</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/upgrades/">upgrades</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/ran/">ran</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/edge/">edge</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/cloud/">cloud</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/rhacm/">rhacm</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="/jgato/posts/image-base-upgrade/cover.png"
+    class="post-cover"
+    alt="Telco Upgrades with Image Base Upgrade"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="upgrading-clusters-with-image-based-upgrade-ibu">Upgrading Clusters with Image-Based Upgrade (IBU)<a href="#upgrading-clusters-with-image-based-upgrade-ibu" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>In this blog, I will focus on how to upgrade the clusters in your infrastructure managed by Red Hat Advanced Cluster Management (RHACM), specifically using the new upgrade mechanism called Image-Based Upgrade (IBU).</p>
+<p>Previously, you could upgrade your infrastructure using the standard OpenShift upgrade method:
+<img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130155334523.png"></p>
+<p>Or by simply using the <code>oc cli</code>, as described in the <a href="https://docs.openshift.com/container-platform/4.16/updating/updating_a_cluster/updating-cluster-cli.html">official documentation</a>.</p>
+<p>Both methods trigger the same process, updating the operating system, OpenShift, operators, etc. For a Single Node OpenShift (SNO), the time required varies based on configuration but typically takes around 60–70 minutes.</p>
+<p>In telecommunications scenarios, SNOs are designed to run the Telco Radio Access Network (RAN). You can think of the software managing every antenna, meaning your infrastructure consists of thousands of antennas that need to be upgraded. This process is conducted within a strict maintenance window with very tight time constraints.</p>
+<p>IBU addresses this challenge by providing an upgrade mechanism that reduces upgrade time to approximately 15/20 minutes. IBU works by creating an image from a &ldquo;seed&rdquo; cluster. All clusters in your infrastructure that are considered clones of this seed cluster can be upgraded using this image. This mechanism is particularly well-suited for homogeneous telco RAN environments composed exclusively of SNOs. However, IBU is not suitable for multi-node clusters or heterogeneous infrastructures. In fact, IBU includes pre-checks to ensure compliance with telco RAN configurations. So, it cannot be used for other purposes (as today).</p>
+<p>In this blog, I will briefly cover how this new upgrade process works, but I will not go into details on configuring, installing, or deploying your infrastructure. The starting point assumes three SNOs are already installed, configured, and managed by ACM.
+<img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130165329318.png"></p>
+<p>Notice that all these clusters are running OpenShift 4.14, and we aim to upgrade them to 4.16. Another advantage of IBU is that we can move directly to 4.16 without needing to first upgrade to 4.15 (which would take an extra hour).</p>
+<p>A fourth cluster, SNO4, will be used as the seed cluster. All clusters share the same hardware, software, and network configuration.</p>
+<h2 id="using-the-seed-cluster-to-create-the-upgrade-image">Using the Seed Cluster to Create the Upgrade Image<a href="#using-the-seed-cluster-to-create-the-upgrade-image" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><em>For a more detailed explanation, refer to the <a href="https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/cnf-understanding-image-based-upgrade.html">official documentation</a>.</em></p>
+<p>The seed cluster is essentially a cloned environment that contains the desired software version. In this case, SNO4 has been deployed with OpenShift 4.16, the target upgrade version, while maintaining the same hardware and network configuration as the others.</p>
+<p>The seed cluster should be treated as an ephemeral environment. It is installed, configured, used to generate the seed image, and then removed. It does not run any additional workloads, as these will be handled by the upgraded clusters later. Using a long-running cluster as a seed risks creating an image that is not as clean as expected.</p>
+<p>If the seed cluster is part of ACM (or ZTP), it should be detached first to ensure that the resulting image does not contain workloads related to ACM.</p>
+<p>Apart from the usual OpenShift installation and RAN configurations (not covered in this blog), two additional operators are required:</p>
+<ul>
+<li><a href="https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/preparing_for_image_based_upgrade/cnf-image-based-upgrade-install-operators.html#cnf-image-based-upgrade-installing-lifecycle-agent-using-cli_install-operators">Operator Lifecycle Agent</a>: Triggers the image creation process.</li>
+<li><a href="https://docs.openshift.com/container-platform/4.16/backup_and_restore/application_backup_and_restore/installing/oadp-installing-operator.html#oadp-installing-operator-doc">OADP (OpenShift APIs for Data Protection)</a>: Manages backups. The seed cluster does not perform backups, and it does not really need it. But it is installed, to be included as part of the seed image. When the other clusters use the seed image they will have the operator ready to restore their own individual backups.</li>
+</ul>
+<p>Refer to the official documentation for installation instructions, but installing these operators follows the standard OpenShift operator installation process.</p>
+<p>Once the operators are installed, we trigger the seed creation. First, we create a secret to authenticate with the container registry where the image will be stored:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Secret</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">seedgen</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">openshift-lifecycle-agent</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">type</span>: <span style="color:#ae81ff">Opaque</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">data</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">seedAuth</span>: <span style="color:#ae81ff">&lt;base64_encoded_auth&gt;</span>
+</span></span></code></pre></div><p>In my case, I use Quay.io, and <code>seedAuth</code> is a base64-encoded JSON similar to:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;auths&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;quay.io/jgato&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;auth&#34;</span>: <span style="color:#e6db74">&#34;amdhdG9......FuX0c2bmE=&#34;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Now, we initiate the seed generation creathing the following manifest:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">lca.openshift.io/v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">SeedGenerator</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">seedimage</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">seedImage</span>: <span style="color:#ae81ff">quay.io/jgato/sno4:4.16.9</span>
+</span></span></code></pre></div><h3 id="monitoring-the-image-creation">Monitoring the Image Creation<a href="#monitoring-the-image-creation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>We can monitor the image creation process:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ oc create -f seedgenerator.yaml <span style="color:#f92672">&amp;&amp;</span> oc get seedgenerators.lca.openshift.io -w
+</span></span><span style="display:flex;"><span>seedgenerator.lca.openshift.io/seedimage created
+</span></span><span style="display:flex;"><span>NAME        AGE   STATE   DETAILS
+</span></span><span style="display:flex;"><span>seedimage   0s            
+</span></span><span style="display:flex;"><span>seedimage   0s    SeedGenInProgress   Waiting <span style="color:#66d9ef">for</span> system to stabilize
+</span></span><span style="display:flex;"><span>seedimage   2s    SeedGenInProgress   Starting seed generation
+</span></span><span style="display:flex;"><span>seedimage   2s    SeedGenInProgress   Pulling recert image
+</span></span><span style="display:flex;"><span>seedimage   7s    SeedGenInProgress   Preparing <span style="color:#66d9ef">for</span> seed generation
+</span></span><span style="display:flex;"><span>seedimage   8s    SeedGenInProgress   Cleaning cluster resources
+</span></span><span style="display:flex;"><span>seedimage   80s   SeedGenInProgress   Launching imager container
+</span></span><span style="display:flex;"><span>seedimage   80s   SeedGenInProgress   Launching imager container
+</span></span></code></pre></div><p>At this point, kubelet is stopped, and a container is created outside OpenShift to generate the image. Once the process is complete, kubelet restarts, and we confirm the image has been successfully uploaded to Quay.io:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ oc get seedgenerators.lca.openshift.io -w
+</span></span><span style="display:flex;"><span>NAME        AGE   STATE              DETAILS
+</span></span><span style="display:flex;"><span>seedimage   21s   SeedGenCompleted   Seed Generation completed
+</span></span></code></pre></div><p><img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130172132409.png"></p>
+<h2 id="upgrading-clusters">Upgrading clusters<a href="#upgrading-clusters" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<h3 id="preparing-the-backup">Preparing the backup<a href="#preparing-the-backup" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Unlike a seed cluster, the cluster that will be upgraded is an operational one, which will continue running its workloads. These additional workloads will be included in a backup (using OADP) and restored after the upgrade. Other than that, the clusters are essentially the same.</p>
+<p>For example, I’ve deployed a simple workload in the example-workload namespace, which uses a PersistentVolume provided by the LocalStorageOperator. This serves as an example for the backup and restore process. Keep in mind that the seed image aims to be as clean as possible, so it’s your responsibility to back up your workloads, PVs, roles, and any necessary CRDs.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc -n example-workload get deployment,pod,pvc
+</span></span><span style="display:flex;"><span>NAME                                       READY   UP-TO-DATE   AVAILABLE   AGE
+</span></span><span style="display:flex;"><span>deployment.apps/exception-app-deployment   1/1     <span style="color:#ae81ff">1</span>            <span style="color:#ae81ff">1</span>           56s
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>NAME                                            READY   STATUS    RESTARTS   AGE
+</span></span><span style="display:flex;"><span>pod/exception-app-deployment-7c9ff94dd9-c52x2   1/1     Running   <span style="color:#ae81ff">0</span>          57s
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>NAME                           STATUS   VOLUME              CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+</span></span><span style="display:flex;"><span>persistentvolumeclaim/my-pvc   Bound    local-pv-4ad70ba3   1Gi        RWO            general        13m
+</span></span></code></pre></div><p>The Pod is just simulating some exceptions (just an example):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc -n example-workload logs exception-app-deployment-7c9ff94dd9-c52x2 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span><span style="color:#e6db74">&#34;timestamp&#34;</span>: <span style="color:#e6db74">&#34;2025-01-31T09:16:18.080413Z&#34;</span>, <span style="color:#e6db74">&#34;level&#34;</span>: <span style="color:#e6db74">&#34;INFO&#34;</span>, <span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;Running... Exception will be raised in 30 seconds.&#34;</span>, <span style="color:#e6db74">&#34;app&#34;</span>: <span style="color:#e6db74">&#34;exception-app&#34;</span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>Traceback <span style="color:#f92672">(</span>most recent call last<span style="color:#f92672">)</span>:
+</span></span><span style="display:flex;"><span>  File <span style="color:#e6db74">&#34;/app/exception_app.py&#34;</span>, line 36, in cause_complex_exception
+</span></span><span style="display:flex;"><span>    level_one<span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>  File <span style="color:#e6db74">&#34;/app/exception_app.py&#34;</span>, line 28, in level_one
+</span></span><span style="display:flex;"><span>    level_two<span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>  File <span style="color:#e6db74">&#34;/app/exception_app.py&#34;</span>, line 31, in level_two
+</span></span><span style="display:flex;"><span>    level_three<span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>  File <span style="color:#e6db74">&#34;/app/exception_app.py&#34;</span>, line 34, in level_three
+</span></span><span style="display:flex;"><span>    raise Exception<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Custom exception at level three&#34;</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Exception: Custom exception at level three
+</span></span></code></pre></div><p>Let’s take a look at how things continue to work after the upgrade.</p>
+<p>When preparing the backup, it depends on the SNO and various options for operators and storage. I won’t cover these details in this blog to keep it from becoming too overwhelming, but you can find all the information <a href="https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/preparing_for_image_based_upgrade/cnf-image-based-upgrade-prep-resources.html">here</a>. Instead, I’ll focus on how to back up and restore a custom workload.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">velero.io/v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Backup</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">labels</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">velero.io/storage-location</span>: <span style="color:#ae81ff">default</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">backup-app</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">openshift-adp</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">includedNamespaces</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">example-workload</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">includedNamespaceScopedResources</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">persistentvolumeclaims</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">deployments</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">excludedClusterScopedResources</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">persistentVolumes</span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">velero.io/v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Restore</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">test-app</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">openshift-adp</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">labels</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">velero.io/storage-location</span>: <span style="color:#ae81ff">default</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">annotations</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">lca.openshift.io/apply-wave</span>: <span style="color:#e6db74">&#34;4&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">backupName</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">backup-app</span>
+</span></span></code></pre></div><p>This custom back, and other backups needed but not covered in this blog, dont need to be directly created on the cluster. These need to be included into a ConfigMap:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc create -n openshift-adp configmap oadp-cm-example <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> --from-file<span style="color:#f92672">=</span>backup-acm-klusterlet.yaml<span style="color:#f92672">=</span>backup-acm-klusterlet.yaml <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> --from-file<span style="color:#f92672">=</span>backup-workload.yaml<span style="color:#f92672">=</span>backup-workload.yaml
+</span></span></code></pre></div><p>And we patch the ImageBaseUpgrade resource with the backups.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc patch imagebasedupgrade upgrade <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>-p<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;{&#34;spec&#34;: {&#34;oadpContent&#34;: [{&#34;name&#34;: &#34;oadp-cm-example&#34;, &#34;namespace&#34;: &#34;openshift-adp&#34;}]}}&#39;</span>   --type<span style="color:#f92672">=</span>merge 
+</span></span></code></pre></div><h3 id="triggering-the-backup">Triggering the backup<a href="#triggering-the-backup" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p><em>The whole process I am explaining is more detailed <a href="https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/cnf-image-based-upgrade-base.html">here</a></em></p>
+<p>On all the backups waiting to receive an upgrade, it has been installed the  Lifecycle Agent operator. This, will automatically create the ImageBaseUpgraded CR in charge of managing the upgrade.</p>
+<p>Initially we are in the <code>idle</code> stage:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ oc get ibu upgrade
+</span></span><span style="display:flex;"><span>NAME      AGE   DESIRED STAGE   STATE   DETAILS
+</span></span><span style="display:flex;"><span>upgrade   18h   Idle            Idle    Idle
+</span></span></code></pre></div><p>There are <a href="https://docs.openshift.com/container-platform/4.16/edge_computing/image_based_upgrade/cnf-understanding-image-based-upgrade.html#cnf-image-based-upgrade_understanding-image-based-upgrade">other stages</a> that supports the logic of the whole Lifecycle Agent.</p>
+<p>Before moving to <code>pre</code> stage, we have to configure the <code>seedImageRef</code>.</p>
+<pre tabindex="0"><code>apiVersion: lca.openshift.io/v1
+kind: ImageBasedUpgrade
+metadata:
+  creationTimestamp: &#34;2025-02-05T16:26:36Z&#34;
+  generation: 5
+  name: upgrade
+  resourceVersion: &#34;225303&#34;
+  uid: 7b9ca970-b418-453e-8673-ba5be07c9622
+spec:
+  oadpContent:
+  - name: oadp-cm-example
+    namespace: openshift-adp
+  seedImageRef:
+    image: quay.io/jgato/sno4:4.16.9
+    pullSecretRef:
+      name: secret-pull-seed
+    version: 4.16.9
+  stage: Idle
+</code></pre><p>The secret has been created on <code>openshift-lifecycle-agent</code> and contains the pullSecret to download the seed image:</p>
+<pre tabindex="0"><code>apiVersion: v1
+data:
+  .dockerconfigjson: ewoJYXV0aHM6IHsKCQlxd....Qp9Cg==
+kind: Secret
+metadata:
+  name:  secret-pull-seed
+  namespace: openshift-lifecycle-agent
+type: Opaque
+</code></pre><p>Lets move to the <code>pre</code> stage:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ oc patch imagebasedupgrades.lca.openshift.io upgrade -p<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;{&#34;spec&#34;: {&#34;stage&#34;: &#34;Prep&#34;}}&#39;</span> --type<span style="color:#f92672">=</span>merge -n openshift-lifecycle-agent
+</span></span><span style="display:flex;"><span>imagebasedupgrade.lca.openshift.io/upgrade patched
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ oc get ibu upgrade  -w
+</span></span><span style="display:flex;"><span>NAME      AGE   DESIRED STAGE   STATE        DETAILS
+</span></span><span style="display:flex;"><span>upgrade   17h   Prep            InProgress   Stateroot setup job in progress. job-name: lca-prep-stateroot-setup, job-namespace: openshift-lifecycle-agent
+</span></span><span style="display:flex;"><span>upgrade   17h   Prep            InProgress   Successfully launched a new job precache. job-name: , job-namespace: 
+</span></span><span style="display:flex;"><span>upgrade   17h   Prep            InProgress   Precache job in progress. job-name: lca-prep-precache, job-namespace: openshift-lifecycle-agent. No precache status file to read yet.
+</span></span><span style="display:flex;"><span>upgrade   17h   Prep            InProgress   Precache job in progress. job-name: lca-prep-precache, job-namespace: openshift-lifecycle-agent. total: <span style="color:#ae81ff">125</span> <span style="color:#f92672">(</span>pulled: 20, failed: 0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>upgrade   17h   Prep            InProgress   Precache job in progress. job-name: lca-prep-precache, job-namespace: openshift-lifecycle-agent. total: <span style="color:#ae81ff">125</span> <span style="color:#f92672">(</span>pulled: 40, failed: 0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>upgrade   17h   Prep            Completed    Prep stage completed successfully
+</span></span></code></pre></div><p>Now, we are ready to do the upgrade, moving the ImageBaseUpgrade o the <code>upgrade</code> stage:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ oc get clusterversion
+</span></span><span style="display:flex;"><span>NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+</span></span><span style="display:flex;"><span>version   4.14.40   True        False         17h     Cluster version is 4.14.40
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ date
+</span></span><span style="display:flex;"><span>Thu Feb  <span style="color:#ae81ff">6</span> 05:04:23 EST <span style="color:#ae81ff">2025</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ $ oc patch imagebasedupgrades.lca.openshift.io upgrade -p<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;{&#34;spec&#34;: {&#34;stage&#34;: &#34;Upgrade&#34;}}&#39;</span> --type<span style="color:#f92672">=</span>merge
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ oc get ibu upgrade  -w
+</span></span><span style="display:flex;"><span>NAME      AGE   DESIRED STAGE   STATE        DETAILS
+</span></span><span style="display:flex;"><span>upgrade   17h   Upgrade         InProgress   Backup of Application Data is in progress
+</span></span><span style="display:flex;"><span>upgrade   17h   Upgrade         InProgress   Backing up Application Data
+</span></span><span style="display:flex;"><span>upgrade   17h   Upgrade         InProgress   Exporting Application Configuration
+</span></span><span style="display:flex;"><span>upgrade   17h   Upgrade         InProgress   Exporting Policy and Config Manifests
+</span></span><span style="display:flex;"><span>upgrade   17h   Upgrade         InProgress   Exporting Cluster and LVM configuration
+</span></span><span style="display:flex;"><span>upgrade   17h   Upgrade         InProgress   In progress
+</span></span></code></pre></div><p>The SNO is rebooting. After that, in about 5 minute, you can see the node with the upgraded OCP version:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ date
+</span></span><span style="display:flex;"><span>Thu Feb  <span style="color:#ae81ff">6</span> 05:10:56 EST <span style="color:#ae81ff">2025</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ oc get co
+</span></span><span style="display:flex;"><span>NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
+</span></span><span style="display:flex;"><span>authentication                             4.16.9    True        False         False      6d20h   
+</span></span><span style="display:flex;"><span>config-operator                            4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>dns                                        4.16.9    True        False         False      6d20h   
+</span></span><span style="display:flex;"><span>etcd                                       4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>ingress                                    4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>kube-apiserver                             4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>kube-controller-manager                    4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>kube-scheduler                             4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>kube-storage-version-migrator              4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>machine-approver                           4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>machine-config                             4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>marketplace                                4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>monitoring                                 4.16.9    True        False         False      6d20h   
+</span></span><span style="display:flex;"><span>network                                    4.16.9    True        True          False      6d21h   DaemonSet <span style="color:#e6db74">&#34;/openshift-multus/network-metrics-daemon&#34;</span> is waiting <span style="color:#66d9ef">for</span> other operators to become ready...
+</span></span><span style="display:flex;"><span>node-tuning                                4.16.9    True        False         False      6d20h   
+</span></span><span style="display:flex;"><span>openshift-apiserver                        4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>openshift-controller-manager               4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>operator-lifecycle-manager                 4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>operator-lifecycle-manager-catalog         4.16.9    True        False         False      6d21h   
+</span></span><span style="display:flex;"><span>operator-lifecycle-manager-packageserver   4.16.9    True        False         False      6d20h   
+</span></span><span style="display:flex;"><span>service-ca                                 4.16.9    True        False         False      6d21h  
+</span></span></code></pre></div><p>But still some work to do.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ oc get ibu upgrade  -w
+</span></span><span style="display:flex;"><span>NAME      AGE    DESIRED STAGE   STATE        DETAILS
+</span></span><span style="display:flex;"><span>upgrade   7m2s   Upgrade         InProgress   Waiting <span style="color:#66d9ef">for</span> system to stabilize: one or more health checks failed...
+</span></span><span style="display:flex;"><span>upgrade   7m28s   Upgrade         InProgress   Applying Policy Manifests
+</span></span><span style="display:flex;"><span>upgrade   7m28s   Upgrade         InProgress   Applying Config Manifests
+</span></span><span style="display:flex;"><span>upgrade   7m28s   Upgrade         InProgress   Restoring Application Data
+</span></span><span style="display:flex;"><span>upgrade   7m28s   Upgrade         InProgress   Restore of Application Data is in progress
+</span></span><span style="display:flex;"><span>upgrade   7m58s   Upgrade         InProgress   Applying Policy Manifests
+</span></span><span style="display:flex;"><span>upgrade   7m58s   Upgrade         InProgress   Applying Config Manifests
+</span></span><span style="display:flex;"><span>upgrade   7m58s   Upgrade         InProgress   Restoring Application Data
+</span></span><span style="display:flex;"><span>upgrade   7m58s   Upgrade         InProgress   Restore of Application Data is in progress
+</span></span><span style="display:flex;"><span>upgrade   8m28s   Upgrade         InProgress   Applying Policy Manifests
+</span></span><span style="display:flex;"><span>upgrade   8m28s   Upgrade         InProgress   Applying Config Manifests
+</span></span><span style="display:flex;"><span>upgrade   8m28s   Upgrade         InProgress   Restoring Application Data
+</span></span><span style="display:flex;"><span>upgrade   8m30s   Upgrade         InProgress   Restoring Application Data
+</span></span><span style="display:flex;"><span>upgrade   8m30s   Upgrade         InProgress   Restoring Application Data
+</span></span><span style="display:flex;"><span>upgrade   8m30s   Upgrade         Completed    Upgrade completed
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>jgato@provisioner ~<span style="color:#f92672">]</span>$ date
+</span></span><span style="display:flex;"><span>Thu Feb  <span style="color:#ae81ff">6</span> 05:19:47 EST <span style="color:#ae81ff">2025</span>
+</span></span></code></pre></div><p>Everything done in about 15 minutes. Considering this is baremetal, only the reboot consumed about 5 of these minutes.</p>
+<p>Lets check the restore of our workload:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ oc -n example-workload get pod
+</span></span><span style="display:flex;"><span>NAME                                        READY   STATUS    RESTARTS   AGE
+</span></span><span style="display:flex;"><span>exception-app-deployment-575c65d8cf-szjsf   1/1     Running   <span style="color:#ae81ff">0</span>          94s
+</span></span></code></pre></div><p>Remember this SNO was part of ACM, and we can check it is still there:</p>
+<p><img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_improved_20250206131843420.png"></p>
+<p>There are other features not tested in the blog, like rollback if fail. But I did not want to do it too complex and give only a first approach.</p>
+<h2 id="upgrading-a-cluster-with-traditional-upgrade">Upgrading a cluster with traditional upgrade<a href="#upgrading-a-cluster-with-traditional-upgrade" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><em>Note: This is just a comparative on the amount of time, as reference. But it is not intended to compare (or to conclude) which one is better. As explained in the introduction IBU only covers very specific scenario and only SNO clusters. &ldquo;Traditional&rdquo; upgrade has to cover absolutely all the possible scenarios.</em></p>
+<p>We take a similar SNO and (simplified installation steps for clarity of the blog):</p>
+<p>To intermediate version 4.15.38</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ date
+</span></span><span style="display:flex;"><span>Thu Feb  <span style="color:#ae81ff">6</span> 05:34:15 EST <span style="color:#ae81ff">2025</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ oc adm upgrade --to<span style="color:#f92672">=</span>4.15.38
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ oc get clusterversion
+</span></span><span style="display:flex;"><span>NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+</span></span><span style="display:flex;"><span>version   4.15.38   True        False         50s     Cluster version is 4.15.38
+</span></span><span style="display:flex;"><span>$ date
+</span></span><span style="display:flex;"><span>Thu Feb  <span style="color:#ae81ff">6</span> 06:33:14 EST <span style="color:#ae81ff">2025</span>
+</span></span></code></pre></div><p>Then to 4.16.23 (there is no update path to .9, but it is oka). I also need some time to update some OLM Operators:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ date
+</span></span><span style="display:flex;"><span>Thu Feb  <span style="color:#ae81ff">6</span> 06:46:10 EST <span style="color:#ae81ff">2025</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ oc adm upgrade --to<span style="color:#f92672">=</span>4.16.23
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ oc get clusterversion
+</span></span><span style="display:flex;"><span>NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+</span></span><span style="display:flex;"><span>version   4.15.38   True        True          37s     Working towards 4.16.23: <span style="color:#ae81ff">110</span> of <span style="color:#ae81ff">903</span> <span style="color:#66d9ef">done</span> <span style="color:#f92672">(</span>12% complete<span style="color:#f92672">)</span>, waiting on etcd, kube-apiserver
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>jgato@provisioner ~<span style="color:#f92672">]</span>$ oc get clusterversion -w
+</span></span><span style="display:flex;"><span>NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+</span></span><span style="display:flex;"><span>version   4.15.38   True        True          58m     Working towards 4.16.23: <span style="color:#ae81ff">764</span> of <span style="color:#ae81ff">903</span> <span style="color:#66d9ef">done</span> <span style="color:#f92672">(</span>84% complete<span style="color:#f92672">)</span>, waiting on machine-config
+</span></span><span style="display:flex;"><span>version   4.15.38   True        True          62m     Working towards ...
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>version   4.16.23   True        False         0s      Cluster version is 4.16.23
+</span></span><span style="display:flex;"><span>$ date
+</span></span><span style="display:flex;"><span>Thu Feb  <span style="color:#ae81ff">6</span> 07:50:04 EST <span style="color:#ae81ff">2025</span>
+</span></span></code></pre></div><p>So, it took like another 60 minutes minutes to do the two upgrades up to reach to 4.16. In total around 120 minutes plus the extra if you have to upgrade OLM operators.</p>
+<h1 id="conclusion">Conclusion<a href="#conclusion" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Image-Based Upgrade for Single Node OpenShift clusters is an efficient way to upgrade clusters when there are very tight maintenance windows. However, it’s limited to specific scenarios, particularly when your infrastructure consists of homogeneous SNOs. In such cases, upgrades (including backup and restore of workloads) can take as little as 15-20 minutes, which is a significant improvement compared to other mechanisms that need to cover a wide range of possible scenarios.</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://jgato.github.io/jgato/posts/instructlab/">
+                <span class="button__text">InstructLab for creating your own &#39;ChatPGT&#39; like model</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://jgato.github.io/jgato/assets/main.js"></script>
+<script src="https://jgato.github.io/jgato/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

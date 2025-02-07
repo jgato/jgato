@@ -12,6 +12,9 @@
 <link rel="canonical" href="https://jgato.github.io/jgato/posts/ipv6/" />
 
 
+  
+
+
 
 
 <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
@@ -303,7 +306,7 @@ ff02::2 All IPv6 routers
 </span></span><span style="display:flex;"><span>ndptool monitor -t ra
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># server-1 to send a Route Solicitiation message:</span>
 </span></span><span style="display:flex;"><span>ndptool send -t rs -i br-ex
-</span></span></code></pre></div><p><img src="assets/2022-06-03-11-35-17-output.gif" alt=""></p>
+</span></span></code></pre></div><p><img src="/jgato/posts/ipv6/assets/2022-06-03-11-35-17-output.gif"></p>
 <p>Some important things from the received RA message:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
 </span></span><span style="display:flex;"><span>  Type: RA
@@ -337,12 +340,12 @@ ff02::2 All IPv6 routers
 </span></span><span style="display:flex;"><span>  Type: RS
 </span></span></code></pre></div><p>Following an RS message in detail. A message that can be sent by any server when boots, to discover possible Routers.</p>
 <p><em>(wireshark screencaptures not from my lab, thanks to Raskia Nayanajith</em></p>
-<p><img src="assets/2022-06-03-13-26-59-image.png" alt=""></p>
+<p><img src="/jgato/posts/ipv6/assets/2022-06-03-13-26-59-image.png"></p>
 <p>The source is the LL of the server making the Router Solicitation. As it is explained above, it is the way of working of NDP.</p>
 <p>The destination is the multicast address that all the routers will join. In that way, the router will capture the message and it will send the RA.</p>
 <p>Notice how the server sending the solicitation dont need to know the router address. Neither, the server sending the solicitation, needs to have already assigned a real IPv6 Global Unicast Address. Only need the LL to start.</p>
 <p>The response from the Router is a RA. This time, the source is the Router LL, and destination,  the Multicast Address for all the hosts.</p>
-<p><img src="assets/2022-06-03-13-32-30-image.png" alt=""></p>
+<p><img src="/jgato/posts/ipv6/assets/2022-06-03-13-32-30-image.png"></p>
 <h1 id="radvd-tool">radvd tool<a href="#radvd-tool" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
 <p>Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS).</p>
 <blockquote>
@@ -457,10 +460,10 @@ ff02::2 All IPv6 routers
 <p>All the Multicast Addresses in IPv6 will have a Multicast Layer 2 Address. It will be composed in the way of 33:33:xx:xx:xx:xx, with the last 32bits corresponding to the last 32bits of the Layer-3 Multicast Address.  Therefore, a router subscribed to ff02::2 will have a corresponding Layer 2 Address: 33:33:00:00:00:02</p>
 <p>When a Router receives a RS in the  ff02::2 address, this is transformed into Layer-2 33:33:33:00:00:00:02. So the message has reached to a right destination and the router will create the answer.</p>
 <p>You can see also here in this network capture:</p>
-<p><img src="assets/2022-06-03-13-39-46-image.png" alt=""></p>
+<p><img src="/jgato/posts/ipv6/assets/2022-06-03-13-39-46-image.png"></p>
 <p>The message reaches to Layer 3 ff02::2 and Layer 2 33:33:00:00:00:02</p>
 <p>The response will work the other way around. The router will send a RA to ff02::1. This will be received for all the hosts in the Multicast Layer-3 ff02::1 and the Multicast Layer-2 33:33:00:00:00:02</p>
-<p><img src="assets/2022-06-03-13-42-21-image.png" alt=""></p>
+<p><img src="/jgato/posts/ipv6/assets/2022-06-03-13-42-21-image.png"></p>
 <p><em>(all the wireshark screencaptures thanks to Raskia Nayanajith: <a href="https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/">https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/</a> )</em></p>
 
       </div></div>
@@ -507,7 +510,7 @@ ff02::2 All IPv6 routers
   <div class="footer__inner">
     
       <div class="copyright">
-        <span>© 2024 Powered by <a href="http://gohugo.io">Hugo</a></span>
+        <span>© 2025 Powered by <a href="http://gohugo.io">Hugo</a></span>
     
         <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
       </div>

@@ -68,11 +68,11 @@ paginate = 5
   site = ""
 
 [languages]
-  [languages.en]
+  [languages.en.params]
     languageName = "English"
     title = "Jose Gato Blog"
-    subtitle = "Some tutorials or snippets related to Opensource technologies"
     owner = "Jose Gato Luis"
+    subtitle = "Some tutorials or snippets related to Opensource technologies"
     keywords = ""
     copyright = ""
     menuMore = "Show more"
