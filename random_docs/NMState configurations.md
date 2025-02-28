@@ -40,3 +40,5 @@ What if you want to configure your IP address only with DHCP? Configure `autocon
 
 What if you want to configure your IP address with both SLAAC and DHCP?
 Configure `autoconf:true` and configure your RA with flag M and A enabled.
+
+> Others params at NMState like `auto-route`, `auto-dns`, etc are not covered yet here, and these works with RA and the O flag. 
