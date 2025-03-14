@@ -77,6 +77,14 @@ With this command
 
 You have to SSH into the host which is the boostrap, and it contains the assisted-service. 
 
+For OCP4.17 and above the REST services requires authentication. You can get it from `/usr/local/share/assisted-service/assisted-service.env`, and:
+
+```bash
+> AGENT_AUTH_TOKEN=...............
+> curl -H "Authorization: ${AGENT_AUTH_TOKEN}" ...
+
+```
+
 #### How to know the installation status:
 
 You can get the validation info of each host:

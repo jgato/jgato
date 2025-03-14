@@ -26,6 +26,47 @@ INFO Image-Config-Template created in: live-iso-sno4
 ```
 
 Then, edit the `image-based-installation-config.yaml` pointing to the seed image, and configuring the network and disk of the new cluster:
+```yaml
+apiVersion: v1beta1
+kind: ImageBasedInstallationConfig
+metadata:
+  name: installing-from-sno4
+seedImage: "quay.io/jgato/sno4:4.17.7"
+seedVersion: "4.17.17"
+extraPartitionStart: "-240G"
+installationDisk: "/dev/nvme0n1"
+sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCei2UnkBB9g9DPhu4fpMFKmrlhR9UIYYPet61WF3qr6Rp2LkxEhZtb...VUKnvxZ0Gwajy1Ru+xjrlROFT+761faJHmG5Ev/EdwKHkXHq5EMHgopyiYV7swJEnFzAUzaiu8DP1FYNJyocRvp6AZpbIlyFoabyq+o2yn2Fhny6gs= jgato@provisioner.el8k.hpecloud.org
+'
+pullSecret: '{"auths": { "quay.io/jgato": { "auth": "amdhdG9AcmVkaGF...jFuX0c2bmE=" } } } '
+networkConfig:
+  interfaces:
+    - name: "eno3"
+      macAddress: "94:40:c9:1f:bd:6c"
+  config:
+    interfaces:
+      - name: eno3
+        type: ethernet
+        state: up
+        ipv4:
+          enabled: true
+          address:
+            - ip: 10.6.77.31
+              prefix-length: 24
+        ipv6:
+          enabled: false
+    dns-resolver:
+      config:
+        server:
+          - 10.6.77.20
+    routes:
+      config:
+        - destination: 0.0.0.0/0
+          next-hop-address: 10.6.77.254
+          next-hop-interface: eno3
+
+```
+
+And finally, we will create the image:
 
 ```
 $ bin/4.17.17/openshift-install image-based create image --dir live-iso-sno4
@@ -41,21 +82,17 @@ $ du -hs live-iso-sno4/rhcos-ibi.iso
 
 ## Inject the live iso
 
-For that purpose I will just serve the ISO with a simple Python server:
+For demoing purpuse I will just inject the iso using the BMC emulator:
 
-```
-$ python3 -m http.server 7800
-Serving HTTP on 0.0.0.0 port 7800 (http://0.0.0.0:7800/) ...
+![](assets/image_base_install_20250303155708297.png)
 
-```
-
-Then I inject the iso directly from the BMC.
-
-![](assets/image_base_install_20250228181617032.png)
+Then change the boot order to boot once from CD, and after a while (it need to upload more than 1GB to the server):
 
 
-Then I will mount the BMC virtual media and boot from CD (more on [how to use Redfish on my blog](https://jgato.github.io/jgato/posts/redfish-sushy/):
+![](assets/image_base_install_20250303155725662.png)
 
-```
+BMCs are not very friendly about uploading big isos. But this is only for demoing intention. This procedure is more useful on virtual environments, or having local direct access to the isos, and specially, at factory. So, servers leave the factory with images already installed.
 
-```
+Anyway, after a while, the ISO will boot.
+
+![](assets/image_base_install_20250303170109355.png)
