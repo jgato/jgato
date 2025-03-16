@@ -67,7 +67,7 @@ Clone the [Telco Hub repository](https://github.com/openshift-kni/telco-referenc
 
 > The following steps would be done using the manifests from the repo, in a near future.
 
-First of all you have to modify the ArgoCD App and Project that will point to the Telco Hub git repository:
+First of all you have to modify the ArgoCD App and Project that will point to the Telco Hub git repository. You can find these manifests on `telco-hub/configuration/reference-crs/required/gitops/`:
 
 ```
 apiVersion: argoproj.io/v1alpha1
@@ -139,7 +139,7 @@ resources:
 
 As pointed in the description, this kustomiztion file requieres some extra manual configurations. Lets proceed with it:
 
-Modify the [`LocalVolume` manifest](https://github.com/openshift-kni/telco-reference/blob/main/telco-hub/configuration/reference-crs/required/lso/lsoLocalVolume.yaml) pointing to the disks to be used by the LocalStorage operator. These volumes will be later used by ODF. In my case, I modified the `devicePaths:` to point use disks on `/dev/nvme1n1`:
+I have modified the [`LocalVolume` manifest](https://github.com/openshift-kni/telco-reference/blob/main/telco-hub/configuration/reference-crs/required/lso/lsoLocalVolume.yaml) pointing to the disks to be used by the LocalStorage operator. These volumes will be later used by ODF. In my case, I modified the `devicePaths:` to point use disks on `/dev/nvme1n1`:
 
 ```yaml
 ---
@@ -235,6 +235,54 @@ spec:
 
 ```
 
+Configure MultiClusterHub Observability storage class:
+
+```
+---
+apiVersion: observability.open-cluster-management.io/v1beta2
+kind: MultiClusterObservability
+metadata:
+  name: observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    # avoids MultiClusterHub Observability to own/manage the
+    # spoke clusters configuration about AlertManager forwards.
+    # ZTP Policies will be in charge of configuring it
+    # https://issues.redhat.com/browse/CNF-13398
+    mco-disable-alerting: "true"
+spec:
+  # based on the data provided by acm-capacity tool
+  # https://github.com/stolostron/capacity-planning/blob/main/calculation/ObsSizingTemplate-Rev1.ipynb
+  # for an scenario with:
+  # 3500SNOs, 125 pods and 4 Namespaces (apart from Openshift NS)
+  # storage retention 15 days
+  # downsampling disabled
+  # default MCO Addon configuration samples_per_hour, pv_retention_hrs.
+  # More on how to stimate: https://access.redhat.com/articles/7103886
+  advanced:
+    retentionConfig:
+      blockDuration: 2h
+      deleteDelay: 48h
+      retentionInLocal: 24h
+      retentionResolutionRaw: 15d
+  enableDownsampling: false
+  observabilityAddonSpec:
+    enableMetrics: true
+    interval: 300
+  storageConfig:
+    storageClass: "ocs-storagecluster-cephfs"
+    alertmanagerStorageSize: 10Gi
+    compactStorageSize: 10Gi
+    metricObjectStorage:
+      key: thanos.yaml
+      name: thanos-object-storage
+    receiveStorageSize: 10Gi
+    ruleStorageSize: 10Gi
+    storeStorageSize: 10Gi
+```
+
+The selection of StorageClass has to be set, because it is not mandatory to have ODF. So, your StorageClasses would be different.
 
 And that is all.
 
@@ -300,6 +348,8 @@ assisted-service-5f584f44d-5g5zf                       2/2     Running   0      
 ```
 
 MultiClusterHub Observability gathering metrics from your fleet:
+
+![](assets/telco_hub_rds_20250316192954810.png)
 
 [Zero Touch Provisioning](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/edge_computing/ztp-deploying-far-edge-clusters-at-scale#ztp-challenges-of-far-edge-deployments_ztp-deploying-far-edge-clusters-at-scale) configured inside ArgoCD, enabling you to do the GitOps using [Siteconfigs](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/edge_computing/ztp-deploying-far-edge-clusters-at-scale#ztp-creating-ztp-crs-for-multiple-managed-clusters_ztp-deploying-far-edge-clusters-at-scale) and [PolicyGenTemplates](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/edge_computing/ztp-deploying-far-edge-clusters-at-scale#ztp-configuring-cluster-policies_ztp-deploying-far-edge-clusters-at-scale):
 
