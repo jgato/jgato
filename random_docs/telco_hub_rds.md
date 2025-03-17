@@ -114,7 +114,7 @@ With the ArgoCD and Project created, we can see the whole Telco Hub structure:
 
 ![](assets/telco_hub_rds_20250315174449317.png)
 
-The ArgoCD App is mainly pointing to a git repository containing all the needed manifests to convert the cluster, into a Telco Hub. These manifests are already configured to be executed, by ArgoCD, in the proper order. In my case, I am using my own forked version of the [Telco Hub](https://github.com/openshift-kni/telco-reference/tree/main), to do some modifications.
+The ArgoCD App is mainly pointing to a git repository containing all the needed manifests to convert the cluster, into a Telco Hub. These manifests are already configured to be executed, by ArgoCD, in the proper order. In my case, I am using my own forked version of the [Telco Hub](https://github.com/jgato/telco-reference/tree/main), to do some modifications.
 
 Actually, the ArgoCD app points to a `kustomization.yaml` in the configured repo. There you can point to all the optinal/Required components to be installed and configured:
 
@@ -169,6 +169,8 @@ spec:
 
 
 Create the following Secret, with your pull-secret, to pull needed images for MultiClusterHub observability:
+
+> This has to be done once the `open-cluster-management-observability`. So it requires to do it while the ArgoCD sync. I/we have to improve this part.
 
 ```
 apiVersion: v1
