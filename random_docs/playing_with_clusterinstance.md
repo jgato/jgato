@@ -125,5 +125,21 @@ And setting that you dont want to use the NMStateConfig template to automaticall
 
 ```
 
-Finally, how to add extra-manifests. Before it was done directly at [SiteConfig level]()
+Finally, how to add extra-manifests. Before it was done directly at [SiteConfig level](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html-single/edge_computing/index#ztp-customizing-the-install-extra-manifests_ztp-advanced-install-ztp). 
+Now, you have to add them to the kustomization file, using a kustomize generator to put every manifest into a ConfigMap:
+
+```
+
+```
+
+These manifests are placed into the proper Namespace, so, these can be referenced from the cluster:
+
+```yaml
+ extraManifestsRefs: 
+    - name: 00-autologin
+```
+
+
+
+
 
