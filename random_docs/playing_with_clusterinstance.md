@@ -10,7 +10,7 @@ For example, basic `spec` for the cluster:
 
 After that, SiteConfig had an `spec.clusters` because a site could contain more than one cluster. ClusterInstance contains only one cluster, so, this section does not exist and you directly configure the specification of the cluster:
 
-![](assets/playing_with_clusterinstance_20250402155457633.png)
+![](assets/playing_with_clusterinstance_20250402175032339.png)
 
 Pretty much the same, not the labels can be added at different levels. The main difference is about how we use `extra-manifests` (we can go with it later) and `templateRefs`. The `templateRefs` are Configmap used as templates to generate CRs for the cluster. For example, there exists some at cluster level for AgentClusterInstall, ClusterDeployment, etc:
 
@@ -24,6 +24,7 @@ ai-node-templates-v1                2      22h
 Similar to what we had [here](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/siteconfig-generator/siteConfig/clusterCRsV1.go) for the old ZTP SiteConfig. But now, these exists in the cluster. You could create your own templates, to render the configuration on your own way.
 
 Then, we go with the nodes information:
+
 ![](assets/playing_with_clusterinstance_20250402160040237.png)
 
 Pretty similar, but the adding on managing templates, the same that happened at cluster level. But this time, for CRs of BMH and NMStateConfig. 
