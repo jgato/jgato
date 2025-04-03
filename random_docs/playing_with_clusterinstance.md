@@ -171,6 +171,8 @@ custom-manifests-cm   2      47s
 
 After the installation, the cluster contains the extra configuration. 
 
+### Having to add many manifest
+
 If you have to add many manifests, you can use this kustomize command to add all the manifests in the folder to the kustomize file:
 
 ```bash
