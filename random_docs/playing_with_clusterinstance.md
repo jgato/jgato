@@ -169,7 +169,9 @@ custom-manifests-cm   2      47s
 
 ```
 
-After the installation, the cluster contains the extra configuration. 
+After the installation, the cluster contains the extra ConfigMaps:
+
+![](assets/playing_with_clusterinstance_20250403132738084.png)
 
 ### Having to add many manifest
 
