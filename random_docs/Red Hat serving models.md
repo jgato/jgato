@@ -223,33 +223,33 @@ Continue is configured with my Local Assistant
 
 My Local Assistant is now configured with two models.
 
-![](assets/Red Hat serving models_20250509175615306.png)
+![]("assets/Red Hat serving models_20250509175615306.png")
 
 And different ways to interact, like edit, chat, or agent:
 
-![](assets/Red Hat serving models_20250509175707403.png)
+![]("assets/Red Hat serving models_20250509175707403.png")
 
 lets just add some greetings:
 
-![](assets/Red Hat serving models_20250509173121740.png)
+![]("assets/Red Hat serving models_20250509173121740.png")
 
 ### Working with both
 
 I am trying to do something more than just chat. So, I want to make it help me to improve some docs:
 
-![](assets/Red Hat serving models_20250509183251916.png)
+![]("assets/Red Hat serving models_20250509183251916.png")
 
 but fails (connection error) for some certificate issue (I have to investigate).
 
-![](assets/Red Hat serving models_20250509183427286.png)
+![]("assets/Red Hat serving models_20250509183427286.png")
 
 But, if I try the model interaction directly with the Red Hat infrastructure (which is Vistual Studio using the CA on my OS):
 
-![](assets/Red Hat serving models_20250509183517148.png)
+![]("assets/Red Hat serving models_20250509183517148.png")
 
 It helps me to write a better document:
 
-![](assets/Red Hat serving models_20250509183825970.png)
+![]("assets/Red Hat serving models_20250509183825970.png")
 
 
 ## Work to do
