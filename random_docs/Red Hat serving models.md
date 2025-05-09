@@ -85,6 +85,7 @@ context:
 ```
 
 So, I can chat with it:
+
 ![](assets/RedHatservingmodels_20250509175209698.png)
 
 *By the way, I had to add some Red Hat CA to trust on the server that is serving the model. You know, copy the certs on your OS path and update the certs DB*
