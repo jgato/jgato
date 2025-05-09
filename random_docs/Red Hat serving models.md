@@ -4,9 +4,9 @@
 
 Recently, Red Hat is providing internally different tools and infrastructure, to allow us to play and learn on different activities related to AI. Through an internal platform I asked for some infrastructure to allocate an AI model that I can use on my daily duties. Or at least, I wanted to experiment. Something that seems a funny thing to do on a #LearningDay.
 
-Because of this is an internal platform the process of registering and getting the infrastructure is not covered here.
+Because of this is an internal platform the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started [here](https://developer.models.corp.redhat.com).
 
-But at the end you will end-up with an endpoint and an api-key (as other many platforms) to interact with it. I could even run it locally (but lack of GPU and good performance), or try Openshift AI serving (maybe for other day, and anyway, I dont have servers with GPU).
+At the end you will end-up with an endpoint and an api-key (as other many platforms) to interact with it. I could even run it locally (but lack of GPU and good performance), or try Openshift AI serving (maybe for other day, and anyway, I dont have servers with GPU).
 
 In our case, the API_BASE would be something like:
 
