@@ -27,18 +27,11 @@ Then, we go with the nodes information:
 
 ![](assets/playing_with_clusterinstance_20250402160040237.png)
 
-Pretty similar, but the adding on managing templates, the same that happened at cluster level. But this time, for CRs of BMH and NMStateConfig. 
+Both specifications are pretty similar, but the main difference is the `crTemplates`. The same that happened at cluster level. But this time, for CRs of BMH and NMStateConfig. 
 
-The `nodeNetwork` is exactly the same, because it is exactly the API of an NMStateConfig. Before, you could directly write the network config in the SiteConfig, or you could use a reference:
+The `nodeNetwork` is exactly the same, because it is exactly the API of an NMStateConfig. 
 
-```yaml
-   crTemplates:                                                                                                      
-     NMStateConfig: "NMStates/nmstate-b3-el8k-1-master-1.yaml"    
-```
 
-Adding these NMSateConfig yamls from your kustomize. 
-
-This now can be done similarly. You can just write the network configuration:
 ```yaml
  nodes:                                                                          
     - hostName: "master-0"                                                        
@@ -89,7 +82,29 @@ This now can be done similarly. You can just write the network configuration:
                 next-hop-interface: eno3                    
 ```
 
-Or remove the nodeNetwork section, and, add the NMStateConfigs manually in the kustomization file:
+So, you can directly add it, the same in a `ClusterInstance` or a `Siteconfig`. 
+
+Instead of writing the whole `nodeNetwork` you can just write a reference to an external NMStateConfig. 
+
+When using a `Siteconfig` the reference can be specified by: 
+
+```yaml
+   crTemplates:                                                                                                      
+     NMStateConfig: "NMStates/nmstate-b3-el8k-1-master-1.yaml"    
+```
+
+This does not exists on the `ClusterInstance`. Instead of that, you have to set that you dont want the operator to automatically generate the NMStateConfig from the node templates:
+
+```
+  templateRefs:
+    - name: ai-node-templates-v1
+      namespace: open-cluster-management
+  suppressedManifests:
+    - NMStateConfig
+```
+
+In bot cases, we have to manually add these manifests (that now are not automatically generated) from the kustomization.yaml:
+
 ```yaml
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -103,39 +118,17 @@ resources:
   - NMStates/nmstate-b5-el8k-1-master-2.yaml
 ```
 
-And setting that you dont want to use the NMStateConfig template to automatically render the configuration. Using the `spec.suppressedManifests`: 
-
-```yaml
-  suppressedManifests:
-    - NMStateConfig
-  nodes:
-    - hostName: "master-0"
-      role: "master"
-      bmcAddress: "redfish-virtualmedia://10.6.75.173/redfish/v1/Systems/1"
-      bmcCredentialsName:
-        name: "master-0-bmc-secret"
-      #installerArgs: '["--append-karg", "systemd.debug-shell=1"]'
-      bootMACAddress: "94:40:c9:1f:bd:6c"
-      bootMode: "UEFI"
-      rootDeviceHints:
-        deviceName: "/dev/nvme0n1"
-      #templates for the node BMH, and NMStateConfig
-      templateRefs:
-        - name: ai-node-templates-v1
-          namespace: open-cluster-management
-
-```
-
-After all these changes, you could have the info from a SiteConfig into a ClusterInstance
 
 ## Dealing with the extra-manifests
 
 
-Previously we used the ZTP extra-manifests (espcially as RAN profile). In principle, you used all of them, but you could use some filtering process to make the selection. And, you could add new folders with more manifests, that could be also be filtered. More [here](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html-single/edge_computing/index#ztp-customizing-the-install-extra-manifests_ztp-advanced-install-ztp).
+In general we use the ZTP extra-manifests to include some manifests during the cluster creation. Specially to inject RAN profile. This is done including a whole directory with a set of manifests, that you can selectively filter.  Additionally, we can add new folders with more manifests. More [here](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html-single/edge_computing/index#ztp-customizing-the-install-extra-manifests_ztp-advanced-install-ztp).
 
-Now, you have to add them to the kustomization file, using a kustomize generator to put every manifest into a ConfigMap.
+Using ClusterInstance, at the time of writing this article, you have to add all the manifests through the he kustomization. A kustomize generator is used to put every manifest into a ConfigMap (as expected by the ZTP installation).
 
-These manifests can be whatever Openshift/Kubernetes CR. But the ClusterInstance needs to put them into a ConfigMap. Taking this directory with several custom-manifests as example:
+These manifests can be whatever Openshift/Kubernetes CR. But the ClusterInstance needs to put them into a ConfigMap. 
+
+Taking this directory with several custom-manifests as example:
 
 ```bash
 > ls custom-manifests/
@@ -152,12 +145,12 @@ configMapGenerator:
     namespace: sno3
 ```
 
-Notice how the different Manifests are encapsulated into a ConfigMap, in the NameSpace to be used by our cluster. Then, you have to point it from the ClusterIntance:
+The different Manifests are encapsulated into a ConfigMap, in the NameSpace to be used by our cluster. Then, you have to point it from the ClusterIntance:
 
 
 ```yaml
  extraManifestsRefs: 
-    - name: 00-autologin
+    - name: extra-manifests-cm
 ```
 
 After syncing, you can see the new ConfigMap with the objects inside:
@@ -222,4 +215,4 @@ generatorOptions:
 
 ```
 
-But yo will need to do the same for every cluster, and the size of the kustomize.yaml would get increased a lot.
+But yo will need to do the same for every cluster, and the size of the kustomize.yaml would get increased considerably.
