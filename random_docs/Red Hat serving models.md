@@ -223,7 +223,7 @@ Continue is configured with my Local Assistant
 
 My Local Assistant is now configured with two models.
 
-![]("assets/Red Hat serving models_20250509175615306.png")
+![](./assets/Red Hat serving models_20250509175615306.png)
 
 And different ways to interact, like edit, chat, or agent:
 
