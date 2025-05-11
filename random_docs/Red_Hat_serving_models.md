@@ -16,14 +16,21 @@ https://granite-3-2-8b-instruct--apicast-staging.apps.i....paas.redhat.com:443/v
 
 Notice this url will then serve it with `/v1/completions` or `v1/chat/completions`.
 
-With the endpoint and key we can just curl:
+I also have the model name to be used, in our case something like `/data/granite-3.2-8b-instruct` or `ibm-granite/granite-3.2-8b-instruct`. Notice the difference on the starting with or without `/`. Both formats are correct.
+
+With the endpoint, the model and the key we can just curl:
 
 ```bash
-> curl -sH "Content-Type: application/json"           -d "{ \                                                                                                                                                                                              
-                \"prompt\": \"ey how is going, who is out there?\", \
-                \"max_tokens\": 300, \
-                \"temperature\": 0 \
-              }"           --url "https://granite-3-2-8b-instruct--apicast-.....paas.redhat.com:443/v1/completions"           -H "Authorization: Bearer 1928....de" | jq
+> curl -sH "Content-Type: application/json"\
+            -d "{ \
+              \"model\": \"/data/granite-3.2-8b-instruct\",\
+              \"prompt\": \"ey thereeeeeeeeeeeeee\",\
+              \"max_tokens\": 700,\
+              \"temperature\": 0\
+            }"\
+            --url "https://granite-3-2-8b-instruct--apicast-staging.apps.int.stc.ai.prod.us-east-1.aws.paas.redhat.com:443/v1/completions"\
+            -H "Authorization: Bearer 19282906ec8f48750903d302ad8edcde" | jq
+	
 {
   "id": "cmpl-5620b9cca2db4e27b7cad839246110ad",
   "object": "text_completion",
