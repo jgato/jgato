@@ -1,24 +1,26 @@
-*Disclaimer: this is just me playing with some interal services on Red Hat, to help us play and learn about different usages of AI LLM models*
+*Disclaimer: this is just me playing with some internal services on Red Hat, to help us play and learn about different usages of AI LLM models*
 
-# Playing with RedHatservingmodels
+# Integrating Red Hat and IBM AI tools
 
-Recently, Red Hat is providing internally different tools and infrastructure, to allow us to play and learn on different activities related to AI. Through an internal platform I asked for some infrastructure to allocate an AI model that I can use on my daily duties. Or at least, I wanted to experiment. Something that seems a funny thing to do on a #LearningDay.
+Recently, Red Hat/Ibm are providing different AI models, tools and infrastructure. This allow us (internally, but also for customer and partners) to play and learn on different activities related to AI. Through an internal platform I asked for some infrastructure to allocate an AI model that I can use on my daily duties. Or at least, to experiment. Something that seems a funny thing to do on a #LearningDay.
 
-Because of this is an internal platform the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started [here](https://developer.models.corp.redhat.com).
+Why these services? It would be a long story, but could be summarized as: privacy, performance and scale. Privacy, because maybe you dont want to interact (and send your data) to a model running who knows where. Oka, now I am doing it, but I could deployed it with RHEL or Openshift. I dont have enough servers, neither GPU,so I trust this private serving ;). Performance and scale: for this demo I will not need to scale, but I dont want to wait several seconds for every request. 
 
-At the end you will end-up with an endpoint and an api-key (as other many platforms) to interact with it. I could even run it locally (but lack of GPU and good performance), or try Openshift AI serving (maybe for other day, and anyway, I dont have servers with GPU).
+So, the services I am using for learning and demoing are the base,   that later would enable to build real production projects. But this is out of a #learningday.
 
-In our case, the API_BASE would be something like:
+> Because I am using an internal platform, the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started [here](https://developer.models.corp.redhat.com).
+
+At the end, what I will get it is a model, an endpoint and an api key. For the endpoint, something like:
 
 ```
 https://granite-3-2-8b-instruct--apicast-staging.apps.i....paas.redhat.com:443/v1/
 ```
 
-Notice this url will then serve it with `/v1/completions` or `v1/chat/completions`.
+Notice this url will serve the model with routes as: `/v1/completions` or `v1/chat/completions`. Because, the servers export the models using the OpenAI API.
 
-I also have the model name to be used, in our case something like `/data/granite-3.2-8b-instruct` or `ibm-granite/granite-3.2-8b-instruct`. Notice the difference on the starting with or without `/`. Both formats are correct.
+I also have selected the IBM Granite model. So, I have a model name `/data/granite-3.2-8b-instruct` or `ibm-granite/granite-3.2-8b-instruct`. To be used in the requests. Notice the difference on the starting with or without `/`. Both formats are correct.
 
-With the endpoint, the model and the key we can just curl:
+With the endpoint, the model name and the key we can just curl the model. Easy and quick:
 
 ```bash
 > curl -sH "Content-Type: application/json"\
@@ -56,16 +58,18 @@ With the endpoint, the model and the key we can just curl:
 
 ```
 
-But we will go further integrating other tools.
+But even if curl is always cool, it does not help very much about integrating and AI model in our daily tasks. Following, I will integrate the model using different tools. The model will be used as a chat bot, code/doc correction and execute some tasks. Of course, everything using **Open Source**.
 
 ## Integrate the model into VisualStudio and Continue
 
 My following work is based on a colleague (@EranCohen), who proposed to use Visualstudio and the Continue plugin, that allows you to create a hub of models. Thanks @EranCohen.
 
+Continue is an open-source AI code assistant designed to integrate Large Language Models (LLMs) directly into your Integrated Development Environment (IDE)
+
 
 ### Try direct connect between Visual Studio and our models
 
-Once you have Continues installed, you can configure your Local Assistant to interact with the model. In my case, something like this:
+Once you have Continue plugin installed, you can configure your Local Assistant to interact with different models. In my case, something like this:
 
 ```yaml
 name: Local Assistant
@@ -100,7 +104,7 @@ So, I can chat with it:
 
 ### Try with LitteLLM proxy in the middle
 
-Also proposed by Eran, for a better tool to talk to a model, to use LitteLM.
+Also proposed by @EranCohen, for a better tool to talk to a model, to use LitteLM.
 
 LittleLLM proxy helps you to act as a hub for different models, you can switch from one to another depending on the needs. You can use one model completion, other for chatting, etc.
 
@@ -117,7 +121,7 @@ Now lets create the proxy configuration:
 ```
 > cat litellm_config.yaml 
 model_list:
-  - model_name: Red Hat Model
+  - model_name: gpt-4o
     litellm_params:
       model: hosted_vllm/ibm-granite/granite-3.2-8b-instruct
       api_base: https://granite-3-2-8b-instruct--apicast-staging......paas.redhat.com:443/v1/
@@ -129,10 +133,9 @@ litellm_settings:
 
 ```
 
- * `model_name` it is just how you want to name the model
- * `model` it is in the format of "provider/model". In my case, because of I am using this experimentation infrastructure, I know that is an OpeanAI compatible server. And I can use the [provider VLLM](https://docs.litellm.ai/docs/providers/vllm). So, the provider is "hosted_vllm" and the model name I get from the available options I had. 
- * `api_base`as explained above.
- * `api_key` that I received.
+ * `model_name` here I am not sure, I am using `gpt-4o` to later make it work in agent mode. According to [this](https://docs.continue.dev/agent/model-setup).
+ * `model` it is in the format of "provider/model". In my case, because of I am using this experimentation infrastructure, I know that is an OpeanAI compatible server. And I can use the [provider VLLM](https://docs.litellm.ai/docs/providers/vllm).
+ * `api_base` and `api_key`that I obtained from our internal infrastructure and services.
  
 Notice, I have added some configuration to use the Red Hat CA. That I will mount inside the container.
 
@@ -189,9 +192,7 @@ Now, I can directly interact with the proxy. For example, using the `/chat/compl
 
 ```
 
-`curl` is cool but not to chat. So, we integrate our VisualStudio and the Continue plugin to use the proxy. 
-
-So, lets add this option to our Continue Local Assistant, with a new model provided through LiteLLM proxy:
+Now, lets integrate the LiteLLM proxy with with our Continue Local Assistant. We a new model provided through LiteLLM proxy:
 
 ```yaml
 name: Local Assistant
@@ -200,7 +201,7 @@ schema: v1
 models:
   - name: Red Hat Model (litellm)
     provider: openai
-    model: Red Hat Model
+    model: gpt-4o
     apiKey: ..........
     apiBase: http://127.0.0.1:4000/v1/
     systemMessage: You are Granite Chat. You carefully follow instructions and can
@@ -211,7 +212,7 @@ models:
     provider: openai
     model: ibm-granite/granite-3.2-8b-instruct
     apiKey: ........
-    apiBase: https://granite-3-2-8b-instruct--apicast-staging.apps.int.stc.ai.prod.us-east-1.aws.paas.redhat.com:443/v1/
+    apiBase: https://granite-3-2-8b-instruct--apicast.....paas.redhat.com:443/v1/
     systemMessage: You are Granite Chat. You carefully follow instructions and can
       use tools at your disposal to fulfill the request. You always respond to
       greetings with "Hello! I am Granite Chat. How can I help you today?
@@ -227,8 +228,6 @@ context:
 
 ```
 
-Continue is configured with my Local Assistant
-
 My Local Assistant is now configured with two models.
 
 ![](assets/RedHatservingmodels_20250509175615306.png)
@@ -241,23 +240,45 @@ lets just add some greetings:
 
 ![](assets/RedHatservingmodels_20250509173121740.png)
 
-### Working with both
+### Working with the models
 
-I am trying to do something more than just chat. So, I want to make it help me to improve some docs:
+I am trying to do something more than just chat. So, I want to make it help me with some daily tasks. Here I have a shell script far from been perfect. So, I will ask Granite for help:
 
-![](assets/RedHatservingmodels_20250509183251916.png)
+![](assets/Red_Hat_serving_models_20250512101452559.png)
 
-but fails (connection error) for some certificate issue (I have to investigate).
+Not bad for a quick try. I am not going very much on details, but I like how it added different checks and validations :)
 
-![](assets/RedHatservingmodels_20250509183427286.png)
+### Publishing this model with AI
 
-But, if I try the model interaction directly with the Red Hat infrastructure (which is Vistual Studio using the CA on my OS):
+My final experiment is about agents and MCP (Model Context Protocol). MCP helps to interact with the model with some extra context (as RAG) but implementing a common API that allows interactions. Example, an MCP for GitHub can help to make queries with your repositories context, but also provides an API to do PR.
 
-![](assets/RedHatservingmodels_20250509183517148.png)
+Using Continue Agent mode, what if I tell Granite, and an MCP to my GitHub, to help me rewrite this whole article. But also, to tell an agent to do a PR to my blogs repository. That I will revise later. I with my English were perfecto, so, lets see if this helps me.
 
-It helps me to write a better document:
+First we configure an MCP into Continue. Not going too much into details, I get a GitHub access token to my blog's repository. With  just limited access to do PRs. And now, add the MCP server:
 
-![](assets/RedHatservingmodels_20250509183825970.png)
+![](assets/Red_Hat_serving_models_20250512104338205.png)
+
+With something like:
+
+```yaml
+name: MCP server
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: My GitHub MCP
+    command: podman
+    args:
+    - run
+    - "-i"
+    - "--rm"
+    - "-e"
+    - GITHUB_PERSONAL_ACCESS_TOKEN
+    - ghcr.io/github/github-mcp-server
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${input:github_token}"
+```
+
+Now, I have the MCP Server enabled and the Agent mode ready:
 
 
 ## Work to do
