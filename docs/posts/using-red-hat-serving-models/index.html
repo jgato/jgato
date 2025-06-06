@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Integrating Red Hat and IBM served models :: Jose Gato Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Integrating LLM models with different Open Source tools: VistualStudio, Continue and LiteLLM. The objective is to learn how to integrate different tools on a safe 100% OpenSource environment." />
+<meta name="keywords" content="openshift, AI, LLM" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://jgato.github.io/jgato/posts/using-red-hat-serving-models/" />
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
+
+  <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/red.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://jgato.github.io/jgato/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://jgato.github.io/jgato/img/favicon/red.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="jgatoluis" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Integrating Red Hat and IBM served models">
+<meta property="og:description" content="Integrating LLM models with different Open Source tools: VistualStudio, Continue and LiteLLM. The objective is to learn how to integrate different tools on a safe 100% OpenSource environment." />
+<meta property="og:url" content="https://jgato.github.io/jgato/posts/using-red-hat-serving-models/" />
+<meta property="og:site_name" content="Jose Gato Blog" />
+
+  <meta property="og:image" content="https://jgato.github.io/jgato/">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2025-06-06 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="red">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://jgato.github.io/jgato/">
+  <div class="logo">
+    Jose Gato Blog
+  </div>
+</a>
+
+    </div>
+    
+  </div>
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://jgato.github.io/jgato/posts/using-red-hat-serving-models/">Integrating Red Hat and IBM served models</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2025-06-06
+        
+      </span>
+    
+    
+      <span class="post-author">:: Jose Gato Luis</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://jgato.github.io/jgato/tags/openshift/">openshift</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/ai/">AI</a>&nbsp;
+    
+    #<a href="https://jgato.github.io/jgato/tags/llm/">LLM</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="/jgato/posts/using-red-hat-serving-models/cover.png"
+    class="post-cover"
+    alt="Integrating Red Hat and IBM served models"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="integrating-red-hat-and-ibm-served-models">Integrating Red Hat and IBM served models<a href="#integrating-red-hat-and-ibm-served-models" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Recently, Red Hat/IBM released different AI models, tools and infrastructure. This allow us to play and learn on different activities related to AI. Through an internal platform I asked for some infrastructure to allocate an AI model that I can use on my daily duties. Or at least, to experiment. Something that seems a funny thing to do on a #LearningDay.</p>
+<p>Why to use and integrate and external LLM model? I could just use the already integrated Copilot on VS, or, I could just serve it locally with ollama. There are different reasons I could summarize as:</p>
+<ul>
+<li>Performance and scale: for this demo I will not need to scale, but I dont want to wait several seconds for every request. Neither I want to burn my poor laptop lacking of a GPU.</li>
+<li>Privacy: because maybe you dont want to (or you are not allowed to) interact (and send your data) to a model running who knows where. Oka, now I am doing it, but on a more reliable environment and using 100% OpenSource.</li>
+</ul>
+<p>This is oka for experimenting, but if I had to start a more serious project, I would replicate all the environment. Moving to a more controlled cloud environment if needed. Using the same approach, models and technologies.</p>
+<blockquote>
+<p>Because I am using an internal platform, the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started <a href="https://developer.models.corp.redhat.com">here</a>.</p>
+</blockquote>
+<p>So, now that I have the model, what I really have is an: an endpoint and an api key.</p>
+<p>For the endpoint, something like:</p>
+<pre tabindex="0"><code>https://granite-3-2-8b-instruct--apicast-staging.apps.i....paas.redhat.com:443/v1/
+</code></pre><p>Notice this url will serve the model with routes as: <code>/v1/completions</code> or <code>v1/chat/completions</code>. Because, the servers export the models using the OpenAI API.</p>
+<p>With the endpoint, the model name and the key we can just curl the model. Easy and quick:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">&gt;</span> <span style="color:#960050;background-color:#1e0010">curl</span> <span style="color:#960050;background-color:#1e0010">-sH</span> <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span><span style="color:#960050;background-color:#1e0010">\</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#960050;background-color:#1e0010">-d</span> <span style="color:#e6db74">&#34;{ \
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              \&#34;model\&#34;: \&#34;/data/granite-3.2-8b-instruct\&#34;,\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              \&#34;prompt\&#34;: \&#34;ey thereeeeeeeeeeeeee\&#34;,\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              \&#34;max_tokens\&#34;: 700,\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              \&#34;temperature\&#34;: 0\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            }&#34;</span><span style="color:#960050;background-color:#1e0010">\</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#960050;background-color:#1e0010">--url</span> <span style="color:#e6db74">&#34;https://granite-3-2-8b-instruct....redhat.com:443/v1/completions&#34;</span><span style="color:#960050;background-color:#1e0010">\</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#960050;background-color:#1e0010">-H</span> <span style="color:#e6db74">&#34;Authorization: Bearer 192829....8edcde&#34;</span> <span style="color:#960050;background-color:#1e0010">|</span> <span style="color:#960050;background-color:#1e0010">jq</span>
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#e6db74">&#34;cmpl-5620b9cca2db4e27b7cad839246110ad&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;object&#34;</span>: <span style="color:#e6db74">&#34;text_completion&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;created&#34;</span>: <span style="color:#ae81ff">1746805780</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;ibm-granite/granite-3.2-8b-instruct&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;choices&#34;</span>: [
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;index&#34;</span>: <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;text&#34;</span>: <span style="color:#e6db74">&#34;\n\nHello! I&#39;m an assistant, designed to help answer your questions. I don&#39;t have personal experiences or a physical presence, but I&#39;m here to provide information and assistance. How can I help you today?&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;logprobs&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#e6db74">&#34;stop&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;stop_reason&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;prompt_logprobs&#34;</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  ],
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;usage&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;prompt_tokens&#34;</span>: <span style="color:#ae81ff">10</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;total_tokens&#34;</span>: <span style="color:#ae81ff">55</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;completion_tokens&#34;</span>: <span style="color:#ae81ff">45</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;prompt_tokens_details&#34;</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>But even if curl is always cool, it does not help very much about integrating and AI model in our daily tasks. Following, I will integrate the model using different tools. The model will be used as a chat bot, code/doc correction and execute some tasks. Of course, everything using <strong>Open Source</strong>.</p>
+<h2 id="integrate-the-model-into-visualstudio-and-continue">Integrate the model into VisualStudio and Continue<a href="#integrate-the-model-into-visualstudio-and-continue" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>My following work is based on a colleague (thanks @EranCohen), who proposed to use Visualstudio and the Continue plugin to create a hub of models.</p>
+<p>Continue is an open-source AI code assistant designed to integrate Large Language Models (LLMs) directly into your Integrated Development Environment (IDE).
+LitteLLM act as a proxy for different models.</p>
+<h3 id="try-direct-connect-between-visual-studio-and-our-models">Try direct connect between Visual Studio and our models<a href="#try-direct-connect-between-visual-studio-and-our-models" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Once you have Continue plugin installed (just a few clicks), you can configure your Local Assistant to interact with different models. In my case, something like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#ae81ff">Local Assistant</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#ae81ff">1.0.0</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">schema</span>: <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">models</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Red Hat Model (direct connect)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">openai</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">model</span>: <span style="color:#ae81ff">ibm-granite/granite-3.2-8b-instruct</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">apiKey</span>: <span style="color:#ae81ff">19282906ec......2ad8edcde</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">apiBase</span>: <span style="color:#ae81ff">https://granite-3-2-8b-instruct....redhat.com:443/v1/</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">systemMessage</span>: <span style="color:#ae81ff">You are Granite Chat. You carefully follow instructions and can</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#ae81ff">use tools at your disposal to fulfill the request. You always respond to</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#ae81ff">greetings with &#34;Hello! I am Granite Chat. How can I help you today?</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">contextLength</span>: <span style="color:#ae81ff">32000</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">context</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">code</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">docs</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">diff</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">terminal</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">problems</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">folder</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">codebase</span>
+</span></span></code></pre></div><p>So, I can chat with it:</p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175209698.png"></p>
+<p>Pretty straight forward to integrate the RedHat/IBM serving models platform with VS and Continue.</p>
+<p><em>By the way, I had to add some Red Hat CA to trust on the server that is serving the model. You know, copy the certs on your OS path and update the certs DB</em></p>
+<h3 id="try-with-littellm-proxy-in-the-middle">Try with LitteLLM proxy in the middle<a href="#try-with-littellm-proxy-in-the-middle" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Also proposed by @EranCohen, for a better tool to talk to a model, to use LitteLM in the middle.</p>
+<p>LittleLLM proxy helps you to act as a hub for different models, you can switch from one to another depending on the needs. You can use one model completion, other for chatting, etc.</p>
+<p>Some quick instructions will be:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; git clone https://github.com/BerriAI/litellm
+</span></span><span style="display:flex;"><span>&gt; cd litellm
+</span></span></code></pre></div><p>Now lets create the proxy configuration:</p>
+<pre tabindex="0"><code>&gt; cat litellm_config.yaml
+model_list:
+  - model_name: gpt-4o
+    litellm_params:
+      model: hosted_vllm/ibm-granite/granite-3.2-8b-instruct
+      api_base: https://granite-3-2-8b-instruct--apicast-staging......paas.redhat.com:443/v1/
+      api_key: 192.....cde
+
+litellm_settings:
+  ssl_verify: &#34;/etc/ssl/certs/2022-IT-Root-CA.pem&#34;
+  drop_params: true
+</code></pre><ul>
+<li><code>model_name</code> Here I am not 100% sure, I am using <code>gpt-4o</code> to later make it work in agent mode. According to <a href="https://docs.continue.dev/agent/model-setup">this</a>. But it should be the model name to be used, when making a request to the proxy.</li>
+<li><code>model</code> It is in the format of &ldquo;provider/model&rdquo;. In my case, because I am using this experimentation infrastructure, I know that is served using vLLM. I can use the <a href="https://docs.litellm.ai/docs/providers/vllm">provider VLLM</a>.</li>
+<li><code>api_base</code> and <code>api_key</code>that I obtained from our internal infrastructure and services.</li>
+</ul>
+<p>Notice, I have added some configuration to use the Red Hat CA. That I will mount inside the container.</p>
+<p>So, now I can run the proxy in a container, passing the LiteLLM config and the CA:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; podman run -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>/litellm_config.yaml:/app/config.yaml<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	-v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>/redhat-ca/2022-IT-Root-CA.pem:/etc/ssl/certs/2022-IT-Root-CA.pem:ro<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	-p 4000:4000<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	--privileged ghcr.io/berriai/litellm:main-latest<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	--config /app/config.yaml --detailed_debug       
+</span></span></code></pre></div><p>Now, I can directly interact with the proxy. For example, using the <code>/chat/completions/</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">&gt;</span> <span style="color:#960050;background-color:#1e0010">curl</span> <span style="color:#960050;background-color:#1e0010">-s</span> <span style="color:#960050;background-color:#1e0010">--location</span> <span style="color:#960050;background-color:#1e0010">&#39;http:</span><span style="color:#75715e">//0.0.0.0:4000/chat/completions&#39; \
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#960050;background-color:#1e0010">--header</span> <span style="color:#960050;background-color:#1e0010">&#39;Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json&#39;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#960050;background-color:#1e0010">--data</span> <span style="color:#960050;background-color:#1e0010">&#39;</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;Red Hat Model&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;messages&#34;</span>: [
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;role&#34;</span>: <span style="color:#e6db74">&#34;user&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;content&#34;</span>: <span style="color:#e6db74">&#34;Hi there, how is going?&#34;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>}<span style="color:#960050;background-color:#1e0010">&#39;</span> <span style="color:#960050;background-color:#1e0010">|</span> <span style="color:#960050;background-color:#1e0010">jq</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#e6db74">&#34;chatcmpl-bb08825889bd4629ac1e709ce99b2ae1&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;created&#34;</span>: <span style="color:#ae81ff">1746803998</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;hosted_vllm/ibm-granite/granite-3.2-8b-instruct&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;object&#34;</span>: <span style="color:#e6db74">&#34;chat.completion&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;system_fingerprint&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;choices&#34;</span>: [
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#e6db74">&#34;stop&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;index&#34;</span>: <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;message&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;content&#34;</span>: <span style="color:#e6db74">&#34;Greetings! I&#39;m an artificial intelligence and don&#39;t have feelings, but I&#39;m functioning optimally and ready to assist you. How can I help you today?&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;role&#34;</span>: <span style="color:#e6db74">&#34;assistant&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;tool_calls&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;function_call&#34;</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  ],
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;usage&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;completion_tokens&#34;</span>: <span style="color:#ae81ff">39</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;prompt_tokens&#34;</span>: <span style="color:#ae81ff">66</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;total_tokens&#34;</span>: <span style="color:#ae81ff">105</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;completion_tokens_details&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;prompt_tokens_details&#34;</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;service_tier&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;prompt_logprobs&#34;</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Now, lets integrate the LiteLLM proxy with our Continue Local Assistant. We can add a new model provided through LiteLLM proxy:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#ae81ff">Local Assistant</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#ae81ff">1.0.0</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">schema</span>: <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">models</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Red Hat Model (litellm)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">openai</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">model</span>: <span style="color:#ae81ff">gpt-4o</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">apiKey</span>: <span style="color:#ae81ff">..........</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">apiBase</span>: <span style="color:#ae81ff">http://127.0.0.1:4000/v1/</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">systemMessage</span>: <span style="color:#ae81ff">You are Granite Chat. You carefully follow instructions and can</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#ae81ff">use tools at your disposal to fulfill the request. You always respond to</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#ae81ff">greetings with &#34;Hello! I am Granite Chat. How can I help you today?</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">contextLength</span>: <span style="color:#ae81ff">32000</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Red Hat Model (direct connect)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">openai</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">model</span>: <span style="color:#ae81ff">ibm-granite/granite-3.2-8b-instruct</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">apiKey</span>: <span style="color:#ae81ff">........</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">apiBase</span>: <span style="color:#ae81ff">https://granite-3-2-8b-instruct--apicast.....paas.redhat.com:443/v1/</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">systemMessage</span>: <span style="color:#ae81ff">You are Granite Chat. You carefully follow instructions and can</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#ae81ff">use tools at your disposal to fulfill the request. You always respond to</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#ae81ff">greetings with &#34;Hello! I am Granite Chat. How can I help you today?</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">contextLength</span>: <span style="color:#ae81ff">32000</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">context</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">code</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">docs</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">diff</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">terminal</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">problems</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">folder</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">codebase</span>
+</span></span></code></pre></div><p>My Local Assistant is now configured with two models.</p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175615306.png"></p>
+<p>And different ways to interact, like edit, chat, or agent:</p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175707403.png"></p>
+<p>Lets just give some greetings:</p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509173121740.png"></p>
+<h2 id="working-with-the-model">Working with the model<a href="#working-with-the-model" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Now, that I have the model integrated in different ways, I can use for different tasks. Because chat with is cool, but not enough. So, I want to make it help me with some daily tasks. Here I have a shell script far from been perfect. So, I will ask Granite for help me to improve it:</p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/Red_Hat_serving_models_20250512101452559.png"></p>
+<p>It is quite impressive how added some comments about what is happening in the script. Also, some outputs to help following the script execution. Finally, it added a lot of checks to make the script much more robust.
+Not bad for a quick try. I can add the model to my daily activities and&hellip;. in a safe 100% OpenSource environment performing pretty well.</p>
+<h1 id="to-be-continued">To be continued<a href="#to-be-continued" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>As a second phase, for another blog entry, I would like to go further using the Agent mode and configuring some <a href="https://modelcontextprotocol.io/introduction">MCP</a>. That is the way of adding more context (like a kind of RAG) but also executing actions.</p>
+<p>In principle, VisualStudio comes with some pre builtin functions to execute actions, and I started to configure an MCP to interact with my GitHub account. My intention is to make the agent to do a PR to my blog&rsquo;s repo to publish it. But, I am having some problems with the agent mode trying to execute MCP&rsquo;s tools. So, I keep this for a second round of the blog.</p>
+<h1 id="conclusions">Conclusions<a href="#conclusions" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Finally, due to the fact that I am writing this article from VisualStudio, I will let the model to write the final conclusions. So, he gets also some authoring in the blog:</p>
+<p><em>As I explored integrating Red Hat and IBM AI tools into my daily tasks using Visual Studio and the Continue plugin, I was able to successfully connect directly to an AI model for various applications, such as chatbot functionality, code/doc correction, and task execution, all through open-source means. This endeavor has significantly augmented my productivity, providing quicker access to insights and improving my overall coding experience within a familiar environment.</em></p>
+<p><em>Utilizing the LittleLLM proxy as an intermediary allowed me to easily switch between different AI models according to specific task requirements. This flexibility was particularly beneficial in scenarios necessitating optimized models for various functions.</em></p>
+<p><em>The journey with AI integration has highlighted its potential beyond mere conversational entities. By employing advanced modes like Agent Mode and leveraging tools such as MCP (Model Context Protocol), AI can further assist in intricate tasks like automated pull requests or complex data manipulations, thereby revolutionizing its role in software development and maintenance. The road ahead promises exciting possibilities in harnessing AI&rsquo;s true power within development workflows.</em></p>
+<p>Again me: I dont think this has augmented my productivity, or not yet ;)</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://jgato.github.io/jgato/posts/image-base-upgrade/">
+                <span class="button__text">Telco Upgrades with Image Base Upgrade</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://jgato.github.io/jgato/assets/main.js"></script>
+<script src="https://jgato.github.io/jgato/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

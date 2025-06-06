@@ -6,7 +6,37 @@
     <description>Recent content in Tags on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 07 Feb 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 06 Jun 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AI</title>
+      <link>https://jgato.github.io/jgato/tags/ai/</link>
+      <pubDate>Fri, 06 Jun 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/ai/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>LLM</title>
+      <link>https://jgato.github.io/jgato/tags/llm/</link>
+      <pubDate>Fri, 06 Jun 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/llm/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Openshift</title>
+      <link>https://jgato.github.io/jgato/tags/openshift/</link>
+      <pubDate>Fri, 06 Jun 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/openshift/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
     <item>
       <title>Cloud</title>
       <link>https://jgato.github.io/jgato/tags/cloud/</link>
@@ -23,16 +53,6 @@
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/tags/edge/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>Openshift</title>
-      <link>https://jgato.github.io/jgato/tags/openshift/</link>
-      <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
-      
-      <guid>https://jgato.github.io/jgato/tags/openshift/</guid>
       <description></description>
       <content></content>
     </item>
@@ -78,16 +98,6 @@
     </item>
     
     <item>
-      <title>Ai</title>
-      <link>https://jgato.github.io/jgato/tags/ai/</link>
-      <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
-      
-      <guid>https://jgato.github.io/jgato/tags/ai/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
       <title>Chatpgt</title>
       <link>https://jgato.github.io/jgato/tags/chatpgt/</link>
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
@@ -103,16 +113,6 @@
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/tags/granite/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>Llm</title>
-      <link>https://jgato.github.io/jgato/tags/llm/</link>
-      <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
-      
-      <guid>https://jgato.github.io/jgato/tags/llm/</guid>
       <description></description>
       <content></content>
     </item>
