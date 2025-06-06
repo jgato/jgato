@@ -133,13 +133,13 @@
 <p>Why to use and integrate and external LLM model? I could just use the already integrated Copilot on VS, or, I could just serve it locally with ollama. There are different reasons I could summarize as:</p>
 <ul>
 <li>Performance and scale: for this demo I will not need to scale, but I dont want to wait several seconds for every request. Neither I want to burn my poor laptop lacking of a GPU.</li>
-<li>Privacy: because maybe you dont want to (or you are not allowed to) interact (and send your data) to a model running who knows where. Oka, now I am doing it, but on a more reliable environment and using 100% OpenSource.</li>
+<li>Privacy: because maybe you dont want to (or you are not allowed to) interact (and send your data) to a model running who knows where. Ok, now I am doing it, but on a more reliable environment and using 100% OpenSource.</li>
 </ul>
-<p>This is oka for experimenting, but if I had to start a more serious project, I would replicate all the environment. Moving to a more controlled cloud environment if needed. Using the same approach, models and technologies.</p>
+<p>This is good for experimenting, but if I had to start a more serious project, I would replicate all the environment. Moving to a more controlled cloud environment if needed. Using the same approach, models and technologies.</p>
 <blockquote>
-<p>Because I am using an internal platform, the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started <a href="https://developer.models.corp.redhat.com">here</a>.</p>
+<p>As I am using an internal platform, the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started <a href="https://developer.models.corp.redhat.com">here</a>.</p>
 </blockquote>
-<p>So, now that I have the model, what I really have is an: an endpoint and an api key.</p>
+<p>So, now that I have the model, what I really have is an endpoint and an api key.</p>
 <p>For the endpoint, something like:</p>
 <pre tabindex="0"><code>https://granite-3-2-8b-instruct--apicast-staging.apps.i....paas.redhat.com:443/v1/
 </code></pre><p>Notice this url will serve the model with routes as: <code>/v1/completions</code> or <code>v1/chat/completions</code>. Because, the servers export the models using the OpenAI API.</p>
@@ -182,7 +182,10 @@
 <p>Continue is an open-source AI code assistant designed to integrate Large Language Models (LLMs) directly into your Integrated Development Environment (IDE).
 LitteLLM act as a proxy for different models.</p>
 <h3 id="try-direct-connect-between-visual-studio-and-our-models">Try direct connect between Visual Studio and our models<a href="#try-direct-connect-between-visual-studio-and-our-models" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
-<p>Once you have Continue plugin installed (just a few clicks), you can configure your Local Assistant to interact with different models. In my case, something like this:</p>
+<p>Once you have Continue plugin installed (just a few clicks), you can configure your Local Assistant to interact with different models.</p>
+<p>Access to the Continue Local Assistante configuration with:</p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250606115552754.png"></p>
+<p>It will open a new configuration file, that you can fill with something like:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#ae81ff">Local Assistant</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#ae81ff">1.0.0</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">schema</span>: <span style="color:#ae81ff">v1</span>
@@ -278,7 +281,7 @@ litellm_settings:
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;service_tier&#34;</span>: <span style="color:#66d9ef">null</span>,
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;prompt_logprobs&#34;</span>: <span style="color:#66d9ef">null</span>
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Now, lets integrate the LiteLLM proxy with our Continue Local Assistant. We can add a new model provided through LiteLLM proxy:</p>
+</span></span></code></pre></div><p>Now, lets integrate the LiteLLM proxy with our Continue Local Assistant. We can add a new model (to our previous created Continue configuration) provided through LiteLLM proxy:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#ae81ff">Local Assistant</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#ae81ff">1.0.0</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">schema</span>: <span style="color:#ae81ff">v1</span>

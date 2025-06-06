@@ -20,13 +20,13 @@ Recently, Red Hat/IBM released different AI models, tools and infrastructure. Th
 
 Why to use and integrate and external LLM model? I could just use the already integrated Copilot on VS, or, I could just serve it locally with ollama. There are different reasons I could summarize as:
  * Performance and scale: for this demo I will not need to scale, but I dont want to wait several seconds for every request. Neither I want to burn my poor laptop lacking of a GPU.
- * Privacy: because maybe you dont want to (or you are not allowed to) interact (and send your data) to a model running who knows where. Oka, now I am doing it, but on a more reliable environment and using 100% OpenSource.
+ * Privacy: because maybe you dont want to (or you are not allowed to) interact (and send your data) to a model running who knows where. Ok, now I am doing it, but on a more reliable environment and using 100% OpenSource.
 
-This is oka for experimenting, but if I had to start a more serious project, I would replicate all the environment. Moving to a more controlled cloud environment if needed. Using the same approach, models and technologies.
+This is good for experimenting, but if I had to start a more serious project, I would replicate all the environment. Moving to a more controlled cloud environment if needed. Using the same approach, models and technologies.
 
-> Because I am using an internal platform, the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started [here](https://developer.models.corp.redhat.com).
+> As I am using an internal platform, the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started [here](https://developer.models.corp.redhat.com).
 
-So, now that I have the model, what I really have is an: an endpoint and an api key.
+So, now that I have the model, what I really have is an endpoint and an api key.
 
 For the endpoint, something like:
 
@@ -86,7 +86,13 @@ LitteLLM act as a proxy for different models.
 
 ### Try direct connect between Visual Studio and our models
 
-Once you have Continue plugin installed (just a few clicks), you can configure your Local Assistant to interact with different models. In my case, something like this:
+Once you have Continue plugin installed (just a few clicks), you can configure your Local Assistant to interact with different models.
+
+Access to the Continue Local Assistante configuration with:
+
+![](assets/RedHatservingmodels_20250606115552754.png)
+
+It will open a new configuration file, that you can fill with something like:
 
 ```yaml
 name: Local Assistant
@@ -213,7 +219,7 @@ Now, I can directly interact with the proxy. For example, using the `/chat/compl
 
 ```
 
-Now, lets integrate the LiteLLM proxy with our Continue Local Assistant. We can add a new model provided through LiteLLM proxy:
+Now, lets integrate the LiteLLM proxy with our Continue Local Assistant. We can add a new model (to our previous created Continue configuration) provided through LiteLLM proxy:
 
 ```yaml
 name: Local Assistant

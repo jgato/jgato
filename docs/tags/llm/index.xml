@@ -20,13 +20,13 @@ Why to use and integrate and external LLM model?</description>
 &lt;p&gt;Why to use and integrate and external LLM model? I could just use the already integrated Copilot on VS, or, I could just serve it locally with ollama. There are different reasons I could summarize as:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Performance and scale: for this demo I will not need to scale, but I dont want to wait several seconds for every request. Neither I want to burn my poor laptop lacking of a GPU.&lt;/li&gt;
-&lt;li&gt;Privacy: because maybe you dont want to (or you are not allowed to) interact (and send your data) to a model running who knows where. Oka, now I am doing it, but on a more reliable environment and using 100% OpenSource.&lt;/li&gt;
+&lt;li&gt;Privacy: because maybe you dont want to (or you are not allowed to) interact (and send your data) to a model running who knows where. Ok, now I am doing it, but on a more reliable environment and using 100% OpenSource.&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;This is oka for experimenting, but if I had to start a more serious project, I would replicate all the environment. Moving to a more controlled cloud environment if needed. Using the same approach, models and technologies.&lt;/p&gt;
+&lt;p&gt;This is good for experimenting, but if I had to start a more serious project, I would replicate all the environment. Moving to a more controlled cloud environment if needed. Using the same approach, models and technologies.&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;Because I am using an internal platform, the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started &lt;a href=&#34;https://developer.models.corp.redhat.com&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;As I am using an internal platform, the process of registering and getting the infrastructure is not covered here. If you are a Red Hat colleague, I started &lt;a href=&#34;https://developer.models.corp.redhat.com&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;So, now that I have the model, what I really have is an: an endpoint and an api key.&lt;/p&gt;
+&lt;p&gt;So, now that I have the model, what I really have is an endpoint and an api key.&lt;/p&gt;
 &lt;p&gt;For the endpoint, something like:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;https://granite-3-2-8b-instruct--apicast-staging.apps.i....paas.redhat.com:443/v1/
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Notice this url will serve the model with routes as: &lt;code&gt;/v1/completions&lt;/code&gt; or &lt;code&gt;v1/chat/completions&lt;/code&gt;. Because, the servers export the models using the OpenAI API.&lt;/p&gt;
@@ -69,7 +69,10 @@ Why to use and integrate and external LLM model?</description>
 &lt;p&gt;Continue is an open-source AI code assistant designed to integrate Large Language Models (LLMs) directly into your Integrated Development Environment (IDE).
 LitteLLM act as a proxy for different models.&lt;/p&gt;
 &lt;h3 id=&#34;try-direct-connect-between-visual-studio-and-our-models&#34;&gt;Try direct connect between Visual Studio and our models&lt;/h3&gt;
-&lt;p&gt;Once you have Continue plugin installed (just a few clicks), you can configure your Local Assistant to interact with different models. In my case, something like this:&lt;/p&gt;
+&lt;p&gt;Once you have Continue plugin installed (just a few clicks), you can configure your Local Assistant to interact with different models.&lt;/p&gt;
+&lt;p&gt;Access to the Continue Local Assistante configuration with:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250606115552754.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;It will open a new configuration file, that you can fill with something like:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Local Assistant&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;version&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0.0&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;schema&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;v1&lt;/span&gt;
@@ -165,7 +168,7 @@ litellm_settings:
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;service_tier&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;null&lt;/span&gt;,
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;prompt_logprobs&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;null&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now, lets integrate the LiteLLM proxy with our Continue Local Assistant. We can add a new model provided through LiteLLM proxy:&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now, lets integrate the LiteLLM proxy with our Continue Local Assistant. We can add a new model (to our previous created Continue configuration) provided through LiteLLM proxy:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Local Assistant&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;version&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0.0&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;schema&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;v1&lt;/span&gt;
