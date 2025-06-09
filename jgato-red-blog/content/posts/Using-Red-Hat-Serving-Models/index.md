@@ -129,7 +129,7 @@ Pretty straight forward to integrate the RedHat/IBM serving models platform with
 
 ### Try with LitteLLM proxy in the middle
 
-Also proposed by @EranCohen, for a better tool to talk to a model, to use LitteLM in the middle.
+Also proposed by @EranCohen, for a better tool to talk to a model, to use LitteLLM in the middle.
 
 LittleLLM proxy helps you to act as a hub for different models, you can switch from one to another depending on the needs. You can use one model completion, other for chatting, etc.
 
