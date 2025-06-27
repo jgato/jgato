@@ -99,7 +99,7 @@ LitteLLM act as a proxy for different models.&lt;/p&gt;
 &lt;p&gt;Pretty straight forward to integrate the RedHat/IBM serving models platform with VS and Continue.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;By the way, I had to add some Red Hat CA to trust on the server that is serving the model. You know, copy the certs on your OS path and update the certs DB&lt;/em&gt;&lt;/p&gt;
 &lt;h3 id=&#34;try-with-littellm-proxy-in-the-middle&#34;&gt;Try with LitteLLM proxy in the middle&lt;/h3&gt;
-&lt;p&gt;Also proposed by @EranCohen, for a better tool to talk to a model, to use LitteLM in the middle.&lt;/p&gt;
+&lt;p&gt;Also proposed by @EranCohen, for a better tool to talk to a model, to use LitteLLM in the middle.&lt;/p&gt;
 &lt;p&gt;LittleLLM proxy helps you to act as a hub for different models, you can switch from one to another depending on the needs. You can use one model completion, other for chatting, etc.&lt;/p&gt;
 &lt;p&gt;Some quick instructions will be:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; git clone https://github.com/BerriAI/litellm
