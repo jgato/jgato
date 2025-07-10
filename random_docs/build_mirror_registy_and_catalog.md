@@ -4,7 +4,7 @@ Specially useful creating disconnected environments:
  * First you create a container registry with quay.io
  * Then, you use `oc-mirror` to get your needed images and populate them into the registry.
  * Finally, in your Openshift cluster, create a new CatalogSource pointing to the new registry
- 
+
 
 ## Build the registry
 
@@ -15,7 +15,7 @@ Download the oc-mirror, and generate the imageset according to your needs:
 
 ```
 ---
-apiVersion: mirror.openshift.io/v1alpha2
+apiVersion: mirror.openshift.io/v2alpha1
 kind: ImageSetConfiguration
 mirror:
 #  platform:
@@ -79,7 +79,7 @@ For this example, I am not mirroring any platform because of storage constrains.
 Then, use oc-mirror to pull the images and push them to the previously created registry:
 
 ```bash
-$ oc mirror --config=./imageset-config.yaml docker://registry.infra.el8k.se-lab.eng.rdu2.dc.redhat.com:8443
+$ oc mirror --v2 --config=./imageset-config-4.19.yaml --workspace file://oc-mirror-workspace docker://registry.infra.el8k.se-lab.eng.rdu2.dc.redhat.com:8443
 ```
 
 Notice: `oc mirror` or `oc-mirror` will use the pull secret from your `/run/user/1001/containers/auth.json`.
@@ -150,7 +150,7 @@ data:
 
 ```
 
-And we add it to cluster image configuration: 
+And we add it to cluster image configuration:
 ```bash
 > oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge
 ```
