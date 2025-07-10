@@ -82,6 +82,12 @@ Then, use oc-mirror to pull the images and push them to the previously created r
 $ oc mirror --v2 --config=./imageset-config-4.19.yaml --workspace file://oc-mirror-workspace docker://registry.infra.el8k.se-lab.eng.rdu2.dc.redhat.com:8443
 ```
 
+you can make some searches on the registry:
+
+```bash
+$ oc mirror list operators --catalog=registry.infra.el8k.se-lab.eng.rdu2.dc.redhat.com:8443 --package=redhat-oadp-operator
+```
+
 Notice: `oc mirror` or `oc-mirror` will use the pull secret from your `/run/user/1001/containers/auth.json`.
 
 ## Create the CatalogSource
