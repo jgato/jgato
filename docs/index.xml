@@ -2,17 +2,130 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>About me on Jose Gato Blog</title>
-    <link>https://jgato.github.io/jgato/</link>
+    <link>http://localhost:1313/jgato/</link>
     <description>Recent content in About me on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 16 Sep 2022 11:19:12 +0200</lastBuildDate><atom:link href="https://jgato.github.io/jgato/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 16 Sep 2022 11:19:12 +0200</lastBuildDate><atom:link href="http://localhost:1313/jgato/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Converting a Jira issue into a solution with AI</title>
+      <link>http://localhost:1313/jgato/posts/from-jira-to-solution/</link>
+      <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/jgato/posts/from-jira-to-solution/</guid>
+      <description>Jira bug to a document with a solution In this short blog I will document a kind of “hypothetical procedure”: how to extract, from a Jira ticket, enough knowledge to create a document with the solution to a problem.
+I will start with a very good example, a Jira ticket with a bug (open to the world because bugs should be open to everyone), a fix and a couple of workarounds.</description>
+      <content>&lt;h1 id=&#34;jira-bug-to-a-document-with-a-solution&#34;&gt;Jira bug to a document with a solution&lt;/h1&gt;
+&lt;p&gt;In this short blog I will document a kind of “hypothetical procedure”: how to extract, from a Jira ticket, enough knowledge to create a document with the solution to a problem.&lt;/p&gt;
+&lt;p&gt;I will start with a very good example, a &lt;a href=&#34;https://issues.redhat.com/browse/ACM-15056&#34;&gt;Jira ticket&lt;/a&gt; with a bug (open to the world because bugs should be open to everyone), a fix and a couple of workarounds. Basically, there is a problem with a wrong configured OpenShift ServiceAccount (we don&amp;rsquo;t need to go into details). This has been fixed on newer versions, but for the ones already suffering the bug, there is a kind of manual workaround.&lt;/p&gt;
+&lt;p&gt;So, let’s use a chatbot, with a good LLM, and an MCP agent to interact with Jira. My environment will be composed by:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Cursor to use as  chat bot and the agent to interact with the MCP&lt;/li&gt;
+&lt;li&gt;Gemini Pro 2.5 as the LLM&lt;/li&gt;
+&lt;li&gt;A Jira MCP to provide new tools for the chatboot
+Another combination of tools would work the same.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Note: in order to focus on the procedure, I am not explaining how to create this environment. But there is tons of documentation out there. Actually, I guess your LLM would help you with the configuration.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I will start with a prompt to be used with Cursor. The idea is to create a first generic prompt that I would use in future similar scenarios. Something like:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-prompt&#34; data-lang=&#34;prompt&#34;&gt;you are an IT guy that works with support activities.
+Write me the solution with the following format:
+**Title**
+**Abstract**
+**Body **
+The bug has the id ACM-15056, get all the comments for that ticket getting fields all and expand attribute to comments.
+You have found a bug related to one Openshift component.
+More in concrete on Red Hat Advanced Cluster Management.
+The bug is documented on a Jira ticket, that explains the problem.
+It explains also that is already fixed on newer versions and it should not happen again.
+But for the ones that already hit the bug, they have to fix it
+with a manual procedure explained also in the Jira Ticket.
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;Note: I will use the Jira MCP to retrieve all the content. In previous tests, I just exported the Jira ticket to include it together with the prompt. But this is a more automatic way. Consider: that the Jira API extracts everything and cannot filter, for example, private comments. Something, that maybe, you don&amp;rsquo;t want to use with the model.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Note: it took me a while to instruct the agent correctly about how to use the jira tool to retrieve all the comments. In the case of Gemini Pro I have to give a lot of details, claude-4 managed to find out on its own.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The prompt is composed by a generic part, and then, a kind of form that I could fill depending on the case. The agent will start using the MCP to interact with Jira and you have to give it perms to do it.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714124842738.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;After having the enough perms, this is the result:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solurion_20250714131726947.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Not bad for a first attempt, it is focusing on an existing KCS that points you to create the missing &lt;code&gt;pull-secret&lt;/code&gt;. This is not the workaround we want to document, I want the one about: the &lt;code&gt;pull-secret&lt;/code&gt; is no longer needed.&lt;/p&gt;
+&lt;p&gt;Second attempt. Now, with more concrete instructions about the solution to document and some more details based on some more iterations I had. Some addings:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Focus on the workadound I am interested with.&lt;/li&gt;
+&lt;li&gt;It is needed to restart pods.&lt;/li&gt;
+&lt;li&gt;Be brief.&lt;/li&gt;
+&lt;li&gt;How to format links.
+I don&amp;rsquo;t want to make this too long about all the interactions I did. But you should have in mind that, getting the better prompt takes time:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-prompt&#34; data-lang=&#34;prompt&#34;&gt;you are an IT guy that works with support activities.
+Write me the solution with the following format:
+**Title**
+**Abstract**
+**Body **
+The bug has the id ACM-15056, get all the comments for that ticket getting fields all and expand attribute to comments.
+You have found a bug related to one Openshift component.
+More in concrete on Red Hat Advanced Cluster Management.
+The bug is documented on a Jira ticket, that explains the problem.
+It explains also that is already fixed on newer versions and it should not happen again.
+But for the ones that already hit the bug, they have to fix it
+with a manual procedure explained also in the Jira Ticket.
+Focus on showing
+the manual procedure of modifying the ServiceAccount to not use the pull-secret.
+Be brief explaining how to remove the pull-secret from the ServiceAccount using an oc patch. And show an example on how it would look a filing ServiceAccount. When removig only remove the failing pull secret.
+In the section where you do the patch, dont explain every parameter.
+Remember you have to restart the affected pods.
+Finally add a note that points to the other KCS with the second solution and recommend to upgrade as the best option.
+Compose the links in the way of [name](link)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now, the solution is much more correct about, first, how to check the fail.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132429413.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Second, how to only remove the failing part and how to correctly restart the services:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132538258.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;To master prompts is essential to get the better from the model.&lt;/p&gt;
+&lt;p&gt;We are happily done :) or not&amp;hellip;&lt;/p&gt;
+&lt;h2 id=&#34;a-final-round-using-mcps&#34;&gt;A final round using MCPs&lt;/h2&gt;
+&lt;p&gt;Writing an article with a solution, it does not require just me to review it. In general, you have another colleague that will give you a hand. And in addition, as it is our case, we could create a Jira Ticket to ask for a review under an internal process.
+I created a new prompt to create a new Jira ticket, that internally will trigger a review of article:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-prompt&#34; data-lang=&#34;prompt&#34;&gt;I want to create a jira ticket to inform that I have created an article (called solution article) that needs review. Dont create the jria ticket yet, but lets compose it.
+now I have the article ready and I will publish it on an open blog. But first, I need that a a committee makes a review.
+Write me the text to ask a review for the previous document, with the following format:
+**Abstract**
+**Business impact (targeted use cases)**
+**Audience**
+Business Impact is about what could happen if the previous bug is not fixed, and how it could affect our customers
+Audience is about who will read it, and if it is technical or not. Dont forget to include a link to the original bug.
+Because the objective is a jira ticket, please include a title for the jira ticket explain that we are creating a KBA and why.
+Also add some metadata about the reviewer, who is My Manager &amp;lt; mymanager@redhat.com&amp;gt;
+plese, add that the article to review can be found here: https://&amp;lt;whatever&amp;gt;.redhat.com/articles/&amp;lt;article&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;That prepares everything:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125412789.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;everything seems correct, so lets create the ticket:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-prompt&#34; data-lang=&#34;prompt&#34;&gt;create the ticket on the project &amp;lt;TEST&amp;gt;,
+set the Assignee to My Manager &amp;lt;MyManager@redhat.com&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125551768.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Worked like a charm. I could even add comments and some more labels, to configure it properly into the review process.&lt;/p&gt;
+&lt;p&gt;Now, I am done ;)&lt;/p&gt;
+&lt;h1 id=&#34;conclusions&#34;&gt;Conclusions&lt;/h1&gt;
+&lt;p&gt;Jira tickets contain so much information, that sometimes, it is hard to retrieve the most relevant parts. A ticket with a problem, the fix, and the workaround, are susceptible to creating articles that just tell you how to solve a problem. An LLM chat would help you synthesize and extract this concrete workaround, and to format it the proper way.&lt;/p&gt;
+&lt;p&gt;Some important lessons learned:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Guiding the bot took me a while and also to refine the prompt, like explaining how to build links, or how to properly use the MCP tools. But once it is done, next time I can use 80% of the prompt and just add some concrete guides.&lt;/li&gt;
+&lt;li&gt;When I say a while it means… many tries. But it was also my first time. There is no magic, and you need time to learn how to interact.&lt;/li&gt;
+&lt;li&gt;Other concerns should be taken in mind, like for example: the Jira API does not filter comments. Including even the private ones.&lt;/li&gt;
+&lt;li&gt;The person guiding the bot is responsible for the final document. To know exactly the problem and the solution is a must. But also, to review that the output and commands are correct. Finally, another process that implies other persons to help with the review would be needed.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The experiment or idea explained here, would help to document more solutions, but it has to be used with extreme care. The saved time (that would come after repeating and gaining experience) should be counted about the tedious work of starting to write something from scratch. But it does not save you to read, check, try and review.&lt;/p&gt;
+</content>
+    </item>
+    
     <item>
       <title>Integrating Red Hat and IBM served models</title>
-      <link>https://jgato.github.io/jgato/posts/using-red-hat-serving-models/</link>
+      <link>http://localhost:1313/jgato/posts/using-red-hat-serving-models/</link>
       <pubDate>Fri, 06 Jun 2025 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/using-red-hat-serving-models/</guid>
+      <guid>http://localhost:1313/jgato/posts/using-red-hat-serving-models/</guid>
       <description>Integrating Red Hat and IBM served models Recently, Red Hat/IBM released different AI models, tools and infrastructure. This allow us to play and learn on different activities related to AI. Through an internal platform I asked for some infrastructure to allocate an AI model that I can use on my daily duties. Or at least, to experiment. Something that seems a funny thing to do on a #LearningDay.
 Why to use and integrate and external LLM model?</description>
       <content>&lt;h1 id=&#34;integrating-red-hat-and-ibm-served-models&#34;&gt;Integrating Red Hat and IBM served models&lt;/h1&gt;
@@ -71,7 +184,7 @@ LitteLLM act as a proxy for different models.&lt;/p&gt;
 &lt;h3 id=&#34;try-direct-connect-between-visual-studio-and-our-models&#34;&gt;Try direct connect between Visual Studio and our models&lt;/h3&gt;
 &lt;p&gt;Once you have Continue plugin installed (just a few clicks), you can configure your Local Assistant to interact with different models.&lt;/p&gt;
 &lt;p&gt;Access to the Continue Local Assistante configuration with:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250606115552754.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250606115552754.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;It will open a new configuration file, that you can fill with something like:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Local Assistant&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;version&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1.0.0&lt;/span&gt;
@@ -95,7 +208,7 @@ LitteLLM act as a proxy for different models.&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;provider&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;folder&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;provider&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;codebase&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;So, I can chat with it:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175209698.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175209698.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Pretty straight forward to integrate the RedHat/IBM serving models platform with VS and Continue.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;By the way, I had to add some Red Hat CA to trust on the server that is serving the model. You know, copy the certs on your OS path and update the certs DB&lt;/em&gt;&lt;/p&gt;
 &lt;h3 id=&#34;try-with-littellm-proxy-in-the-middle&#34;&gt;Try with LitteLLM proxy in the middle&lt;/h3&gt;
@@ -200,14 +313,14 @@ litellm_settings:
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;provider&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;folder&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;provider&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;codebase&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;My Local Assistant is now configured with two models.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175615306.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175615306.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;And different ways to interact, like edit, chat, or agent:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175707403.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175707403.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Lets just give some greetings:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509173121740.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509173121740.png&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;working-with-the-model&#34;&gt;Working with the model&lt;/h2&gt;
 &lt;p&gt;Now, that I have the model integrated in different ways, I can use for different tasks. Because chat with is cool, but not enough. So, I want to make it help me with some daily tasks. Here I have a shell script far from been perfect. So, I will ask Granite for help me to improve it:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/using-red-hat-serving-models/assets/Red_Hat_serving_models_20250512101452559.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/using-red-hat-serving-models/assets/Red_Hat_serving_models_20250512101452559.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;It is quite impressive how added some comments about what is happening in the script. Also, some outputs to help following the script execution. Finally, it added a lot of checks to make the script much more robust.
 Not bad for a quick try. I can add the model to my daily activities and&amp;hellip;. in a safe 100% OpenSource environment performing pretty well.&lt;/p&gt;
 &lt;h1 id=&#34;to-be-continued&#34;&gt;To be continued&lt;/h1&gt;
@@ -224,23 +337,23 @@ Not bad for a quick try. I can add the model to my daily activities and&amp;hell
     
     <item>
       <title>Telco Upgrades with Image Base Upgrade</title>
-      <link>https://jgato.github.io/jgato/posts/image-base-upgrade/</link>
+      <link>http://localhost:1313/jgato/posts/image-base-upgrade/</link>
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/image-base-upgrade/</guid>
+      <guid>http://localhost:1313/jgato/posts/image-base-upgrade/</guid>
       <description>Upgrading Clusters with Image-Based Upgrade (IBU) In this blog, I will focus on how to upgrade the clusters in your infrastructure managed by Red Hat Advanced Cluster Management (RHACM), specifically using the new upgrade mechanism called Image-Based Upgrade (IBU).
 Previously, you could upgrade your infrastructure using the standard OpenShift upgrade method: Or by simply using the oc cli, as described in the official documentation.
 Both methods trigger the same process, updating the operating system, OpenShift, operators, etc.</description>
       <content>&lt;h1 id=&#34;upgrading-clusters-with-image-based-upgrade-ibu&#34;&gt;Upgrading Clusters with Image-Based Upgrade (IBU)&lt;/h1&gt;
 &lt;p&gt;In this blog, I will focus on how to upgrade the clusters in your infrastructure managed by Red Hat Advanced Cluster Management (RHACM), specifically using the new upgrade mechanism called Image-Based Upgrade (IBU).&lt;/p&gt;
 &lt;p&gt;Previously, you could upgrade your infrastructure using the standard OpenShift upgrade method:
-&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130155334523.png&#34;&gt;&lt;/p&gt;
+&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130155334523.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Or by simply using the &lt;code&gt;oc cli&lt;/code&gt;, as described in the &lt;a href=&#34;https://docs.openshift.com/container-platform/4.16/updating/updating_a_cluster/updating-cluster-cli.html&#34;&gt;official documentation&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;Both methods trigger the same process, updating the operating system, OpenShift, operators, etc. For a Single Node OpenShift (SNO), the time required varies based on configuration but typically takes around 60–70 minutes.&lt;/p&gt;
 &lt;p&gt;In telecommunications scenarios, SNOs are designed to run the Telco Radio Access Network (RAN). You can think of the software managing every antenna, meaning your infrastructure consists of thousands of antennas that need to be upgraded. This process is conducted within a strict maintenance window with very tight time constraints.&lt;/p&gt;
 &lt;p&gt;IBU addresses this challenge by providing an upgrade mechanism that reduces upgrade time to approximately 15/20 minutes. IBU works by creating an image from a &amp;ldquo;seed&amp;rdquo; cluster. All clusters in your infrastructure that are considered clones of this seed cluster can be upgraded using this image. This mechanism is particularly well-suited for homogeneous telco RAN environments composed exclusively of SNOs. However, IBU is not suitable for multi-node clusters or heterogeneous infrastructures. In fact, IBU includes pre-checks to ensure compliance with telco RAN configurations. So, it cannot be used for other purposes (as today).&lt;/p&gt;
 &lt;p&gt;In this blog, I will briefly cover how this new upgrade process works, but I will not go into details on configuring, installing, or deploying your infrastructure. The starting point assumes three SNOs are already installed, configured, and managed by ACM.
-&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130165329318.png&#34;&gt;&lt;/p&gt;
+&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130165329318.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Notice that all these clusters are running OpenShift 4.14, and we aim to upgrade them to 4.16. Another advantage of IBU is that we can move directly to 4.16 without needing to first upgrade to 4.15 (which would take an extra hour).&lt;/p&gt;
 &lt;p&gt;A fourth cluster, SNO4, will be used as the seed cluster. All clusters share the same hardware, software, and network configuration.&lt;/p&gt;
 &lt;h2 id=&#34;using-the-seed-cluster-to-create-the-upgrade-image&#34;&gt;Using the Seed Cluster to Create the Upgrade Image&lt;/h2&gt;
@@ -295,7 +408,7 @@ Both methods trigger the same process, updating the operating system, OpenShift,
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ oc get seedgenerators.lca.openshift.io -w
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NAME        AGE   STATE              DETAILS
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;seedimage   21s   SeedGenCompleted   Seed Generation completed
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130172132409.png&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130172132409.png&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;upgrading-clusters&#34;&gt;Upgrading clusters&lt;/h2&gt;
 &lt;h3 id=&#34;preparing-the-backup&#34;&gt;Preparing the backup&lt;/h3&gt;
 &lt;p&gt;Unlike a seed cluster, the cluster that will be upgraded is an operational one, which will continue running its workloads. These additional workloads will be included in a backup (using OADP) and restored after the upgrade. Other than that, the clusters are essentially the same.&lt;/p&gt;
@@ -480,7 +593,7 @@ type: Opaque
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NAME                                        READY   STATUS    RESTARTS   AGE
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;exception-app-deployment-575c65d8cf-szjsf   1/1     Running   &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;          94s
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Remember this SNO was part of ACM, and we can check it is still there:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_improved_20250206131843420.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_improved_20250206131843420.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;There are other features not tested in the blog, like rollback if fail. But I did not want to do it too complex and give only a first approach.&lt;/p&gt;
 &lt;h2 id=&#34;upgrading-a-cluster-with-traditional-upgrade&#34;&gt;Upgrading a cluster with traditional upgrade&lt;/h2&gt;
 &lt;p&gt;&lt;em&gt;Note: This is just a comparative on the amount of time, as reference. But it is not intended to compare (or to conclude) which one is better. As explained in the introduction IBU only covers very specific scenario and only SNO clusters. &amp;ldquo;Traditional&amp;rdquo; upgrade has to cover absolutely all the possible scenarios.&lt;/em&gt;&lt;/p&gt;
@@ -522,10 +635,10 @@ type: Opaque
     
     <item>
       <title>InstructLab for creating your own &#39;ChatPGT&#39; like model</title>
-      <link>https://jgato.github.io/jgato/posts/instructlab/</link>
+      <link>http://localhost:1313/jgato/posts/instructlab/</link>
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/instructlab/</guid>
+      <guid>http://localhost:1313/jgato/posts/instructlab/</guid>
       <description>My first steps with InstructLab and Merlinite model Recently, Red Hat and IBM released the open-source project InstructLab and community. The project aims to work with large language model (LLM) models such as Granite and Merlinite. Both Granite and Merlinite are also available as open-source releases from IBM.
 Granite is trained on Meta&amp;rsquo;s Llama2-7B LLM model, while Merlinite is fine-tuned from Mistral.
 InstructLab helps users download, serve, and interact with LLM models.</description>
@@ -802,19 +915,19 @@ to have well structure your qna (and keep Markdown formatting plain), as well as
     
     <item>
       <title>MultiCluster Observability</title>
-      <link>https://jgato.github.io/jgato/posts/cluster-observability/</link>
+      <link>http://localhost:1313/jgato/posts/cluster-observability/</link>
       <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/cluster-observability/</guid>
+      <guid>http://localhost:1313/jgato/posts/cluster-observability/</guid>
       <description>Red Hat Advanced Cluster Management and MultiCluster Observability In this blog, I will focus on how you can monitor your cloud/edge clusters from a central management point. Monitoring your clusters (or infrastructure) is a key first step to take decision (automatic or not), solve problems, doing maintenance, etc. When a large infrastructure, monitoring turns into a more painful task. Red Hat Advanced Cluster Management (RHACM) and the MultiCluster Observability, allows you to have an homogenized way of monitoring your whole infrastructure from a central repository.</description>
       <content>&lt;h1 id=&#34;red-hat-advanced-cluster-management-and-multicluster-observability&#34;&gt;Red Hat Advanced Cluster Management and MultiCluster Observability&lt;/h1&gt;
 &lt;p&gt;In this blog, I will focus on how you can monitor your cloud/edge clusters from a central management point. Monitoring your clusters (or infrastructure) is a key first step to take decision (automatic or not), solve problems, doing maintenance, etc. When a large infrastructure, monitoring turns into a more painful task. Red Hat Advanced Cluster Management (RHACM) and the MultiCluster Observability, allows you to have an homogenized way of monitoring your whole infrastructure from  a central repository. Which is already your central life-cycle management, and most likely, the origin where all your clusters were created.&lt;/p&gt;
 &lt;p&gt;Before going with the real topic of this document, lets do a briefly introduction to Openshift Cluster Monitoring, RHACM and MultiCluster observability.&lt;/p&gt;
 &lt;p&gt;First of all, every cluster using Openshift Cloud Platform deploys a cluster operator called Openshift Cluster Monitoring.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/openshift_cluster_monitoring_arch.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/openshift_cluster_monitoring_arch.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The main component in the &lt;strong&gt;Cluster Monitoring&lt;/strong&gt; is Prometheus. Prometheus will scrape metrics of any service (defined by ServiceMonitoring) that exports a &lt;code&gt;/metrics&lt;/code&gt; interface exposing a set of different metrics. Later, Thanos provides a PromQL interface, it is in charge of metric&amp;rsquo;s persistence and it can receive metrics from different Prometheus instances. By default, Openshift defines a set of different metrics to be collected, but others can be added by users.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;&lt;a href=&#34;https://www.redhat.com/en/technologies/management/advanced-cluster-management&#34;&gt;Red Hat Advanced Cluster Management&lt;/a&gt;&lt;/strong&gt; allows you to deploy, upgrade, and configure different managed clusters from a central management cluster.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/rhacm.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/rhacm.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Once you have RHACM and your different managed clusters, you can enable the &lt;strong&gt;&lt;a href=&#34;https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/observability/index&#34;&gt;RHACM MultiCluster Observability operator&lt;/a&gt;&lt;/strong&gt;. When enabled:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;From the managed clusters: a new add-on is installed. In charge of forwarding the local Cluster Monitoring metrics to the management cluster.&lt;/li&gt;
@@ -823,21 +936,21 @@ to have well structure your qna (and keep Markdown formatting plain), as well as
 &lt;p&gt;Enabling MultiCluster Observability is pretty easy, and you can follow the &lt;a href=&#34;https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/observability/index#enabling-observability-service&#34;&gt;official documentation&lt;/a&gt;. In the process, you will have to provide an S3 compatible storage system.&lt;/p&gt;
 &lt;h2 id=&#34;using-rhacm-multicluster-observability&#34;&gt;Using RHACM MultiCluster Observability&lt;/h2&gt;
 &lt;p&gt;Once everything is enabled, you can have a very quick observation of your clusters, directly from the RHACM Overview console.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/Observability_overview.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/Observability_overview.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Also, you can use the Grafana observability dashboard (https://https://grafana-open-cluster-management-observability.apps.your-domain) to have a deeper view of what is happening.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/Observability_dashboard_1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/Observability_dashboard_1.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Grafana provides you with a PromQL interface to customize your own queries. The query can be created manually, or following with a kind of wizard, that guides you with the different options.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/Observability_dashboard_2.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/Observability_dashboard_2.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Notice, how the wizard helps you to take a metric (actually an &amp;ldquo;Alert&amp;rdquo;) and helps you to filter by cluster, pods, or other options.&lt;/p&gt;
 &lt;h2 id=&#34;observing-an-alert-to-take-decision&#34;&gt;Observing an alert to take decision&lt;/h2&gt;
 &lt;p&gt;In a very quick example, you can check different alerts on your clusters.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/observability_alert_1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/observability_alert_1.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;In this example, you can see a triggered alert about a Policy Violation on the cluster named &amp;ldquo;sno4&amp;rdquo;. You can consider a Policy, like a way of configuring or expressing a desired status on your cluster.&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;I will not explain how to fix a Policy Violation, because it is not the scope of the blog and for the sake of blog&amp;rsquo;s readiness. But basically, you apply/fix the  cluster configuration, to make it complain with the Policy.  More on &lt;a href=&#34;https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/governance/index#policy-overview&#34;&gt;RHACM Governance&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;Once the Alert is triggered, you can take the needed actions. If the problem is solved, the Alert will go down. As it can be been seen in the following picture, and how I solved the problem around 16:55.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/observability_alert_2.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/observability_alert_2.png&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;observability-and-hardware-consumption&#34;&gt;Observability and hardware consumption&lt;/h2&gt;
 &lt;p&gt;Observability is needed in order to monitor all your clusters, but, the mechanisms has to be lightweight enough to not affect your current workloads.&lt;/p&gt;
 &lt;p&gt;Therefore, I will do quick simple experiment to check how much extra consumption you would have using Observability. All the observations are, obviously, from the management cluster.&lt;/p&gt;
@@ -846,7 +959,7 @@ to have well structure your qna (and keep Markdown formatting plain), as well as
 &lt;/blockquote&gt;
 &lt;p&gt;I will take a relaxed cluster: Single Node Openshift with 48 Cores and 96GB RAM.&lt;/p&gt;
 &lt;p&gt;Initially, there are no extra workloads. The observability add-on is having the following CPU consumptions (around 0.08 and 0.18 seconds of CPU usage)&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/consumption_1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/consumption_1.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The query to take the CPU consumption of the Observability add-on:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;node_namespace_pod_container:container_cpu_usage_seconds_total:sum{cluster=&amp;#34;sno4&amp;#34;,namespace=&amp;#34;open-cluster-management-addon-observability&amp;#34;}
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now, we will stress the cluster to see if this makes the observability add-on to get higher consumptions.&lt;/p&gt;
@@ -869,10 +982,10 @@ to have well structure your qna (and keep Markdown formatting plain), as well as
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NAME   CPU&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;cores&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;   CPU%   MEMORY&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;bytes&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;   MEMORY%   
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sno4   36543m       83%    46770Mi         75% 
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With this load, we can compare the observability consumption related to the high loads of the stressing Namespace:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/consumption_2.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/consumption_2.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Apart from on very concrete peak, the increase on the load it seems not very meaningful. Considering the scale between 0.0015 and 0.0025 seconds. It seems that the high loads are not affecting to the observability add-on, which behaves pretty constant.&lt;/p&gt;
 &lt;p&gt;Finally, a larger view of observability consumption after the experiment finished, during some days after.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/consumption_3.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/cluster-observability/assets/consumption_3.png&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;conclusions&#34;&gt;Conclusions&lt;/h2&gt;
 &lt;p&gt;Monitoring and Observability are really crucial features, specially, when having large number of clusters in your infrastructure. To have everything centralized over a common platform for deploying, maintenance, life-cycle management, monitoring, etc is crucial in order to easiness your different processes. In the future, observability will collect also logs and traces, that will complete the platform. After that, automation and AI will do all the work for you ;) but this is other story&amp;hellip;.&lt;/p&gt;
 </content>
@@ -880,10 +993,10 @@ to have well structure your qna (and keep Markdown formatting plain), as well as
     
     <item>
       <title>Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning</title>
-      <link>https://jgato.github.io/jgato/posts/intel_e810_ztp/</link>
+      <link>http://localhost:1313/jgato/posts/intel_e810_ztp/</link>
       <pubDate>Fri, 18 Nov 2022 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/intel_e810_ztp/</guid>
+      <guid>http://localhost:1313/jgato/posts/intel_e810_ztp/</guid>
       <description>Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning. In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance. The tutorial covers:</description>
       <content>&lt;h1 id=&#34;configuring-sriov-intel-e810-nic-with-gitops-zero-touch-provisioning&#34;&gt;Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning.&lt;/h1&gt;
 &lt;p&gt;In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance.
@@ -1509,7 +1622,7 @@ The tutorial covers:&lt;/p&gt;
 &lt;p&gt;In this section, we will use a DPDK test application with the configurations created in the previous sections. We will use TRex to generate traffic to a test dpdk (testpmd) application.&lt;/p&gt;
 &lt;p&gt;*We basically re-use the work done by @alosadagrande from &lt;a href=&#34;https://github.com/alosadagrande/openshift-telco/&#34;&gt;here&lt;/a&gt; and this &lt;a href=&#34;https://access.redhat.com/articles/6969629&#34;&gt;Red Hat Article&lt;/a&gt;. *&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Important to notice, this time, I am using an Intel E810 (which is supported with Trex 3.0 used later). Previous articles would be using other SRIOV cards.&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-51-50-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-51-50-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;According to the picture, we need 4 different ports. These ports will not be real physical ones, these will be 4 VFS from SRIOV NICs. We have already configured this environment, and the needed VFs and Networks in a section above.&lt;/p&gt;
 &lt;p&gt;Traffic Generator will send packets from VF0 and this will be received by Testpmd VF1. Then Testpmd will forward packets to the VF2, and from there, it will reach back to Trex on the VF3.&lt;/p&gt;
 &lt;p&gt;First of all, lets download the deployments for the TestPMD and the Traffic Generator:&lt;/p&gt;
@@ -2012,7 +2125,7 @@ So, double-check everything manually.&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;14&lt;/span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;     &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt;       &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;      &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt;    &lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; -------------------------------
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;after some secs you will see something like:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-15-13-36-47-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-15-13-36-47-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Now, it is time to open a new console to run some packet&amp;rsquo;s simulation:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; oc rsh trex
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sh-5.1#  ./trex-console
@@ -2046,7 +2159,7 @@ So, double-check everything manually.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tui&amp;gt; start -f /opt/tests/testpmd.py -m 1mpps -p0
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What is happening now?&lt;/p&gt;
 &lt;p&gt;The test application is sending packets through Trex Port 0, which is sending the packages to Testpmd Port 0. Then, Testpmd is configured to forward everything to Testpmd Port 1. From there, the packages are received by Trex Port 1.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-31-41-output.gif&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-31-41-output.gif&#34;&gt;&lt;/p&gt;
 &lt;p&gt;You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd is doing ports forward correctly and the card seems to be working at the expected speed: 25Gb/s.&lt;/p&gt;
 &lt;h1 id=&#34;summary&#34;&gt;Summary&lt;/h1&gt;
 &lt;p&gt;For this tutorial, we have been working with the Intel E810 card. Pretty new card, which would not be compatible yet with all the environments. Using SNO4.10 and TRex 3.0 seems to be working properly. But it is important to notice, here, we only did a packets simulation (testing). All the real capabilities would not be supported.&lt;/p&gt;
@@ -2061,10 +2174,10 @@ So, double-check everything manually.&lt;/p&gt;
     
     <item>
       <title>Sushy tools and Redfish tutorial </title>
-      <link>https://jgato.github.io/jgato/posts/redfish-sushy/</link>
+      <link>http://localhost:1313/jgato/posts/redfish-sushy/</link>
       <pubDate>Fri, 16 Sep 2022 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/redfish-sushy/</guid>
+      <guid>http://localhost:1313/jgato/posts/redfish-sushy/</guid>
       <description>picture copyright @ivan-samkov
 Using Sushy tools to manage a BMC Redfish interface This document is a short tutorial as introduction to use Sushy tools to manage a remote baremetal server.
 What is covered in this tutorial?
@@ -2465,7 +2578,7 @@ Some basics about the Redfish BMC (REST) interface and how to interact with it.<
 &lt;li&gt;With a real baremetal server, you can connect to the BMC to check the console of the server.&lt;/li&gt;
 &lt;li&gt;With a VM, you can use kcli to connect to the VM&amp;rsquo;s console. This is not covered in this tutorial, but I have something about it &lt;a href=&#34;https://github.com/jgato/jgato/blob/main/random_docs/kcli-commands.md&#34;&gt;here&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/redfish-sushy/assets/iso-installer.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/redfish-sushy/assets/iso-installer.png&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;undo-boot-from-virtual-media&#34;&gt;Undo boot from virtual media&lt;/h2&gt;
 &lt;p&gt;Just eject action and boot from hdd&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$&amp;gt; curl -X POST &lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;bmc&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;/redfish/v1/Managers/&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;bmc_server&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
@@ -2496,10 +2609,10 @@ Some basics about the Redfish BMC (REST) interface and how to interact with it.<
     
     <item>
       <title>Just a little of IPv6 </title>
-      <link>https://jgato.github.io/jgato/posts/ipv6/</link>
+      <link>http://localhost:1313/jgato/posts/ipv6/</link>
       <pubDate>Fri, 03 Jun 2022 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/ipv6/</guid>
+      <guid>http://localhost:1313/jgato/posts/ipv6/</guid>
       <description>Just a little of IPv6 Just some basic stuff and learning about IPv6.
 My intention is to keep this tutorial live, as long as I learn more about IPv6. But, I dont want to finish with a too complex tutorial. Any feedback is welcome.
 To play with IPv6 commands, I will use a laboratory composed by three servers with IPv6 enabled. One of the servers is just a regular provisioner server, that we use to deploy other servers.</description>
@@ -2689,7 +2802,7 @@ ff02::2 All IPv6 routers
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ndptool monitor -t ra
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# server-1 to send a Route Solicitiation message:&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ndptool send -t rs -i br-ex
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-11-35-17-output.gif&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-11-35-17-output.gif&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Some important things from the received RA message:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Type: RA
@@ -2723,12 +2836,12 @@ ff02::2 All IPv6 routers
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Type: RS
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Following an RS message in detail. A message that can be sent by any server when boots, to discover possible Routers.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;(wireshark screencaptures not from my lab, thanks to Raskia Nayanajith&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-13-26-59-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-13-26-59-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The source is the LL of the server making the Router Solicitation. As it is explained above, it is the way of working of NDP.&lt;/p&gt;
 &lt;p&gt;The destination is the multicast address that all the routers will join. In that way, the router will capture the message and it will send the RA.&lt;/p&gt;
 &lt;p&gt;Notice how the server sending the solicitation dont need to know the router address. Neither, the server sending the solicitation, needs to have already assigned a real IPv6 Global Unicast Address. Only need the LL to start.&lt;/p&gt;
 &lt;p&gt;The response from the Router is a RA. This time, the source is the Router LL, and destination,  the Multicast Address for all the hosts.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-13-32-30-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-13-32-30-image.png&#34;&gt;&lt;/p&gt;
 &lt;h1 id=&#34;radvd-tool&#34;&gt;radvd tool&lt;/h1&gt;
 &lt;p&gt;Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS).&lt;/p&gt;
 &lt;blockquote&gt;
@@ -2843,20 +2956,20 @@ ff02::2 All IPv6 routers
 &lt;p&gt;All the Multicast Addresses in IPv6 will have a Multicast Layer 2 Address. It will be composed in the way of 33:33:xx:xx:xx:xx, with the last 32bits corresponding to the last 32bits of the Layer-3 Multicast Address.  Therefore, a router subscribed to ff02::2 will have a corresponding Layer 2 Address: 33:33:00:00:00:02&lt;/p&gt;
 &lt;p&gt;When a Router receives a RS in the  ff02::2 address, this is transformed into Layer-2 33:33:33:00:00:00:02. So the message has reached to a right destination and the router will create the answer.&lt;/p&gt;
 &lt;p&gt;You can see also here in this network capture:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-13-39-46-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-13-39-46-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The message reaches to Layer 3 ff02::2 and Layer 2 33:33:00:00:00:02&lt;/p&gt;
 &lt;p&gt;The response will work the other way around. The router will send a RA to ff02::1. This will be received for all the hosts in the Multicast Layer-3 ff02::1 and the Multicast Layer-2 33:33:00:00:00:02&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-13-42-21-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-13-42-21-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;(all the wireshark screencaptures thanks to Raskia Nayanajith: &lt;a href=&#34;https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/&#34;&gt;https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/&lt;/a&gt; )&lt;/em&gt;&lt;/p&gt;
 </content>
     </item>
     
     <item>
       <title>DCI Openshift App Agent</title>
-      <link>https://jgato.github.io/jgato/posts/dci/</link>
+      <link>http://localhost:1313/jgato/posts/dci/</link>
       <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/dci/</guid>
+      <guid>http://localhost:1313/jgato/posts/dci/</guid>
       <description>DCI Openshift App Agent This DCI Agents helps you to run any kind of test or application in a Openshift existing deployment.
 Where to run it? In you usual provisioner, bastion, or supporting host to manage your Openshift Cluster. During the ramp-up, usually we can use the lab-installer from our plan deployment.
 Requirements for the provisioner:
@@ -2901,7 +3014,7 @@ Be running the latest stable RHEL release (8.4 or higher) and registered via RHS
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dnf -y install dci-openshift-app-agent
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;dci-console-and-remote-cis&#34;&gt;DCI Console and remote CIS&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&#34;https://www.distributed-ci.io/&#34;&gt;Visit the DCI Console&lt;/a&gt; to create your new remote CIS that will be used by the agent.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/dci/assets/2021-11-26-13-47-49-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/dci/assets/2021-11-26-13-47-49-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Once it is created take your credentials information.&lt;/p&gt;
 &lt;h2 id=&#34;configure-agent-credentials&#34;&gt;Configure Agent credentials&lt;/h2&gt;
 &lt;p&gt;Edit the file &amp;lsquo;/etc/dci-openshift-app-agent/dcirc.sh&amp;rsquo; with your new credentials&lt;/p&gt;
@@ -3015,7 +3128,7 @@ export DCI_CS_URL
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PLAY RECAP *******************************************************************************************************************
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;jumphost                   : ok&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;70&lt;/span&gt;   changed&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;   unreachable&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;    failed&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;    skipped&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;   rescued&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;    ignored&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is how you see it from the web console&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/dci/assets/2021-11-26-11-51-17-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/dci/assets/2021-11-26-11-51-17-image.png&#34;&gt;&lt;/p&gt;
 &lt;h1 id=&#34;dci-openshift-agent&#34;&gt;DCI Openshift Agent&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;Notice: DCI Openshift Agent is related to install/test/update OCP4 installation, and it is not covered in this tutorial&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;DCI agent for OCP4 will be in charge of automatic CI process over your cluster. DCI, aims to automatically deploy and test RedHat Products (like new versions of OCP). The DCI Openshift Agent is in charge of deploying OCP4.&lt;/p&gt;

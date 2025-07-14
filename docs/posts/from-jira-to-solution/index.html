@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/jgato/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=jgato/livereload" data-no-instant defer></script>
+  
+    <title>Converting a Jira issue into a solution with AI :: Jose Gato Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Jira issues can contain a lot of useful information from its long history. An AI LLM model could extract information to automatically generate a document with a solution to an issue." />
+<meta name="keywords" content="openshift, AI, LLM, LLM, Cursor, Jira" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="http://localhost:1313/jgato/posts/from-jira-to-solution/" />
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="http://localhost:1313/jgato/assets/style.css">
+
+  <link rel="stylesheet" href="http://localhost:1313/jgato/assets/red.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="http://localhost:1313/jgato/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="http://localhost:1313/jgato/img/favicon/red.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="jgatoluis" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Converting a Jira issue into a solution with AI">
+<meta property="og:description" content="Jira issues can contain a lot of useful information from its long history. An AI LLM model could extract information to automatically generate a document with a solution to an issue." />
+<meta property="og:url" content="http://localhost:1313/jgato/posts/from-jira-to-solution/" />
+<meta property="og:site_name" content="Jose Gato Blog" />
+
+  <meta property="og:image" content="http://localhost:1313/jgato/">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2025-07-14 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="red">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="http://localhost:1313/jgato/">
+  <div class="logo">
+    Jose Gato Blog
+  </div>
+</a>
+
+    </div>
+    
+  </div>
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="http://localhost:1313/jgato/posts/from-jira-to-solution/">Converting a Jira issue into a solution with AI</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2025-07-14
+        
+      </span>
+    
+    
+      <span class="post-author">:: Jose Gato Luis</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="http://localhost:1313/jgato/tags/openshift/">openshift</a>&nbsp;
+    
+    #<a href="http://localhost:1313/jgato/tags/ai/">AI</a>&nbsp;
+    
+    #<a href="http://localhost:1313/jgato/tags/llm/">LLM</a>&nbsp;
+    
+    #<a href="http://localhost:1313/jgato/tags/cursor/">Cursor</a>&nbsp;
+    
+    #<a href="http://localhost:1313/jgato/tags/jira/">Jira</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="/jgato/posts/from-jira-to-solution/cover.png"
+    class="post-cover"
+    alt="Converting a Jira issue into a solution with AI"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="jira-bug-to-a-document-with-a-solution">Jira bug to a document with a solution<a href="#jira-bug-to-a-document-with-a-solution" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>In this short blog I will document a kind of “hypothetical procedure”: how to extract, from a Jira ticket, enough knowledge to create a document with the solution to a problem.</p>
+<p>I will start with a very good example, a <a href="https://issues.redhat.com/browse/ACM-15056">Jira ticket</a> with a bug (open to the world because bugs should be open to everyone), a fix and a couple of workarounds. Basically, there is a problem with a wrong configured OpenShift ServiceAccount (we don&rsquo;t need to go into details). This has been fixed on newer versions, but for the ones already suffering the bug, there is a kind of manual workaround.</p>
+<p>So, let’s use a chatbot, with a good LLM, and an MCP agent to interact with Jira. My environment will be composed by:</p>
+<ul>
+<li>Cursor to use as  chat bot and the agent to interact with the MCP</li>
+<li>Gemini Pro 2.5 as the LLM</li>
+<li>A Jira MCP to provide new tools for the chatboot
+Another combination of tools would work the same.</li>
+</ul>
+<blockquote>
+<p>Note: in order to focus on the procedure, I am not explaining how to create this environment. But there is tons of documentation out there. Actually, I guess your LLM would help you with the configuration.</p>
+</blockquote>
+<p>I will start with a prompt to be used with Cursor. The idea is to create a first generic prompt that I would use in future similar scenarios. Something like:</p>
+<pre tabindex="0"><code class="language-prompt" data-lang="prompt">you are an IT guy that works with support activities.
+Write me the solution with the following format:
+**Title**
+**Abstract**
+**Body **
+The bug has the id ACM-15056, get all the comments for that ticket getting fields all and expand attribute to comments.
+You have found a bug related to one Openshift component.
+More in concrete on Red Hat Advanced Cluster Management.
+The bug is documented on a Jira ticket, that explains the problem.
+It explains also that is already fixed on newer versions and it should not happen again.
+But for the ones that already hit the bug, they have to fix it
+with a manual procedure explained also in the Jira Ticket.
+</code></pre><blockquote>
+<p>Note: I will use the Jira MCP to retrieve all the content. In previous tests, I just exported the Jira ticket to include it together with the prompt. But this is a more automatic way. Consider: that the Jira API extracts everything and cannot filter, for example, private comments. Something, that maybe, you don&rsquo;t want to use with the model.</p>
+</blockquote>
+<blockquote>
+<p>Note: it took me a while to instruct the agent correctly about how to use the jira tool to retrieve all the comments. In the case of Gemini Pro I have to give a lot of details, claude-4 managed to find out on its own.</p>
+</blockquote>
+<p>The prompt is composed by a generic part, and then, a kind of form that I could fill depending on the case. The agent will start using the MCP to interact with Jira and you have to give it perms to do it.</p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714124842738.png"></p>
+<p>After having the enough perms, this is the result:</p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solurion_20250714131726947.png"></p>
+<p>Not bad for a first attempt, it is focusing on an existing KCS that points you to create the missing <code>pull-secret</code>. This is not the workaround we want to document, I want the one about: the <code>pull-secret</code> is no longer needed.</p>
+<p>Second attempt. Now, with more concrete instructions about the solution to document and some more details based on some more iterations I had. Some addings:</p>
+<ul>
+<li>Focus on the workadound I am interested with.</li>
+<li>It is needed to restart pods.</li>
+<li>Be brief.</li>
+<li>How to format links.
+I don&rsquo;t want to make this too long about all the interactions I did. But you should have in mind that, getting the better prompt takes time:</li>
+</ul>
+<pre tabindex="0"><code class="language-prompt" data-lang="prompt">you are an IT guy that works with support activities.
+Write me the solution with the following format:
+**Title**
+**Abstract**
+**Body **
+The bug has the id ACM-15056, get all the comments for that ticket getting fields all and expand attribute to comments.
+You have found a bug related to one Openshift component.
+More in concrete on Red Hat Advanced Cluster Management.
+The bug is documented on a Jira ticket, that explains the problem.
+It explains also that is already fixed on newer versions and it should not happen again.
+But for the ones that already hit the bug, they have to fix it
+with a manual procedure explained also in the Jira Ticket.
+Focus on showing
+the manual procedure of modifying the ServiceAccount to not use the pull-secret.
+Be brief explaining how to remove the pull-secret from the ServiceAccount using an oc patch. And show an example on how it would look a filing ServiceAccount. When removig only remove the failing pull secret.
+In the section where you do the patch, dont explain every parameter.
+Remember you have to restart the affected pods.
+Finally add a note that points to the other KCS with the second solution and recommend to upgrade as the best option.
+Compose the links in the way of [name](link)
+</code></pre><p>Now, the solution is much more correct about, first, how to check the fail.</p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132429413.png"></p>
+<p>Second, how to only remove the failing part and how to correctly restart the services:</p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132538258.png"></p>
+<p>To master prompts is essential to get the better from the model.</p>
+<p>We are happily done :) or not&hellip;</p>
+<h2 id="a-final-round-using-mcps">A final round using MCPs<a href="#a-final-round-using-mcps" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Writing an article with a solution, it does not require just me to review it. In general, you have another colleague that will give you a hand. And in addition, as it is our case, we could create a Jira Ticket to ask for a review under an internal process.
+I created a new prompt to create a new Jira ticket, that internally will trigger a review of article:</p>
+<pre tabindex="0"><code class="language-prompt" data-lang="prompt">I want to create a jira ticket to inform that I have created an article (called solution article) that needs review. Dont create the jria ticket yet, but lets compose it.
+now I have the article ready and I will publish it on an open blog. But first, I need that a a committee makes a review.
+Write me the text to ask a review for the previous document, with the following format:
+**Abstract**
+**Business impact (targeted use cases)**
+**Audience**
+Business Impact is about what could happen if the previous bug is not fixed, and how it could affect our customers
+Audience is about who will read it, and if it is technical or not. Dont forget to include a link to the original bug.
+Because the objective is a jira ticket, please include a title for the jira ticket explain that we are creating a KBA and why.
+Also add some metadata about the reviewer, who is My Manager &lt; mymanager@redhat.com&gt;
+plese, add that the article to review can be found here: https://&lt;whatever&gt;.redhat.com/articles/&lt;article&gt;
+</code></pre><p>That prepares everything:</p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125412789.png"></p>
+<p>everything seems correct, so lets create the ticket:</p>
+<pre tabindex="0"><code class="language-prompt" data-lang="prompt">create the ticket on the project &lt;TEST&gt;,
+set the Assignee to My Manager &lt;MyManager@redhat.com&gt;
+</code></pre><p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125551768.png"></p>
+<p>Worked like a charm. I could even add comments and some more labels, to configure it properly into the review process.</p>
+<p>Now, I am done ;)</p>
+<h1 id="conclusions">Conclusions<a href="#conclusions" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Jira tickets contain so much information, that sometimes, it is hard to retrieve the most relevant parts. A ticket with a problem, the fix, and the workaround, are susceptible to creating articles that just tell you how to solve a problem. An LLM chat would help you synthesize and extract this concrete workaround, and to format it the proper way.</p>
+<p>Some important lessons learned:</p>
+<ul>
+<li>Guiding the bot took me a while and also to refine the prompt, like explaining how to build links, or how to properly use the MCP tools. But once it is done, next time I can use 80% of the prompt and just add some concrete guides.</li>
+<li>When I say a while it means… many tries. But it was also my first time. There is no magic, and you need time to learn how to interact.</li>
+<li>Other concerns should be taken in mind, like for example: the Jira API does not filter comments. Including even the private ones.</li>
+<li>The person guiding the bot is responsible for the final document. To know exactly the problem and the solution is a must. But also, to review that the output and commands are correct. Finally, another process that implies other persons to help with the review would be needed.</li>
+</ul>
+<p>The experiment or idea explained here, would help to document more solutions, but it has to be used with extreme care. The saved time (that would come after repeating and gaining experience) should be counted about the tedious work of starting to write something from scratch. But it does not save you to read, check, try and review.</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="http://localhost:1313/jgato/posts/using-red-hat-serving-models/">
+                <span class="button__text">Integrating Red Hat and IBM served models</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="http://localhost:1313/jgato/assets/main.js"></script>
+<script src="http://localhost:1313/jgato/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

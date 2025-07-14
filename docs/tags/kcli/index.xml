@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Kcli on Jose Gato Blog</title>
-    <link>https://jgato.github.io/jgato/tags/kcli/</link>
+    <link>http://localhost:1313/jgato/tags/kcli/</link>
     <description>Recent content in Kcli on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 16 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/kcli/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 16 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/jgato/tags/kcli/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Sushy tools and Redfish tutorial </title>
-      <link>https://jgato.github.io/jgato/posts/redfish-sushy/</link>
+      <link>http://localhost:1313/jgato/posts/redfish-sushy/</link>
       <pubDate>Fri, 16 Sep 2022 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/redfish-sushy/</guid>
+      <guid>http://localhost:1313/jgato/posts/redfish-sushy/</guid>
       <description>picture copyright @ivan-samkov
 Using Sushy tools to manage a BMC Redfish interface This document is a short tutorial as introduction to use Sushy tools to manage a remote baremetal server.
 What is covered in this tutorial?
@@ -413,7 +413,7 @@ Some basics about the Redfish BMC (REST) interface and how to interact with it.<
 &lt;li&gt;With a real baremetal server, you can connect to the BMC to check the console of the server.&lt;/li&gt;
 &lt;li&gt;With a VM, you can use kcli to connect to the VM&amp;rsquo;s console. This is not covered in this tutorial, but I have something about it &lt;a href=&#34;https://github.com/jgato/jgato/blob/main/random_docs/kcli-commands.md&#34;&gt;here&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/redfish-sushy/assets/iso-installer.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/redfish-sushy/assets/iso-installer.png&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;undo-boot-from-virtual-media&#34;&gt;Undo boot from virtual media&lt;/h2&gt;
 &lt;p&gt;Just eject action and boot from hdd&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$&amp;gt; curl -X POST &lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;bmc&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;/redfish/v1/Managers/&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;bmc_server&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia

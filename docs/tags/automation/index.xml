@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Automation on Jose Gato Blog</title>
-    <link>https://jgato.github.io/jgato/tags/automation/</link>
+    <link>http://localhost:1313/jgato/tags/automation/</link>
     <description>Recent content in Automation on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 26 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/automation/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 26 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/jgato/tags/automation/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>DCI Openshift App Agent</title>
-      <link>https://jgato.github.io/jgato/posts/dci/</link>
+      <link>http://localhost:1313/jgato/posts/dci/</link>
       <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/dci/</guid>
+      <guid>http://localhost:1313/jgato/posts/dci/</guid>
       <description>DCI Openshift App Agent This DCI Agents helps you to run any kind of test or application in a Openshift existing deployment.
 Where to run it? In you usual provisioner, bastion, or supporting host to manage your Openshift Cluster. During the ramp-up, usually we can use the lab-installer from our plan deployment.
 Requirements for the provisioner:
@@ -57,7 +57,7 @@ Be running the latest stable RHEL release (8.4 or higher) and registered via RHS
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dnf -y install dci-openshift-app-agent
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;dci-console-and-remote-cis&#34;&gt;DCI Console and remote CIS&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&#34;https://www.distributed-ci.io/&#34;&gt;Visit the DCI Console&lt;/a&gt; to create your new remote CIS that will be used by the agent.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/dci/assets/2021-11-26-13-47-49-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/dci/assets/2021-11-26-13-47-49-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Once it is created take your credentials information.&lt;/p&gt;
 &lt;h2 id=&#34;configure-agent-credentials&#34;&gt;Configure Agent credentials&lt;/h2&gt;
 &lt;p&gt;Edit the file &amp;lsquo;/etc/dci-openshift-app-agent/dcirc.sh&amp;rsquo; with your new credentials&lt;/p&gt;
@@ -171,7 +171,7 @@ export DCI_CS_URL
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PLAY RECAP *******************************************************************************************************************
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;jumphost                   : ok&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;70&lt;/span&gt;   changed&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;   unreachable&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;    failed&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;    skipped&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;   rescued&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;    ignored&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is how you see it from the web console&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/dci/assets/2021-11-26-11-51-17-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/dci/assets/2021-11-26-11-51-17-image.png&#34;&gt;&lt;/p&gt;
 &lt;h1 id=&#34;dci-openshift-agent&#34;&gt;DCI Openshift Agent&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;Notice: DCI Openshift Agent is related to install/test/update OCP4 installation, and it is not covered in this tutorial&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;DCI agent for OCP4 will be in charge of automatic CI process over your cluster. DCI, aims to automatically deploy and test RedHat Products (like new versions of OCP). The DCI Openshift Agent is in charge of deploying OCP4.&lt;/p&gt;

@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Sriov on Jose Gato Blog</title>
-    <link>https://jgato.github.io/jgato/tags/sriov/</link>
+    <link>http://localhost:1313/jgato/tags/sriov/</link>
     <description>Recent content in Sriov on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 18 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/sriov/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 18 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/jgato/tags/sriov/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning</title>
-      <link>https://jgato.github.io/jgato/posts/intel_e810_ztp/</link>
+      <link>http://localhost:1313/jgato/posts/intel_e810_ztp/</link>
       <pubDate>Fri, 18 Nov 2022 00:00:00 +0000</pubDate>
       
-      <guid>https://jgato.github.io/jgato/posts/intel_e810_ztp/</guid>
+      <guid>http://localhost:1313/jgato/posts/intel_e810_ztp/</guid>
       <description>Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning. In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance. The tutorial covers:</description>
       <content>&lt;h1 id=&#34;configuring-sriov-intel-e810-nic-with-gitops-zero-touch-provisioning&#34;&gt;Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning.&lt;/h1&gt;
 &lt;p&gt;In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance.
@@ -638,7 +638,7 @@ The tutorial covers:&lt;/p&gt;
 &lt;p&gt;In this section, we will use a DPDK test application with the configurations created in the previous sections. We will use TRex to generate traffic to a test dpdk (testpmd) application.&lt;/p&gt;
 &lt;p&gt;*We basically re-use the work done by @alosadagrande from &lt;a href=&#34;https://github.com/alosadagrande/openshift-telco/&#34;&gt;here&lt;/a&gt; and this &lt;a href=&#34;https://access.redhat.com/articles/6969629&#34;&gt;Red Hat Article&lt;/a&gt;. *&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Important to notice, this time, I am using an Intel E810 (which is supported with Trex 3.0 used later). Previous articles would be using other SRIOV cards.&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-51-50-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-51-50-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;According to the picture, we need 4 different ports. These ports will not be real physical ones, these will be 4 VFS from SRIOV NICs. We have already configured this environment, and the needed VFs and Networks in a section above.&lt;/p&gt;
 &lt;p&gt;Traffic Generator will send packets from VF0 and this will be received by Testpmd VF1. Then Testpmd will forward packets to the VF2, and from there, it will reach back to Trex on the VF3.&lt;/p&gt;
 &lt;p&gt;First of all, lets download the deployments for the TestPMD and the Traffic Generator:&lt;/p&gt;
@@ -1141,7 +1141,7 @@ So, double-check everything manually.&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;14&lt;/span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;     &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt;       &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;      &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt;    &lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; -------------------------------
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;after some secs you will see something like:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-15-13-36-47-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-15-13-36-47-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Now, it is time to open a new console to run some packet&amp;rsquo;s simulation:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; oc rsh trex
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sh-5.1#  ./trex-console
@@ -1175,7 +1175,7 @@ So, double-check everything manually.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tui&amp;gt; start -f /opt/tests/testpmd.py -m 1mpps -p0
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What is happening now?&lt;/p&gt;
 &lt;p&gt;The test application is sending packets through Trex Port 0, which is sending the packages to Testpmd Port 0. Then, Testpmd is configured to forward everything to Testpmd Port 1. From there, the packages are received by Trex Port 1.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-31-41-output.gif&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-31-41-output.gif&#34;&gt;&lt;/p&gt;
 &lt;p&gt;You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd is doing ports forward correctly and the card seems to be working at the expected speed: 25Gb/s.&lt;/p&gt;
 &lt;h1 id=&#34;summary&#34;&gt;Summary&lt;/h1&gt;
 &lt;p&gt;For this tutorial, we have been working with the Intel E810 card. Pretty new card, which would not be compatible yet with all the environments. Using SNO4.10 and TRex 3.0 seems to be working properly. But it is important to notice, here, we only did a packets simulation (testing). All the real capabilities would not be supported.&lt;/p&gt;
