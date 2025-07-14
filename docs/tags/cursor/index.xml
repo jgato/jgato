@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Cursor on Jose Gato Blog</title>
-    <link>http://localhost:1313/jgato/tags/cursor/</link>
+    <link>https://jgato.github.io/jgato/tags/cursor/</link>
     <description>Recent content in Cursor on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 14 Jul 2025 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/jgato/tags/cursor/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 14 Jul 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/cursor/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Converting a Jira issue into a solution with AI</title>
-      <link>http://localhost:1313/jgato/posts/from-jira-to-solution/</link>
+      <link>https://jgato.github.io/jgato/posts/from-jira-to-solution/</link>
       <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/posts/from-jira-to-solution/</guid>
+      <guid>https://jgato.github.io/jgato/posts/from-jira-to-solution/</guid>
       <description>Jira bug to a document with a solution In this short blog I will document a kind of “hypothetical procedure”: how to extract, from a Jira ticket, enough knowledge to create a document with the solution to a problem.
 I will start with a very good example, a Jira ticket with a bug (open to the world because bugs should be open to everyone), a fix and a couple of workarounds.</description>
       <content>&lt;h1 id=&#34;jira-bug-to-a-document-with-a-solution&#34;&gt;Jira bug to a document with a solution&lt;/h1&gt;
@@ -48,10 +48,10 @@ with a manual procedure explained also in the Jira Ticket.
 &lt;p&gt;Note: it took me a while to instruct the agent correctly about how to use the jira tool to retrieve all the comments. In the case of Gemini Pro I have to give a lot of details, claude-4 managed to find out on its own.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;The prompt is composed by a generic part, and then, a kind of form that I could fill depending on the case. The agent will start using the MCP to interact with Jira and you have to give it perms to do it.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714124842738.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714124842738.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;After having the enough perms, this is the result:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134133461.png&#34;&gt;
-&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134202370.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134133461.png&#34;&gt;
+&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134202370.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Not bad for a first attempt, it is focusing on an existing KCS that points you to create the missing &lt;code&gt;pull-secret&lt;/code&gt;. This is not the workaround we want to document, I want the one about: the &lt;code&gt;pull-secret&lt;/code&gt; is no longer needed.&lt;/p&gt;
 &lt;p&gt;Second attempt. Now, with more concrete instructions about the solution to document and some more details based on some more iterations I had. Some addings:&lt;/p&gt;
 &lt;ul&gt;
@@ -81,9 +81,9 @@ Remember you have to restart the affected pods.
 Finally add a note that points to the other KCS with the second solution and recommend to upgrade as the best option.
 Compose the links in the way of [name](link)
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now, the solution is much more correct about, first, how to check the fail.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132429413.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132429413.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Second, how to only remove the failing part and how to correctly restart the services:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132538258.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132538258.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;To master prompts is essential to get the better from the model.&lt;/p&gt;
 &lt;p&gt;We are happily done :) or not&amp;hellip;&lt;/p&gt;
 &lt;h2 id=&#34;a-final-round-using-mcps&#34;&gt;A final round using MCPs&lt;/h2&gt;
@@ -101,11 +101,11 @@ Because the objective is a jira ticket, please include a title for the jira tick
 Also add some metadata about the reviewer, who is My Manager &amp;lt; mymanager@redhat.com&amp;gt;
 plese, add that the article to review can be found here: https://&amp;lt;whatever&amp;gt;.redhat.com/articles/&amp;lt;article&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;That prepares everything:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125412789.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125412789.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;everything seems correct, so lets create the ticket:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-prompt&#34; data-lang=&#34;prompt&#34;&gt;create the ticket on the project &amp;lt;TEST&amp;gt;,
 set the Assignee to My Manager &amp;lt;MyManager@redhat.com&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125551768.png&#34;&gt;&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125551768.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Worked like a charm. I could even add comments and some more labels, to configure it properly into the review process.&lt;/p&gt;
 &lt;p&gt;Now, I am done ;)&lt;/p&gt;
 &lt;h1 id=&#34;conclusions&#34;&gt;Conclusions&lt;/h1&gt;

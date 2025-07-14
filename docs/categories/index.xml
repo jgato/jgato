@@ -2,9 +2,9 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Jose Gato Blog</title>
-    <link>http://localhost:1313/jgato/categories/</link>
+    <link>https://jgato.github.io/jgato/categories/</link>
     <description>Recent content in Categories on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language><atom:link href="http://localhost:1313/jgato/categories/index.xml" rel="self" type="application/rss+xml" />
+    <language>en</language><atom:link href="https://jgato.github.io/jgato/categories/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>

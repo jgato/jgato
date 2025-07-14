@@ -2,129 +2,129 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/jgato/tags/ai/</loc>
+    <loc>https://jgato.github.io/jgato/tags/ai/</loc>
     <lastmod>2025-07-14T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/from-jira-to-solution/</loc>
+    <loc>https://jgato.github.io/jgato/posts/from-jira-to-solution/</loc>
     <lastmod>2025-07-14T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/cursor/</loc>
+    <loc>https://jgato.github.io/jgato/tags/cursor/</loc>
     <lastmod>2025-07-14T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/jira/</loc>
+    <loc>https://jgato.github.io/jgato/tags/jira/</loc>
     <lastmod>2025-07-14T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/llm/</loc>
+    <loc>https://jgato.github.io/jgato/tags/llm/</loc>
     <lastmod>2025-07-14T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/openshift/</loc>
+    <loc>https://jgato.github.io/jgato/tags/openshift/</loc>
     <lastmod>2025-07-14T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/</loc>
+    <loc>https://jgato.github.io/jgato/posts/</loc>
     <lastmod>2025-07-14T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/</loc>
+    <loc>https://jgato.github.io/jgato/tags/</loc>
     <lastmod>2025-07-14T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/using-red-hat-serving-models/</loc>
+    <loc>https://jgato.github.io/jgato/posts/using-red-hat-serving-models/</loc>
     <lastmod>2025-06-06T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/cloud/</loc>
+    <loc>https://jgato.github.io/jgato/tags/cloud/</loc>
     <lastmod>2025-02-07T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/edge/</loc>
+    <loc>https://jgato.github.io/jgato/tags/edge/</loc>
     <lastmod>2025-02-07T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/ran/</loc>
+    <loc>https://jgato.github.io/jgato/tags/ran/</loc>
     <lastmod>2025-02-07T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/rhacm/</loc>
+    <loc>https://jgato.github.io/jgato/tags/rhacm/</loc>
     <lastmod>2025-02-07T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/telco/</loc>
+    <loc>https://jgato.github.io/jgato/tags/telco/</loc>
     <lastmod>2025-02-07T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/image-base-upgrade/</loc>
+    <loc>https://jgato.github.io/jgato/posts/image-base-upgrade/</loc>
     <lastmod>2025-02-07T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/upgrades/</loc>
+    <loc>https://jgato.github.io/jgato/tags/upgrades/</loc>
     <lastmod>2025-02-07T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/chatpgt/</loc>
+    <loc>https://jgato.github.io/jgato/tags/chatpgt/</loc>
     <lastmod>2024-06-21T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/granite/</loc>
+    <loc>https://jgato.github.io/jgato/tags/granite/</loc>
     <lastmod>2024-06-21T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/instructlab/</loc>
+    <loc>https://jgato.github.io/jgato/posts/instructlab/</loc>
     <lastmod>2024-06-21T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/merlinite/</loc>
+    <loc>https://jgato.github.io/jgato/tags/merlinite/</loc>
     <lastmod>2024-06-21T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/redhat/</loc>
+    <loc>https://jgato.github.io/jgato/tags/redhat/</loc>
     <lastmod>2024-06-21T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/management/</loc>
+    <loc>https://jgato.github.io/jgato/tags/management/</loc>
     <lastmod>2024-05-17T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/cluster-observability/</loc>
+    <loc>https://jgato.github.io/jgato/posts/cluster-observability/</loc>
     <lastmod>2024-05-17T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/observability/</loc>
+    <loc>https://jgato.github.io/jgato/tags/observability/</loc>
     <lastmod>2024-05-17T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/operators/</loc>
+    <loc>https://jgato.github.io/jgato/tags/operators/</loc>
     <lastmod>2024-05-17T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/intel_e810_ztp/</loc>
+    <loc>https://jgato.github.io/jgato/posts/intel_e810_ztp/</loc>
     <lastmod>2022-11-18T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/e810/</loc>
+    <loc>https://jgato.github.io/jgato/tags/e810/</loc>
     <lastmod>2022-11-18T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/gitops/</loc>
+    <loc>https://jgato.github.io/jgato/tags/gitops/</loc>
     <lastmod>2022-11-18T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/sriov/</loc>
+    <loc>https://jgato.github.io/jgato/tags/sriov/</loc>
     <lastmod>2022-11-18T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/ztp/</loc>
+    <loc>https://jgato.github.io/jgato/tags/ztp/</loc>
     <lastmod>2022-11-18T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/</loc>
+    <loc>https://jgato.github.io/jgato/</loc>
     <lastmod>2022-09-16T11:19:12+02:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/bmc/</loc>
+    <loc>https://jgato.github.io/jgato/tags/bmc/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/kcli/</loc>
+    <loc>https://jgato.github.io/jgato/tags/kcli/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/redfish/</loc>
+    <loc>https://jgato.github.io/jgato/tags/redfish/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/sush/</loc>
+    <loc>https://jgato.github.io/jgato/tags/sush/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/redfish-sushy/</loc>
+    <loc>https://jgato.github.io/jgato/posts/redfish-sushy/</loc>
     <lastmod>2022-09-16T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/ipv6/</loc>
+    <loc>https://jgato.github.io/jgato/tags/ipv6/</loc>
     <lastmod>2022-06-03T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/ipv6/</loc>
+    <loc>https://jgato.github.io/jgato/posts/ipv6/</loc>
     <lastmod>2022-06-03T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/automation/</loc>
+    <loc>https://jgato.github.io/jgato/tags/automation/</loc>
     <lastmod>2021-11-26T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/tags/dci/</loc>
+    <loc>https://jgato.github.io/jgato/tags/dci/</loc>
     <lastmod>2021-11-26T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/posts/dci/</loc>
+    <loc>https://jgato.github.io/jgato/posts/dci/</loc>
     <lastmod>2021-11-26T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/jgato/categories/</loc>
+    <loc>https://jgato.github.io/jgato/categories/</loc>
   </url>
 </urlset>

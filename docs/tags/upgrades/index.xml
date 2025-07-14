@@ -2,30 +2,30 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Upgrades on Jose Gato Blog</title>
-    <link>http://localhost:1313/jgato/tags/upgrades/</link>
+    <link>https://jgato.github.io/jgato/tags/upgrades/</link>
     <description>Recent content in Upgrades on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 07 Feb 2025 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/jgato/tags/upgrades/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 07 Feb 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/upgrades/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Telco Upgrades with Image Base Upgrade</title>
-      <link>http://localhost:1313/jgato/posts/image-base-upgrade/</link>
+      <link>https://jgato.github.io/jgato/posts/image-base-upgrade/</link>
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/posts/image-base-upgrade/</guid>
+      <guid>https://jgato.github.io/jgato/posts/image-base-upgrade/</guid>
       <description>Upgrading Clusters with Image-Based Upgrade (IBU) In this blog, I will focus on how to upgrade the clusters in your infrastructure managed by Red Hat Advanced Cluster Management (RHACM), specifically using the new upgrade mechanism called Image-Based Upgrade (IBU).
 Previously, you could upgrade your infrastructure using the standard OpenShift upgrade method: Or by simply using the oc cli, as described in the official documentation.
 Both methods trigger the same process, updating the operating system, OpenShift, operators, etc.</description>
       <content>&lt;h1 id=&#34;upgrading-clusters-with-image-based-upgrade-ibu&#34;&gt;Upgrading Clusters with Image-Based Upgrade (IBU)&lt;/h1&gt;
 &lt;p&gt;In this blog, I will focus on how to upgrade the clusters in your infrastructure managed by Red Hat Advanced Cluster Management (RHACM), specifically using the new upgrade mechanism called Image-Based Upgrade (IBU).&lt;/p&gt;
 &lt;p&gt;Previously, you could upgrade your infrastructure using the standard OpenShift upgrade method:
-&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130155334523.png&#34;&gt;&lt;/p&gt;
+&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130155334523.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Or by simply using the &lt;code&gt;oc cli&lt;/code&gt;, as described in the &lt;a href=&#34;https://docs.openshift.com/container-platform/4.16/updating/updating_a_cluster/updating-cluster-cli.html&#34;&gt;official documentation&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;Both methods trigger the same process, updating the operating system, OpenShift, operators, etc. For a Single Node OpenShift (SNO), the time required varies based on configuration but typically takes around 60–70 minutes.&lt;/p&gt;
 &lt;p&gt;In telecommunications scenarios, SNOs are designed to run the Telco Radio Access Network (RAN). You can think of the software managing every antenna, meaning your infrastructure consists of thousands of antennas that need to be upgraded. This process is conducted within a strict maintenance window with very tight time constraints.&lt;/p&gt;
 &lt;p&gt;IBU addresses this challenge by providing an upgrade mechanism that reduces upgrade time to approximately 15/20 minutes. IBU works by creating an image from a &amp;ldquo;seed&amp;rdquo; cluster. All clusters in your infrastructure that are considered clones of this seed cluster can be upgraded using this image. This mechanism is particularly well-suited for homogeneous telco RAN environments composed exclusively of SNOs. However, IBU is not suitable for multi-node clusters or heterogeneous infrastructures. In fact, IBU includes pre-checks to ensure compliance with telco RAN configurations. So, it cannot be used for other purposes (as today).&lt;/p&gt;
 &lt;p&gt;In this blog, I will briefly cover how this new upgrade process works, but I will not go into details on configuring, installing, or deploying your infrastructure. The starting point assumes three SNOs are already installed, configured, and managed by ACM.
-&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130165329318.png&#34;&gt;&lt;/p&gt;
+&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130165329318.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Notice that all these clusters are running OpenShift 4.14, and we aim to upgrade them to 4.16. Another advantage of IBU is that we can move directly to 4.16 without needing to first upgrade to 4.15 (which would take an extra hour).&lt;/p&gt;
 &lt;p&gt;A fourth cluster, SNO4, will be used as the seed cluster. All clusters share the same hardware, software, and network configuration.&lt;/p&gt;
 &lt;h2 id=&#34;using-the-seed-cluster-to-create-the-upgrade-image&#34;&gt;Using the Seed Cluster to Create the Upgrade Image&lt;/h2&gt;
@@ -80,7 +80,7 @@ Both methods trigger the same process, updating the operating system, OpenShift,
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ oc get seedgenerators.lca.openshift.io -w
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NAME        AGE   STATE              DETAILS
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;seedimage   21s   SeedGenCompleted   Seed Generation completed
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130172132409.png&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130172132409.png&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;upgrading-clusters&#34;&gt;Upgrading clusters&lt;/h2&gt;
 &lt;h3 id=&#34;preparing-the-backup&#34;&gt;Preparing the backup&lt;/h3&gt;
 &lt;p&gt;Unlike a seed cluster, the cluster that will be upgraded is an operational one, which will continue running its workloads. These additional workloads will be included in a backup (using OADP) and restored after the upgrade. Other than that, the clusters are essentially the same.&lt;/p&gt;
@@ -265,7 +265,7 @@ type: Opaque
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NAME                                        READY   STATUS    RESTARTS   AGE
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;exception-app-deployment-575c65d8cf-szjsf   1/1     Running   &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;          94s
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Remember this SNO was part of ACM, and we can check it is still there:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_improved_20250206131843420.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_improved_20250206131843420.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;There are other features not tested in the blog, like rollback if fail. But I did not want to do it too complex and give only a first approach.&lt;/p&gt;
 &lt;h2 id=&#34;upgrading-a-cluster-with-traditional-upgrade&#34;&gt;Upgrading a cluster with traditional upgrade&lt;/h2&gt;
 &lt;p&gt;&lt;em&gt;Note: This is just a comparative on the amount of time, as reference. But it is not intended to compare (or to conclude) which one is better. As explained in the introduction IBU only covers very specific scenario and only SNO clusters. &amp;ldquo;Traditional&amp;rdquo; upgrade has to cover absolutely all the possible scenarios.&lt;/em&gt;&lt;/p&gt;

@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>IPV6 on Jose Gato Blog</title>
-    <link>http://localhost:1313/jgato/tags/ipv6/</link>
+    <link>https://jgato.github.io/jgato/tags/ipv6/</link>
     <description>Recent content in IPV6 on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 03 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/jgato/tags/ipv6/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 03 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/ipv6/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Just a little of IPv6 </title>
-      <link>http://localhost:1313/jgato/posts/ipv6/</link>
+      <link>https://jgato.github.io/jgato/posts/ipv6/</link>
       <pubDate>Fri, 03 Jun 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/posts/ipv6/</guid>
+      <guid>https://jgato.github.io/jgato/posts/ipv6/</guid>
       <description>Just a little of IPv6 Just some basic stuff and learning about IPv6.
 My intention is to keep this tutorial live, as long as I learn more about IPv6. But, I dont want to finish with a too complex tutorial. Any feedback is welcome.
 To play with IPv6 commands, I will use a laboratory composed by three servers with IPv6 enabled. One of the servers is just a regular provisioner server, that we use to deploy other servers.</description>
@@ -202,7 +202,7 @@ ff02::2 All IPv6 routers
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ndptool monitor -t ra
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# server-1 to send a Route Solicitiation message:&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ndptool send -t rs -i br-ex
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-11-35-17-output.gif&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-11-35-17-output.gif&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Some important things from the received RA message:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NDP payload len 56, from addr: fe80::a81:f4ff:fea6:dc01, iface: br-ex
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Type: RA
@@ -236,12 +236,12 @@ ff02::2 All IPv6 routers
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Type: RS
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Following an RS message in detail. A message that can be sent by any server when boots, to discover possible Routers.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;(wireshark screencaptures not from my lab, thanks to Raskia Nayanajith&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-13-26-59-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-13-26-59-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The source is the LL of the server making the Router Solicitation. As it is explained above, it is the way of working of NDP.&lt;/p&gt;
 &lt;p&gt;The destination is the multicast address that all the routers will join. In that way, the router will capture the message and it will send the RA.&lt;/p&gt;
 &lt;p&gt;Notice how the server sending the solicitation dont need to know the router address. Neither, the server sending the solicitation, needs to have already assigned a real IPv6 Global Unicast Address. Only need the LL to start.&lt;/p&gt;
 &lt;p&gt;The response from the Router is a RA. This time, the source is the Router LL, and destination,  the Multicast Address for all the hosts.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-13-32-30-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-13-32-30-image.png&#34;&gt;&lt;/p&gt;
 &lt;h1 id=&#34;radvd-tool&#34;&gt;radvd tool&lt;/h1&gt;
 &lt;p&gt;Linux IPv6 Router Advertisement Daemon. It can be used to configure IPv6 networks, and it is in charge of sending RA (and responding RS).&lt;/p&gt;
 &lt;blockquote&gt;
@@ -356,10 +356,10 @@ ff02::2 All IPv6 routers
 &lt;p&gt;All the Multicast Addresses in IPv6 will have a Multicast Layer 2 Address. It will be composed in the way of 33:33:xx:xx:xx:xx, with the last 32bits corresponding to the last 32bits of the Layer-3 Multicast Address.  Therefore, a router subscribed to ff02::2 will have a corresponding Layer 2 Address: 33:33:00:00:00:02&lt;/p&gt;
 &lt;p&gt;When a Router receives a RS in the  ff02::2 address, this is transformed into Layer-2 33:33:33:00:00:00:02. So the message has reached to a right destination and the router will create the answer.&lt;/p&gt;
 &lt;p&gt;You can see also here in this network capture:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-13-39-46-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-13-39-46-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The message reaches to Layer 3 ff02::2 and Layer 2 33:33:00:00:00:02&lt;/p&gt;
 &lt;p&gt;The response will work the other way around. The router will send a RA to ff02::1. This will be received for all the hosts in the Multicast Layer-3 ff02::1 and the Multicast Layer-2 33:33:00:00:00:02&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/ipv6/assets/2022-06-03-13-42-21-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/ipv6/assets/2022-06-03-13-42-21-image.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;(all the wireshark screencaptures thanks to Raskia Nayanajith: &lt;a href=&#34;https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/&#34;&gt;https://blog.apnic.net/2019/10/18/how-to-ipv6-neighbor-discovery/&lt;/a&gt; )&lt;/em&gt;&lt;/p&gt;
 </content>
     </item>

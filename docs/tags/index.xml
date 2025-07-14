@@ -2,297 +2,297 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Jose Gato Blog</title>
-    <link>http://localhost:1313/jgato/tags/</link>
+    <link>https://jgato.github.io/jgato/tags/</link>
     <description>Recent content in Tags on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 14 Jul 2025 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 14 Jul 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AI</title>
-      <link>http://localhost:1313/jgato/tags/ai/</link>
+      <link>https://jgato.github.io/jgato/tags/ai/</link>
       <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/ai/</guid>
+      <guid>https://jgato.github.io/jgato/tags/ai/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Cursor</title>
-      <link>http://localhost:1313/jgato/tags/cursor/</link>
+      <link>https://jgato.github.io/jgato/tags/cursor/</link>
       <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/cursor/</guid>
+      <guid>https://jgato.github.io/jgato/tags/cursor/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Jira</title>
-      <link>http://localhost:1313/jgato/tags/jira/</link>
+      <link>https://jgato.github.io/jgato/tags/jira/</link>
       <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/jira/</guid>
+      <guid>https://jgato.github.io/jgato/tags/jira/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>LLM</title>
-      <link>http://localhost:1313/jgato/tags/llm/</link>
+      <link>https://jgato.github.io/jgato/tags/llm/</link>
       <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/llm/</guid>
+      <guid>https://jgato.github.io/jgato/tags/llm/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Openshift</title>
-      <link>http://localhost:1313/jgato/tags/openshift/</link>
+      <link>https://jgato.github.io/jgato/tags/openshift/</link>
       <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/openshift/</guid>
+      <guid>https://jgato.github.io/jgato/tags/openshift/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Cloud</title>
-      <link>http://localhost:1313/jgato/tags/cloud/</link>
+      <link>https://jgato.github.io/jgato/tags/cloud/</link>
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/cloud/</guid>
+      <guid>https://jgato.github.io/jgato/tags/cloud/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Edge</title>
-      <link>http://localhost:1313/jgato/tags/edge/</link>
+      <link>https://jgato.github.io/jgato/tags/edge/</link>
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/edge/</guid>
+      <guid>https://jgato.github.io/jgato/tags/edge/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Ran</title>
-      <link>http://localhost:1313/jgato/tags/ran/</link>
+      <link>https://jgato.github.io/jgato/tags/ran/</link>
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/ran/</guid>
+      <guid>https://jgato.github.io/jgato/tags/ran/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Rhacm</title>
-      <link>http://localhost:1313/jgato/tags/rhacm/</link>
+      <link>https://jgato.github.io/jgato/tags/rhacm/</link>
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/rhacm/</guid>
+      <guid>https://jgato.github.io/jgato/tags/rhacm/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Telco</title>
-      <link>http://localhost:1313/jgato/tags/telco/</link>
+      <link>https://jgato.github.io/jgato/tags/telco/</link>
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/telco/</guid>
+      <guid>https://jgato.github.io/jgato/tags/telco/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Upgrades</title>
-      <link>http://localhost:1313/jgato/tags/upgrades/</link>
+      <link>https://jgato.github.io/jgato/tags/upgrades/</link>
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/upgrades/</guid>
+      <guid>https://jgato.github.io/jgato/tags/upgrades/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Chatpgt</title>
-      <link>http://localhost:1313/jgato/tags/chatpgt/</link>
+      <link>https://jgato.github.io/jgato/tags/chatpgt/</link>
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/chatpgt/</guid>
+      <guid>https://jgato.github.io/jgato/tags/chatpgt/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Granite</title>
-      <link>http://localhost:1313/jgato/tags/granite/</link>
+      <link>https://jgato.github.io/jgato/tags/granite/</link>
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/granite/</guid>
+      <guid>https://jgato.github.io/jgato/tags/granite/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Merlinite</title>
-      <link>http://localhost:1313/jgato/tags/merlinite/</link>
+      <link>https://jgato.github.io/jgato/tags/merlinite/</link>
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/merlinite/</guid>
+      <guid>https://jgato.github.io/jgato/tags/merlinite/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Redhat</title>
-      <link>http://localhost:1313/jgato/tags/redhat/</link>
+      <link>https://jgato.github.io/jgato/tags/redhat/</link>
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/redhat/</guid>
+      <guid>https://jgato.github.io/jgato/tags/redhat/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Management</title>
-      <link>http://localhost:1313/jgato/tags/management/</link>
+      <link>https://jgato.github.io/jgato/tags/management/</link>
       <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/management/</guid>
+      <guid>https://jgato.github.io/jgato/tags/management/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Observability</title>
-      <link>http://localhost:1313/jgato/tags/observability/</link>
+      <link>https://jgato.github.io/jgato/tags/observability/</link>
       <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/observability/</guid>
+      <guid>https://jgato.github.io/jgato/tags/observability/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Operators</title>
-      <link>http://localhost:1313/jgato/tags/operators/</link>
+      <link>https://jgato.github.io/jgato/tags/operators/</link>
       <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/operators/</guid>
+      <guid>https://jgato.github.io/jgato/tags/operators/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>E810</title>
-      <link>http://localhost:1313/jgato/tags/e810/</link>
+      <link>https://jgato.github.io/jgato/tags/e810/</link>
       <pubDate>Fri, 18 Nov 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/e810/</guid>
+      <guid>https://jgato.github.io/jgato/tags/e810/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Gitops</title>
-      <link>http://localhost:1313/jgato/tags/gitops/</link>
+      <link>https://jgato.github.io/jgato/tags/gitops/</link>
       <pubDate>Fri, 18 Nov 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/gitops/</guid>
+      <guid>https://jgato.github.io/jgato/tags/gitops/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Sriov</title>
-      <link>http://localhost:1313/jgato/tags/sriov/</link>
+      <link>https://jgato.github.io/jgato/tags/sriov/</link>
       <pubDate>Fri, 18 Nov 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/sriov/</guid>
+      <guid>https://jgato.github.io/jgato/tags/sriov/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Ztp</title>
-      <link>http://localhost:1313/jgato/tags/ztp/</link>
+      <link>https://jgato.github.io/jgato/tags/ztp/</link>
       <pubDate>Fri, 18 Nov 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/ztp/</guid>
+      <guid>https://jgato.github.io/jgato/tags/ztp/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Bmc</title>
-      <link>http://localhost:1313/jgato/tags/bmc/</link>
+      <link>https://jgato.github.io/jgato/tags/bmc/</link>
       <pubDate>Fri, 16 Sep 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/bmc/</guid>
+      <guid>https://jgato.github.io/jgato/tags/bmc/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Kcli</title>
-      <link>http://localhost:1313/jgato/tags/kcli/</link>
+      <link>https://jgato.github.io/jgato/tags/kcli/</link>
       <pubDate>Fri, 16 Sep 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/kcli/</guid>
+      <guid>https://jgato.github.io/jgato/tags/kcli/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Redfish</title>
-      <link>http://localhost:1313/jgato/tags/redfish/</link>
+      <link>https://jgato.github.io/jgato/tags/redfish/</link>
       <pubDate>Fri, 16 Sep 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/redfish/</guid>
+      <guid>https://jgato.github.io/jgato/tags/redfish/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Sush</title>
-      <link>http://localhost:1313/jgato/tags/sush/</link>
+      <link>https://jgato.github.io/jgato/tags/sush/</link>
       <pubDate>Fri, 16 Sep 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/sush/</guid>
+      <guid>https://jgato.github.io/jgato/tags/sush/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>IPV6</title>
-      <link>http://localhost:1313/jgato/tags/ipv6/</link>
+      <link>https://jgato.github.io/jgato/tags/ipv6/</link>
       <pubDate>Fri, 03 Jun 2022 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/ipv6/</guid>
+      <guid>https://jgato.github.io/jgato/tags/ipv6/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Automation</title>
-      <link>http://localhost:1313/jgato/tags/automation/</link>
+      <link>https://jgato.github.io/jgato/tags/automation/</link>
       <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/automation/</guid>
+      <guid>https://jgato.github.io/jgato/tags/automation/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Dci</title>
-      <link>http://localhost:1313/jgato/tags/dci/</link>
+      <link>https://jgato.github.io/jgato/tags/dci/</link>
       <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/tags/dci/</guid>
+      <guid>https://jgato.github.io/jgato/tags/dci/</guid>
       <description></description>
       <content></content>
     </item>

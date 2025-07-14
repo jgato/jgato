@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Chatpgt on Jose Gato Blog</title>
-    <link>http://localhost:1313/jgato/tags/chatpgt/</link>
+    <link>https://jgato.github.io/jgato/tags/chatpgt/</link>
     <description>Recent content in Chatpgt on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 21 Jun 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/jgato/tags/chatpgt/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 21 Jun 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/chatpgt/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>InstructLab for creating your own &#39;ChatPGT&#39; like model</title>
-      <link>http://localhost:1313/jgato/posts/instructlab/</link>
+      <link>https://jgato.github.io/jgato/posts/instructlab/</link>
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/jgato/posts/instructlab/</guid>
+      <guid>https://jgato.github.io/jgato/posts/instructlab/</guid>
       <description>My first steps with InstructLab and Merlinite model Recently, Red Hat and IBM released the open-source project InstructLab and community. The project aims to work with large language model (LLM) models such as Granite and Merlinite. Both Granite and Merlinite are also available as open-source releases from IBM.
 Granite is trained on Meta&amp;rsquo;s Llama2-7B LLM model, while Merlinite is fine-tuned from Mistral.
 InstructLab helps users download, serve, and interact with LLM models.</description>
