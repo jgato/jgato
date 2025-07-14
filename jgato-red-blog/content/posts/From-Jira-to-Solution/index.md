@@ -53,8 +53,8 @@ The prompt is composed by a generic part, and then, a kind of form that I could 
 
 After having the enough perms, this is the result:
 
-![](assets/from_jira_to_solurion_20250714131726947.png)
-
+![](assets/from_jira_to_solution_20250714134133461.png)
+![](assets/from_jira_to_solution_20250714134202370.png)
 
 Not bad for a first attempt, it is focusing on an existing KCS that points you to create the missing `pull-secret`. This is not the workaround we want to document, I want the one about: the `pull-secret` is no longer needed.
 

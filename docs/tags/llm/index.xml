@@ -50,7 +50,8 @@ with a manual procedure explained also in the Jira Ticket.
 &lt;p&gt;The prompt is composed by a generic part, and then, a kind of form that I could fill depending on the case. The agent will start using the MCP to interact with Jira and you have to give it perms to do it.&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714124842738.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;After having the enough perms, this is the result:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solurion_20250714131726947.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134133461.png&#34;&gt;
+&lt;img src=&#34;http://localhost:1313/jgato/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134202370.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Not bad for a first attempt, it is focusing on an existing KCS that points you to create the missing &lt;code&gt;pull-secret&lt;/code&gt;. This is not the workaround we want to document, I want the one about: the &lt;code&gt;pull-secret&lt;/code&gt; is no longer needed.&lt;/p&gt;
 &lt;p&gt;Second attempt. Now, with more concrete instructions about the solution to document and some more details based on some more iterations I had. Some addings:&lt;/p&gt;
 &lt;ul&gt;
