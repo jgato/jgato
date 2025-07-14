@@ -34,7 +34,9 @@ Write me the solution with the following format:
 **Title**
 **Abstract**
 **Body **
-The bug has the id ACM-15056, get all the comments for that ticket getting fields all and expand attribute to comments.
+The bug has the id ACM-15056, get all the comments 
+for that ticket getting fields all and expand attribute
+to comments.
 You have found a bug related to one Openshift component.
 More in concrete on Red Hat Advanced Cluster Management.
 The bug is documented on a Jira ticket, that explains the problem.
@@ -71,7 +73,9 @@ Write me the solution with the following format:
 **Title**
 **Abstract**
 **Body **
-The bug has the id ACM-15056, get all the comments for that ticket getting fields all and expand attribute to comments.
+The bug has the id ACM-15056, get all the comments 
+for that ticket getting fields all and expand attribute
+to comments.
 You have found a bug related to one Openshift component.
 More in concrete on Red Hat Advanced Cluster Management.
 The bug is documented on a Jira ticket, that explains the problem.

@@ -8,7 +8,7 @@
     <language>en</language>
     <lastBuildDate>Mon, 14 Jul 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/ai/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Converting a Jira issue into a solution with AI</title>
+      <title>Converting a Jira issue into a solution doc with AI</title>
       <link>https://jgato.github.io/jgato/posts/from-jira-to-solution/</link>
       <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
       
@@ -34,7 +34,9 @@ Write me the solution with the following format:
 **Title**
 **Abstract**
 **Body **
-The bug has the id ACM-15056, get all the comments for that ticket getting fields all and expand attribute to comments.
+The bug has the id ACM-15056, get all the comments 
+for that ticket getting fields all and expand attribute
+to comments.
 You have found a bug related to one Openshift component.
 More in concrete on Red Hat Advanced Cluster Management.
 The bug is documented on a Jira ticket, that explains the problem.
@@ -66,7 +68,9 @@ Write me the solution with the following format:
 **Title**
 **Abstract**
 **Body **
-The bug has the id ACM-15056, get all the comments for that ticket getting fields all and expand attribute to comments.
+The bug has the id ACM-15056, get all the comments 
+for that ticket getting fields all and expand attribute
+to comments.
 You have found a bug related to one Openshift component.
 More in concrete on Red Hat Advanced Cluster Management.
 The bug is documented on a Jira ticket, that explains the problem.
