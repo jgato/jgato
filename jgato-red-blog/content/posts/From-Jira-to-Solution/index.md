@@ -1,5 +1,5 @@
 +++
-title = "Converting a Jira issue into a solution with AI"
+title = "Converting a Jira issue into a solution doc with AI"
 date = "2025-07-14"
 author = "Jose Gato Luis"
 authorTwitter = "jgatoluis" #do not include @
