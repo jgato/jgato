@@ -27,7 +27,7 @@ Both parameters will configure the NetworkManager param for `ipv6.method`. Accor
 So having in mind the NetworkManager will mainly work with the ìpv6.method`: 
 
  * `ipv6.method: manual` everything configured statically. Including routes, dns and gatway.
- * `ipv6.method: dhcp`, autoconf is disabled. Anyway, because of IPv6, the RA is received expecting to have M flag enabled. DHCPv6 is started in solicit mode to request an address. SLAAC address will never be generated. 
+ * `ipv6.method: dhcp`, autoconf is disabled. Anyway, because of IPv6, the RA is received expecting to have M flag enabled. DHCPv6 is started in solicit mode to request an address. SLAAC address will never be generated. In some way, this disable the SLAAC stack on the host. RouteAnnounce (RA), in some way, is ignored.
  * `ipv6.method: auto`, autoconf is enabled. The RA is received and NetworkManager will act with regards of the following flags (that can be combined):
    * If it contains an A Flag, it will configure the SLAAC address.
    * If it contains an M Flag, it will invoque DHCPv6 is started in solicit mode to request an address.
@@ -36,9 +36,13 @@ So having in mind the NetworkManager will mainly work with the ìpv6.method`:
  
 What if you want to configure your IP address only with SLAAC? Configure `autoconf:true` and configure your RA with flag M disabled and flag A enabled.
 
-What if you want to configure your IP address only with DHCP? Configure `autoconf: false` and configure your RA (with IPv6 RA is always watched) and set the flag M enabled.
+What if you want to configure your IP address only with DHCP? Configure `autoconf: false` But this case is strange in an IPv6 environment if your router is sending RAs. Better do the next example.
+
+What if you want to configure your IP address only with DHCP but receive the routes from RA? Configure `autoconf: true`  and your RA with flag M enabled and A disabled. 
 
 What if you want to configure your IP address with both SLAAC and DHCP?
 Configure `autoconf:true` and configure your RA with flag M and A enabled.
+
+Consider that, ideally, the router rules on an IPv6 environment. So, it is recommended to have `autoconf:true` and the configure SLAAC or DHCP address using the M and A flags. Using `autoconf:false` could be confusing on an IPv6 environment. You disable the SLAAC stack, but the router could be requesting the hosts to be configured with an SLAAC address and some specific routes. You are ignoring this. `autoconf: false` would makes sense when you dont have RA, and you dont have anything to receive.
 
 > Others params at NMState like `auto-route`, `auto-dns`, etc are not covered yet here, and these works with RA and the O flag. 
