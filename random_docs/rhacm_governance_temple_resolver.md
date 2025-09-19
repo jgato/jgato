@@ -41,7 +41,7 @@ Here, I am adding a programmatically way of getting a basedomain for configuring
 
 I dont go with the details, the syntax, or the understanding of all the different functions that you can use for templating `{{..}}` or `{{hub}` templating. 
 
-If you are used to build this kind of templates, you know there is a lot of try and error. Create the Policy, upload it to the hub, let ACM to interpret it, and see the resolved result. If you are using generators (like my case) PGT or PolicyGenerator, this adds more extras. You write the generator, that creates the policy, ACM has to render it, etc, etc.
+If you are used to build this kind of templates, you know there is some try and error, to test the correctness. Independently of the complexity of your template, you have to: create the Policy, upload it to the hub, let ACM to interpret it, and see the resolved result. If you are using generators (like my case) PGT or PolicyGenerator, this adds more extras. You write the generator, that creates the policy, ACM has to render it, etc, etc.
 
 There exists a template resolver tool that lets work with this locally first.
 
