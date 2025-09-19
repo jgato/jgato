@@ -45,7 +45,7 @@ If you are used to build this kind of templates, you know there is a lot of try 
 
 There exists a template resolver tool that lets work with this locally first.
 
-Install the tool
+Install the tool ([more about template resolver in the official doc](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.12/html-single/governance/index#policy-cli-commands):
 
 ```
 go install github.com/stolostron/policy-cli/cmd/policytools@latest
