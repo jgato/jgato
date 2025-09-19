@@ -68,10 +68,7 @@ How can I try if this will work (locally):
 ```
 
 That returns:
-
-```
- error: template: tmpl:51:38: executing "tmpl" at <index (lookup "cluster.open-cluster-management.io/v1" "ManagedCluster" "" .ManagedClusterName).spec.managedClusterClientConfigs 3>: error calling index: index out of range: 3
-```
+> ``` error: template: tmpl:51:38: executing "tmpl" at <index (lookup "cluster.open-cluster-management.io/v1" "ManagedCluster" "" .ManagedClusterName).spec.managedClusterClientConfigs 3>: error calling index: index out of range: 3```
 
 Upss, I am out of index, lets try:
 
