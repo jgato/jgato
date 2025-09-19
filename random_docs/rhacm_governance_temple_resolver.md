@@ -93,7 +93,7 @@ In my case, I am used to use PTG to build the Policies. So, I can extract the ge
 
 ```
 > podman run --log-driver=none --rm registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.18 extract /home/ztp --tar | tar x -C /tmp/out
-> /tmp/ztp-kustomize-plugin/ran.openshift.io/v1/policygentemplate/PolicyGenTemplate ./common.yaml \
-| yq 'select(.kind == "Policy" and .metadata.name == "common-config-policy")' |\
+> /tmp/ztp-kustomize-plugin/ran.openshift.io/v1/policygentemplate/PolicyGenTemplate ./common.yaml |\
+ yq 'select(.kind == "Policy" and .metadata.name == "common-config-policy")' |\ 
  template-resolver --cluster-name vsno5 --hub-kubeconfig ~/Servers/EL8000-2/kubeconfig-el8k-hub-2 --hub-namespace ztp-common -
 ```
