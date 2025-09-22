@@ -41,14 +41,14 @@ Here, I am adding a programmatically way of getting a basedomain for configuring
 
 I dont go with the details, the syntax, or the understanding of all the different functions that you can use for templating `{{..}}` or `{{hub}` templating. 
 
-If you are used to build this kind of templates, you know there is some try and error, to test the correctness. Independently of the complexity of your template, you have to: create the Policy, upload it to the hub, let ACM to interpret it, and see the resolved result. If you are using generators (like my case) PGT or PolicyGenerator, this adds more extras. You write the generator, that creates the policy, ACM has to render it, etc, etc.
+If you are used to build this kind of templates, you know there is some try and error to test the correctness. Independently of the complexity of your template, you have to: create the Policy, upload it to the hub, let ACM to interpret it, and see the resolved result. If you are using generators (like my case) PGT or PolicyGenerator, this adds more extras. You write the generator, that creates the policy, ACM has to render it, etc, etc.
 
 There exists a template resolver tool that lets work with this locally first.
 
 Install the tool ([more about template resolver in the official doc](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.12/html-single/governance/index#policy-cli-commands):
 
 ```
-go install github.com/stolostron/policy-cli/cmd/policytools@latest
+> go install github.com/stolostron/policy-cli/cmd/policytools@latest
 ```
 
 Write your Policy without generators. Or extract it using your generator.
@@ -92,7 +92,8 @@ Now, it is easy to build and debug this templates locally.
 In my case, I am used to use PTG to build the Policies. So, I can extract the generator (there are many ways), and execute it locally to return the raw ACM Policy:
 
 ```
-> podman run --log-driver=none --rm registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.18 extract /home/ztp --tar | tar x -C /tmp/out
+> podman cp $(podman create --name policgentool --rm registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.18):/kustomize/plugin/ran.openshift.io /tmp/ztp-kustomize-plugin/
+
 > /tmp/ztp-kustomize-plugin/ran.openshift.io/v1/policygentemplate/PolicyGenTemplate ./common.yaml |\
   yq 'select(.kind == "Policy" and .metadata.name == "common-config-policy")' |\
   template-resolver --cluster-name vsno5 --hub-kubeconfig ~/Servers/EL8000-2/kubeconfig-el8k-hub-2 --hub-namespace ztp-common -
