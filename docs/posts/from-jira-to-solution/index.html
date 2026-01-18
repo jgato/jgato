@@ -12,9 +12,6 @@
 <link rel="canonical" href="https://jgato.github.io/jgato/posts/from-jira-to-solution/" />
 
 
-  
-
-
 
 
 <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
@@ -167,10 +164,10 @@ with a manual procedure explained also in the Jira Ticket.
 <p>Note: it took me a while to instruct the agent correctly about how to use the jira tool to retrieve all the comments. In the case of Gemini Pro I have to give a lot of details, claude-4 managed to find out on its own.</p>
 </blockquote>
 <p>The prompt is composed by a generic part, and then, a kind of form that I could fill depending on the case. The agent will start using the MCP to interact with Jira and you have to give it perms to do it.</p>
-<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714124842738.png"></p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714124842738.png" alt=""></p>
 <p>After having the enough perms, this is the result:</p>
-<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134133461.png">
-<img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134202370.png"></p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134133461.png" alt="">
+<img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714134202370.png" alt=""></p>
 <p>Not bad for a first attempt, it is focusing on an existing KCS that points you to create the missing <code>pull-secret</code>. This is not the workaround we want to document, I want the one about: the <code>pull-secret</code> is no longer needed.</p>
 <p>Second attempt. Now, with more concrete instructions about the solution to document and some more details based on some more iterations I had. Some addings:</p>
 <ul>
@@ -202,9 +199,9 @@ Remember you have to restart the affected pods.
 Finally add a note that points to the other KCS with the second solution and recommend to upgrade as the best option.
 Compose the links in the way of [name](link)
 </code></pre><p>Now, the solution is much more correct about, first, how to check the fail.</p>
-<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132429413.png"></p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132429413.png" alt=""></p>
 <p>Second, how to only remove the failing part and how to correctly restart the services:</p>
-<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132538258.png"></p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714132538258.png" alt=""></p>
 <p>To master prompts is essential to get the better from the model.</p>
 <p>We are happily done :) or not&hellip;</p>
 <h2 id="a-final-round-using-mcps">A final round using MCPs<a href="#a-final-round-using-mcps" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
@@ -222,11 +219,11 @@ Because the objective is a jira ticket, please include a title for the jira tick
 Also add some metadata about the reviewer, who is My Manager &lt; mymanager@redhat.com&gt;
 plese, add that the article to review can be found here: https://&lt;whatever&gt;.redhat.com/articles/&lt;article&gt;
 </code></pre><p>That prepares everything:</p>
-<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125412789.png"></p>
+<p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125412789.png" alt=""></p>
 <p>everything seems correct, so lets create the ticket:</p>
 <pre tabindex="0"><code class="language-prompt" data-lang="prompt">create the ticket on the project &lt;TEST&gt;,
 set the Assignee to My Manager &lt;MyManager@redhat.com&gt;
-</code></pre><p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125551768.png"></p>
+</code></pre><p><img src="/jgato/posts/from-jira-to-solution/assets/from_jira_to_solution_20250714125551768.png" alt=""></p>
 <p>Worked like a charm. I could even add comments and some more labels, to configure it properly into the review process.</p>
 <p>Now, I am done ;)</p>
 <h1 id="conclusions">Conclusions<a href="#conclusions" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
@@ -250,6 +247,13 @@ set the Assignee to My Manager &lt;MyManager@redhat.com&gt;
         <hr />
     </div>
     <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://jgato.github.io/jgato/posts/claude-ztp-commands/">
+                <span class="button__icon">←</span>
+                <span class="button__text">Building Custom Claude Code Skills for Zero Touch Provisioning Operations</span>
+            </a>
+        </span>
         
         
         <span class="button next">
@@ -277,7 +281,7 @@ set the Assignee to My Manager &lt;MyManager@redhat.com&gt;
   <div class="footer__inner">
     
       <div class="copyright">
-        <span>© 2025 Powered by <a href="http://gohugo.io">Hugo</a></span>
+        <span>© 2026 Powered by <a href="http://gohugo.io">Hugo</a></span>
     
         <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
       </div>

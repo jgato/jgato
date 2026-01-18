@@ -13,9 +13,10 @@
       <pubDate>Fri, 21 Jun 2024 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/posts/instructlab/</guid>
-      <description>My first steps with InstructLab and Merlinite model Recently, Red Hat and IBM released the open-source project InstructLab and community. The project aims to work with large language model (LLM) models such as Granite and Merlinite. Both Granite and Merlinite are also available as open-source releases from IBM.
-Granite is trained on Meta&amp;rsquo;s Llama2-7B LLM model, while Merlinite is fine-tuned from Mistral.
-InstructLab helps users download, serve, and interact with LLM models.</description>
+      <description>&lt;h1 id=&#34;my-first-steps-with-instructlab-and-merlinite-model&#34;&gt;My first steps with InstructLab and Merlinite model&lt;/h1&gt;
+&lt;p&gt;Recently, Red Hat and IBM released the open-source project &lt;a href=&#34;https://github.com/instructlab/instructlab&#34;&gt;InstructLab&lt;/a&gt; and community. The project aims to work with large language model (LLM) models such as  &lt;a href=&#34;https://huggingface.co/ibm-granite/granite-7b-base&#34;&gt;Granite&lt;/a&gt; and &lt;a href=&#34;https://huggingface.co/ibm/merlinite-7b&#34;&gt;Merlinite&lt;/a&gt;. Both Granite and Merlinite are also available as open-source releases from IBM.&lt;/p&gt;
+&lt;p&gt;Granite is trained on Meta&amp;rsquo;s Llama2-7B LLM model, while Merlinite is fine-tuned from Mistral.&lt;/p&gt;
+&lt;p&gt;InstructLab helps users download, serve, and interact with LLM models. Similar to other projects like Ollama, but with the main difference being that InstructLab focuses on retraining (fine-tuning) existing models. This allows for easy injection of new knowledge into an existing model without requiring AI skills.&lt;/p&gt;</description>
       <content>&lt;h1 id=&#34;my-first-steps-with-instructlab-and-merlinite-model&#34;&gt;My first steps with InstructLab and Merlinite model&lt;/h1&gt;
 &lt;p&gt;Recently, Red Hat and IBM released the open-source project &lt;a href=&#34;https://github.com/instructlab/instructlab&#34;&gt;InstructLab&lt;/a&gt; and community. The project aims to work with large language model (LLM) models such as  &lt;a href=&#34;https://huggingface.co/ibm-granite/granite-7b-base&#34;&gt;Granite&lt;/a&gt; and &lt;a href=&#34;https://huggingface.co/ibm/merlinite-7b&#34;&gt;Merlinite&lt;/a&gt;. Both Granite and Merlinite are also available as open-source releases from IBM.&lt;/p&gt;
 &lt;p&gt;Granite is trained on Meta&amp;rsquo;s Llama2-7B LLM model, while Merlinite is fine-tuned from Mistral.&lt;/p&gt;
@@ -95,7 +96,7 @@ InstructLab helps users download, serve, and interact with LLM models.</descript
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      workloads, including intermittent connectivity, portable clouds, and
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      5G radio access networks (RAN) close to a base station.
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      The major tradeoff with an installation on a single node is the
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      lack of high availability.&lt;/span&gt;      
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      lack of high availability.&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;question&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;What is an SNO?&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;answer&lt;/span&gt;: |&lt;span style=&#34;color:#e6db74&#34;&gt;
@@ -103,24 +104,24 @@ InstructLab helps users download, serve, and interact with LLM models.</descript
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      or Single Node Openshift.
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      A cluster composed by only one node.
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      Specially designed for working at Edge,
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      but it can also run on suppored clouds.&lt;/span&gt;      
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      but it can also run on suppored clouds.&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;question&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Can you add workers to an SNO?&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;answer&lt;/span&gt;: |&lt;span style=&#34;color:#e6db74&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      Yes, a SNO allows to add an extra worker.&lt;/span&gt;      
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      Yes, a SNO allows to add an extra worker.&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;question&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;What are the requirements for an SNO?&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;answer&lt;/span&gt;: |&lt;span style=&#34;color:#e6db74&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      | **Prile**      | **vCPU**     | **Memory**  | **Storage** |
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      |----------------|--------------|-------------|-------------|
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      | Minimum        | 8 vCPU cores | 16 GB RAM   | 120 GB      |&lt;/span&gt;      
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      | Minimum        | 8 vCPU cores | 16 GB RAM   | 120 GB      |&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;question&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Which is the preferable method to deploy an SNO?&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;answer&lt;/span&gt;: |&lt;span style=&#34;color:#e6db74&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      Assisted Installer is the best way of installing an SNO&lt;/span&gt;      
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      Assisted Installer is the best way of installing an SNO&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;question&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;How many nodes have an SNO?&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;answer&lt;/span&gt;: |&lt;span style=&#34;color:#e6db74&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      An SNO, that stands for Single Node Openshift,
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      it is compossed by only one node.
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      But there is one special configurarion that allows
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      to add one worker.&lt;/span&gt;      
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      to add one worker.&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;document&lt;/span&gt;:
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;repo&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;https://github.com/jgato/ilab_knowledge.git&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;commit&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;eb5da33&lt;/span&gt;

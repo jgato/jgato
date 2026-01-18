@@ -1,0 +1,29 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+/* Custom width override */
+/* Default was 1100px, now set to 1500px for a wider but not full-width layout */
+.container {
+  max-width: 1500px !important;
+}
+
+/* You can adjust this value:
+   - 1300px for slightly wider
+   - 1500px for moderately wider (current setting)
+   - 1700px for much wider
+*/
+
+/* Font customization - Mixed approach for hacker aesthetic */
+/* Body text: Inter (clean, readable, technical) */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+/* Headings: JetBrains Mono (hacker/terminal look) */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  letter-spacing: -0.03em;
+}
+
+/* Code blocks keep Fira Code (already configured by theme) */
+/* This ensures inline code and code blocks maintain the existing style */

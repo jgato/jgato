@@ -13,15 +13,16 @@
       <pubDate>Fri, 17 May 2024 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/posts/cluster-observability/</guid>
-      <description>Red Hat Advanced Cluster Management and MultiCluster Observability In this blog, I will focus on how you can monitor your cloud/edge clusters from a central management point. Monitoring your clusters (or infrastructure) is a key first step to take decision (automatic or not), solve problems, doing maintenance, etc. When a large infrastructure, monitoring turns into a more painful task. Red Hat Advanced Cluster Management (RHACM) and the MultiCluster Observability, allows you to have an homogenized way of monitoring your whole infrastructure from a central repository.</description>
+      <description>&lt;h1 id=&#34;red-hat-advanced-cluster-management-and-multicluster-observability&#34;&gt;Red Hat Advanced Cluster Management and MultiCluster Observability&lt;/h1&gt;
+&lt;p&gt;In this blog, I will focus on how you can monitor your cloud/edge clusters from a central management point. Monitoring your clusters (or infrastructure) is a key first step to take decision (automatic or not), solve problems, doing maintenance, etc. When a large infrastructure, monitoring turns into a more painful task. Red Hat Advanced Cluster Management (RHACM) and the MultiCluster Observability, allows you to have an homogenized way of monitoring your whole infrastructure from  a central repository. Which is already your central life-cycle management, and most likely, the origin where all your clusters were created.&lt;/p&gt;</description>
       <content>&lt;h1 id=&#34;red-hat-advanced-cluster-management-and-multicluster-observability&#34;&gt;Red Hat Advanced Cluster Management and MultiCluster Observability&lt;/h1&gt;
 &lt;p&gt;In this blog, I will focus on how you can monitor your cloud/edge clusters from a central management point. Monitoring your clusters (or infrastructure) is a key first step to take decision (automatic or not), solve problems, doing maintenance, etc. When a large infrastructure, monitoring turns into a more painful task. Red Hat Advanced Cluster Management (RHACM) and the MultiCluster Observability, allows you to have an homogenized way of monitoring your whole infrastructure from  a central repository. Which is already your central life-cycle management, and most likely, the origin where all your clusters were created.&lt;/p&gt;
 &lt;p&gt;Before going with the real topic of this document, lets do a briefly introduction to Openshift Cluster Monitoring, RHACM and MultiCluster observability.&lt;/p&gt;
 &lt;p&gt;First of all, every cluster using Openshift Cloud Platform deploys a cluster operator called Openshift Cluster Monitoring.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/openshift_cluster_monitoring_arch.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/openshift_cluster_monitoring_arch.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The main component in the &lt;strong&gt;Cluster Monitoring&lt;/strong&gt; is Prometheus. Prometheus will scrape metrics of any service (defined by ServiceMonitoring) that exports a &lt;code&gt;/metrics&lt;/code&gt; interface exposing a set of different metrics. Later, Thanos provides a PromQL interface, it is in charge of metric&amp;rsquo;s persistence and it can receive metrics from different Prometheus instances. By default, Openshift defines a set of different metrics to be collected, but others can be added by users.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;&lt;a href=&#34;https://www.redhat.com/en/technologies/management/advanced-cluster-management&#34;&gt;Red Hat Advanced Cluster Management&lt;/a&gt;&lt;/strong&gt; allows you to deploy, upgrade, and configure different managed clusters from a central management cluster.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/rhacm.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/rhacm.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Once you have RHACM and your different managed clusters, you can enable the &lt;strong&gt;&lt;a href=&#34;https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/observability/index&#34;&gt;RHACM MultiCluster Observability operator&lt;/a&gt;&lt;/strong&gt;. When enabled:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;From the managed clusters: a new add-on is installed. In charge of forwarding the local Cluster Monitoring metrics to the management cluster.&lt;/li&gt;
@@ -30,21 +31,21 @@
 &lt;p&gt;Enabling MultiCluster Observability is pretty easy, and you can follow the &lt;a href=&#34;https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/observability/index#enabling-observability-service&#34;&gt;official documentation&lt;/a&gt;. In the process, you will have to provide an S3 compatible storage system.&lt;/p&gt;
 &lt;h2 id=&#34;using-rhacm-multicluster-observability&#34;&gt;Using RHACM MultiCluster Observability&lt;/h2&gt;
 &lt;p&gt;Once everything is enabled, you can have a very quick observation of your clusters, directly from the RHACM Overview console.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/Observability_overview.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/Observability_overview.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Also, you can use the Grafana observability dashboard (https://https://grafana-open-cluster-management-observability.apps.your-domain) to have a deeper view of what is happening.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/Observability_dashboard_1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/Observability_dashboard_1.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Grafana provides you with a PromQL interface to customize your own queries. The query can be created manually, or following with a kind of wizard, that guides you with the different options.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/Observability_dashboard_2.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/Observability_dashboard_2.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Notice, how the wizard helps you to take a metric (actually an &amp;ldquo;Alert&amp;rdquo;) and helps you to filter by cluster, pods, or other options.&lt;/p&gt;
 &lt;h2 id=&#34;observing-an-alert-to-take-decision&#34;&gt;Observing an alert to take decision&lt;/h2&gt;
 &lt;p&gt;In a very quick example, you can check different alerts on your clusters.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/observability_alert_1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/observability_alert_1.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;In this example, you can see a triggered alert about a Policy Violation on the cluster named &amp;ldquo;sno4&amp;rdquo;. You can consider a Policy, like a way of configuring or expressing a desired status on your cluster.&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;I will not explain how to fix a Policy Violation, because it is not the scope of the blog and for the sake of blog&amp;rsquo;s readiness. But basically, you apply/fix the  cluster configuration, to make it complain with the Policy.  More on &lt;a href=&#34;https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/governance/index#policy-overview&#34;&gt;RHACM Governance&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;Once the Alert is triggered, you can take the needed actions. If the problem is solved, the Alert will go down. As it can be been seen in the following picture, and how I solved the problem around 16:55.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/observability_alert_2.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/observability_alert_2.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;observability-and-hardware-consumption&#34;&gt;Observability and hardware consumption&lt;/h2&gt;
 &lt;p&gt;Observability is needed in order to monitor all your clusters, but, the mechanisms has to be lightweight enough to not affect your current workloads.&lt;/p&gt;
 &lt;p&gt;Therefore, I will do quick simple experiment to check how much extra consumption you would have using Observability. All the observations are, obviously, from the management cluster.&lt;/p&gt;
@@ -53,7 +54,7 @@
 &lt;/blockquote&gt;
 &lt;p&gt;I will take a relaxed cluster: Single Node Openshift with 48 Cores and 96GB RAM.&lt;/p&gt;
 &lt;p&gt;Initially, there are no extra workloads. The observability add-on is having the following CPU consumptions (around 0.08 and 0.18 seconds of CPU usage)&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/consumption_1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/consumption_1.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The query to take the CPU consumption of the Observability add-on:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;node_namespace_pod_container:container_cpu_usage_seconds_total:sum{cluster=&amp;#34;sno4&amp;#34;,namespace=&amp;#34;open-cluster-management-addon-observability&amp;#34;}
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now, we will stress the cluster to see if this makes the observability add-on to get higher consumptions.&lt;/p&gt;
@@ -76,10 +77,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NAME   CPU&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;cores&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;   CPU%   MEMORY&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;bytes&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;   MEMORY%   
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sno4   36543m       83%    46770Mi         75% 
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With this load, we can compare the observability consumption related to the high loads of the stressing Namespace:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/consumption_2.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/consumption_2.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Apart from on very concrete peak, the increase on the load it seems not very meaningful. Considering the scale between 0.0015 and 0.0025 seconds. It seems that the high loads are not affecting to the observability add-on, which behaves pretty constant.&lt;/p&gt;
 &lt;p&gt;Finally, a larger view of observability consumption after the experiment finished, during some days after.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/cluster-observability/assets/consumption_3.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/cluster-observability/assets/consumption_3.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;conclusions&#34;&gt;Conclusions&lt;/h2&gt;
 &lt;p&gt;Monitoring and Observability are really crucial features, specially, when having large number of clusters in your infrastructure. To have everything centralized over a common platform for deploying, maintenance, life-cycle management, monitoring, etc is crucial in order to easiness your different processes. In the future, observability will collect also logs and traces, that will complete the platform. After that, automation and AI will do all the work for you ;) but this is other story&amp;hellip;.&lt;/p&gt;
 </content>

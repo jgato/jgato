@@ -12,9 +12,6 @@
 <link rel="canonical" href="https://jgato.github.io/jgato/posts/using-red-hat-serving-models/" />
 
 
-  
-
-
 
 
 <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
@@ -184,7 +181,7 @@ LitteLLM act as a proxy for different models.</p>
 <h3 id="try-direct-connect-between-visual-studio-and-our-models">Try direct connect between Visual Studio and our models<a href="#try-direct-connect-between-visual-studio-and-our-models" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>Once you have Continue plugin installed (just a few clicks), you can configure your Local Assistant to interact with different models.</p>
 <p>Access to the Continue Local Assistante configuration with:</p>
-<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250606115552754.png"></p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250606115552754.png" alt=""></p>
 <p>It will open a new configuration file, that you can fill with something like:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#ae81ff">Local Assistant</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#ae81ff">1.0.0</span>
@@ -208,7 +205,7 @@ LitteLLM act as a proxy for different models.</p>
 </span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">folder</span>
 </span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">codebase</span>
 </span></span></code></pre></div><p>So, I can chat with it:</p>
-<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175209698.png"></p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175209698.png" alt=""></p>
 <p>Pretty straight forward to integrate the RedHat/IBM serving models platform with VS and Continue.</p>
 <p><em>By the way, I had to add some Red Hat CA to trust on the server that is serving the model. You know, copy the certs on your OS path and update the certs DB</em></p>
 <h3 id="try-with-littellm-proxy-in-the-middle">Try with LitteLLM proxy in the middle<a href="#try-with-littellm-proxy-in-the-middle" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
@@ -313,14 +310,14 @@ litellm_settings:
 </span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">folder</span>
 </span></span><span style="display:flex;"><span>  - <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">codebase</span>
 </span></span></code></pre></div><p>My Local Assistant is now configured with two models.</p>
-<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175615306.png"></p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175615306.png" alt=""></p>
 <p>And different ways to interact, like edit, chat, or agent:</p>
-<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175707403.png"></p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509175707403.png" alt=""></p>
 <p>Lets just give some greetings:</p>
-<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509173121740.png"></p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/RedHatservingmodels_20250509173121740.png" alt=""></p>
 <h2 id="working-with-the-model">Working with the model<a href="#working-with-the-model" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>Now, that I have the model integrated in different ways, I can use for different tasks. Because chat with is cool, but not enough. So, I want to make it help me with some daily tasks. Here I have a shell script far from been perfect. So, I will ask Granite for help me to improve it:</p>
-<p><img src="/jgato/posts/using-red-hat-serving-models/assets/Red_Hat_serving_models_20250512101452559.png"></p>
+<p><img src="/jgato/posts/using-red-hat-serving-models/assets/Red_Hat_serving_models_20250512101452559.png" alt=""></p>
 <p>It is quite impressive how added some comments about what is happening in the script. Also, some outputs to help following the script execution. Finally, it added a lot of checks to make the script much more robust.
 Not bad for a quick try. I can add the model to my daily activities and&hellip;. in a safe 100% OpenSource environment performing pretty well.</p>
 <h1 id="to-be-continued">To be continued<a href="#to-be-continued" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
@@ -377,7 +374,7 @@ Not bad for a quick try. I can add the model to my daily activities and&hellip;.
   <div class="footer__inner">
     
       <div class="copyright">
-        <span>© 2025 Powered by <a href="http://gohugo.io">Hugo</a></span>
+        <span>© 2026 Powered by <a href="http://gohugo.io">Hugo</a></span>
     
         <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
       </div>

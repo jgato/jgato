@@ -12,9 +12,6 @@
 <link rel="canonical" href="https://jgato.github.io/jgato/posts/image-base-upgrade/" />
 
 
-  
-
-
 
 
 <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
@@ -139,13 +136,13 @@
         <h1 id="upgrading-clusters-with-image-based-upgrade-ibu">Upgrading Clusters with Image-Based Upgrade (IBU)<a href="#upgrading-clusters-with-image-based-upgrade-ibu" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
 <p>In this blog, I will focus on how to upgrade the clusters in your infrastructure managed by Red Hat Advanced Cluster Management (RHACM), specifically using the new upgrade mechanism called Image-Based Upgrade (IBU).</p>
 <p>Previously, you could upgrade your infrastructure using the standard OpenShift upgrade method:
-<img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130155334523.png"></p>
+<img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130155334523.png" alt=""></p>
 <p>Or by simply using the <code>oc cli</code>, as described in the <a href="https://docs.openshift.com/container-platform/4.16/updating/updating_a_cluster/updating-cluster-cli.html">official documentation</a>.</p>
 <p>Both methods trigger the same process, updating the operating system, OpenShift, operators, etc. For a Single Node OpenShift (SNO), the time required varies based on configuration but typically takes around 60–70 minutes.</p>
 <p>In telecommunications scenarios, SNOs are designed to run the Telco Radio Access Network (RAN). You can think of the software managing every antenna, meaning your infrastructure consists of thousands of antennas that need to be upgraded. This process is conducted within a strict maintenance window with very tight time constraints.</p>
 <p>IBU addresses this challenge by providing an upgrade mechanism that reduces upgrade time to approximately 15/20 minutes. IBU works by creating an image from a &ldquo;seed&rdquo; cluster. All clusters in your infrastructure that are considered clones of this seed cluster can be upgraded using this image. This mechanism is particularly well-suited for homogeneous telco RAN environments composed exclusively of SNOs. However, IBU is not suitable for multi-node clusters or heterogeneous infrastructures. In fact, IBU includes pre-checks to ensure compliance with telco RAN configurations. So, it cannot be used for other purposes (as today).</p>
 <p>In this blog, I will briefly cover how this new upgrade process works, but I will not go into details on configuring, installing, or deploying your infrastructure. The starting point assumes three SNOs are already installed, configured, and managed by ACM.
-<img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130165329318.png"></p>
+<img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130165329318.png" alt=""></p>
 <p>Notice that all these clusters are running OpenShift 4.14, and we aim to upgrade them to 4.16. Another advantage of IBU is that we can move directly to 4.16 without needing to first upgrade to 4.15 (which would take an extra hour).</p>
 <p>A fourth cluster, SNO4, will be used as the seed cluster. All clusters share the same hardware, software, and network configuration.</p>
 <h2 id="using-the-seed-cluster-to-create-the-upgrade-image">Using the Seed Cluster to Create the Upgrade Image<a href="#using-the-seed-cluster-to-create-the-upgrade-image" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
@@ -200,7 +197,7 @@
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ oc get seedgenerators.lca.openshift.io -w
 </span></span><span style="display:flex;"><span>NAME        AGE   STATE              DETAILS
 </span></span><span style="display:flex;"><span>seedimage   21s   SeedGenCompleted   Seed Generation completed
-</span></span></code></pre></div><p><img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130172132409.png"></p>
+</span></span></code></pre></div><p><img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_20250130172132409.png" alt=""></p>
 <h2 id="upgrading-clusters">Upgrading clusters<a href="#upgrading-clusters" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <h3 id="preparing-the-backup">Preparing the backup<a href="#preparing-the-backup" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>Unlike a seed cluster, the cluster that will be upgraded is an operational one, which will continue running its workloads. These additional workloads will be included in a backup (using OADP) and restored after the upgrade. Other than that, the clusters are essentially the same.</p>
@@ -385,7 +382,7 @@ type: Opaque
 </span></span><span style="display:flex;"><span>NAME                                        READY   STATUS    RESTARTS   AGE
 </span></span><span style="display:flex;"><span>exception-app-deployment-575c65d8cf-szjsf   1/1     Running   <span style="color:#ae81ff">0</span>          94s
 </span></span></code></pre></div><p>Remember this SNO was part of ACM, and we can check it is still there:</p>
-<p><img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_improved_20250206131843420.png"></p>
+<p><img src="/jgato/posts/image-base-upgrade/assets/telco_upgrades_with_ibu_improved_20250206131843420.png" alt=""></p>
 <p>There are other features not tested in the blog, like rollback if fail. But I did not want to do it too complex and give only a first approach.</p>
 <h2 id="upgrading-a-cluster-with-traditional-upgrade">Upgrading a cluster with traditional upgrade<a href="#upgrading-a-cluster-with-traditional-upgrade" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p><em>Note: This is just a comparative on the amount of time, as reference. But it is not intended to compare (or to conclude) which one is better. As explained in the introduction IBU only covers very specific scenario and only SNO clusters. &ldquo;Traditional&rdquo; upgrade has to cover absolutely all the possible scenarios.</em></p>
@@ -467,7 +464,7 @@ type: Opaque
   <div class="footer__inner">
     
       <div class="copyright">
-        <span>© 2025 Powered by <a href="http://gohugo.io">Hugo</a></span>
+        <span>© 2026 Powered by <a href="http://gohugo.io">Hugo</a></span>
     
         <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
       </div>

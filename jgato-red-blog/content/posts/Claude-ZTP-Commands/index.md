@@ -17,6 +17,8 @@ hideComments = false
 
 **Note:** If you're not familiar with OpenShift, just think `oc` = `kubectl` in the examples below.
 
+**Note:** This is not an official project, and for sure, nothing I would use in production environments. By the moment, just a personal project to learn about using "Claude Code" for these tasks.
+
 Managing multiple OpenShift clusters through RHACM using Zero Touch Provisioning (ZTP) is highly repetitive, especially when deploying and destroying the same clusters frequently for testing new features, bug fixes, or workflow validation. In a nutshell, ZTP uses a Kustomize file (synced with ArgoCD) containing manifests to deploy OpenShift clusters through a hub cluster.
 
 During a typical week, I perform these steps countless times:
@@ -81,7 +83,7 @@ First, configure your environment by setting your KUBECONFIG and ArgoCD endpoint
 
 Now we are ready to deploy with `/deploy_cluster vso6`:
 
-During the process these will be the tasks to do:
+During the process these will be the tasks to do.
 ```console
   Todos · ctrl+t to hide todos
   ☐ Verify cluster manifest exists and check kustomization.yaml
@@ -96,8 +98,8 @@ During the process these will be the tasks to do:
 
 ```
 
-Here we go:
-```
+The only user intervention will happen during "prepare cluster pre-requierements". To introduce some credentials. Here we go:
+```console
 ❯ /deploy_clusters vsno6 
 
 ● Let me read the cluster manifest to show you a summary.
@@ -192,12 +194,86 @@ Here we go:
 
 ```
 
-The visualization command runs every 5 minutes until the cluster is fully deployed. The process typically takes 1-3 hours.
+The visualization command runs every 5 minutes until the cluster is fully deployed. 
+```console
+● # 🎯 vsno6 | Status: ✅ INSTALLED | Duration: ~41m (hub-2)
+
+  ## ClusterInstance Status (Primary CR)
+  **Created:** 11:31:58Z | **Generation:** 1 (observed: 1) | **Phase:** Deployed
+  - ✅ ClusterInstanceValidated - Validation succeeded
+  - ✅ RenderedTemplates - Rendered templates successfully (7 manifests)
+  - ✅ RenderedTemplatesValidated - Rendered templates validation succeeded
+  - ✅ RenderedTemplatesApplied - Applied site config manifests
+  - ✅ Provisioned - Provisioning completed
+
+  ## Core Resources
+  +----------------------+--------+--------------------+----------------------+
+  | Resource             | Status | State/Info         | Details              |
+  +----------------------+--------+--------------------+----------------------+
+  | 📦 BareMetalHost     | ✅     | provisioned/det.   | Power: Off           |
+  | 💿 InfraEnv          | ✅     | Image ready        | Created: 11:31:59Z   |
+  | 🚀 AgentClusterInst  | ✅     | adding-hosts       | Cluster is installed |
+  | 🎮 ManagedCluster    | ✅     | Available & Joined | Ready                |
+  +----------------------+--------+--------------------+----------------------+
+
+  ## Agent Details (1 total, 1 approved)
+  +---------+--------+-----------+
+  | ID      | Role   | State     |
+  +---------+--------+-----------+
+  | ...0006 | master | installed |
+  +---------+--------+-----------+
+
+  **Conditions:** ✅ Validated ✅ Requirements ✅ Completed ✅ Not Failed
+
+  Installation Complete! 🎉
+
+  The cluster vsno6 has successfully completed installation in approximately 41 minutes:
+  - ✅ ManagedCluster is Available and Joined
+  - ✅ Agent installed and operational
+  - ✅ All provisioning steps completed
 
 ```
 
+Finally, it extracts credentials and shows the final results:
+```console
+● Deployment Complete! 🎉
+
+  The cluster vsno6 has been successfully deployed on hub-2.
+
+  Deployment Summary
+
+  Cluster Information:
+  - Name: vsno6
+  - Type: Single Node OpenShift (SNO)
+  - OpenShift Version: 4.18.5
+  - Installation Time: ~41 minutes
+  - Status: ✅ Available and Joined
+
+  Cluster Access:
+  - Kubeadmin Password: ******************
+  - Kubeconfig Location: /tmp/kubeconfig-vsno6
+
+  Deployment Steps Completed:
+  1. ✅ Verified cluster manifest (vsno6.yaml)
+  2. ✅ Created namespace and secrets (pull-secret, BMC credentials)
+  3. ✅ Updated kustomization.yaml (uncommmented vsno6.yaml entry)
+  4. ✅ Committed and pushed changes to git (commit: ea48355)
+  5. ✅ Synced ArgoCD clusters application on hub-2
+  6. ✅ Monitored installation to completion
+  7. ✅ Extracted kubeadmin password
+  8. ✅ Extracted kubeconfig file
+
+  Final Cluster Status:
+  - ManagedCluster: Available & Joined
+  - Agent: Installed (master role)
+  - BareMetalHost: Provisioned and detached
+  - All conditions: Validated ✅
+
 ```
 
+The cluster is now ready for use.
+
+The redeploy command is much more impressive, but it requires time and gathering lots of logs. Not very readable for the blog, but I invite you to try it and give me some feedback.
 
 ## Key Learnings
 
@@ -265,6 +341,14 @@ KUBECONFIG=.... oc get secret -n vsno6
 This doesn't match the allow list, triggering permission prompts. I don't want user intervention during automation, but I also don't want an allow list covering every command variation.
 
 The non-deterministic nature of models made controlling this extremely challenging. I didn't want to rely entirely on predefined scripts, but finding the right balance was difficult. 
+
+### The Addictive Nature of AI-Assisted Development
+
+Adding new features becomes surprisingly addictive. The initial implementation is easy and straightforward—getting a working first version takes minutes. Refining it to reliable quality is harder, but you can leverage the model itself to add new steps or make the workflow more robust.
+
+This creates an "addiction loop": "Could I also make it do...?" Why not? A couple of minutes later, you see results. The rapid feedback cycle is compelling.
+
+Example: "Can I make ArgoCD login use KUBECONFIG instead of opening an interactive web browser?" (Currently working on this!) 
 
 ### Final Thoughts
 

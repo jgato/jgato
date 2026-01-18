@@ -6,13 +6,73 @@
     <description>Recent content in Tags on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 14 Jul 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 18 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AI</title>
       <link>https://jgato.github.io/jgato/tags/ai/</link>
-      <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
+      <pubDate>Sun, 18 Jan 2026 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/tags/ai/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Argocd</title>
+      <link>https://jgato.github.io/jgato/tags/argocd/</link>
+      <pubDate>Sun, 18 Jan 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/argocd/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Automation</title>
+      <link>https://jgato.github.io/jgato/tags/automation/</link>
+      <pubDate>Sun, 18 Jan 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/automation/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Claude</title>
+      <link>https://jgato.github.io/jgato/tags/claude/</link>
+      <pubDate>Sun, 18 Jan 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/claude/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Openshift</title>
+      <link>https://jgato.github.io/jgato/tags/openshift/</link>
+      <pubDate>Sun, 18 Jan 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/openshift/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Rhacm</title>
+      <link>https://jgato.github.io/jgato/tags/rhacm/</link>
+      <pubDate>Sun, 18 Jan 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/rhacm/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Ztp</title>
+      <link>https://jgato.github.io/jgato/tags/ztp/</link>
+      <pubDate>Sun, 18 Jan 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/tags/ztp/</guid>
       <description></description>
       <content></content>
     </item>
@@ -48,16 +108,6 @@
     </item>
     
     <item>
-      <title>Openshift</title>
-      <link>https://jgato.github.io/jgato/tags/openshift/</link>
-      <pubDate>Mon, 14 Jul 2025 00:00:00 +0000</pubDate>
-      
-      <guid>https://jgato.github.io/jgato/tags/openshift/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
       <title>Cloud</title>
       <link>https://jgato.github.io/jgato/tags/cloud/</link>
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
@@ -83,16 +133,6 @@
       <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/tags/ran/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>Rhacm</title>
-      <link>https://jgato.github.io/jgato/tags/rhacm/</link>
-      <pubDate>Fri, 07 Feb 2025 00:00:00 +0000</pubDate>
-      
-      <guid>https://jgato.github.io/jgato/tags/rhacm/</guid>
       <description></description>
       <content></content>
     </item>
@@ -218,16 +258,6 @@
     </item>
     
     <item>
-      <title>Ztp</title>
-      <link>https://jgato.github.io/jgato/tags/ztp/</link>
-      <pubDate>Fri, 18 Nov 2022 00:00:00 +0000</pubDate>
-      
-      <guid>https://jgato.github.io/jgato/tags/ztp/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
       <title>Bmc</title>
       <link>https://jgato.github.io/jgato/tags/bmc/</link>
       <pubDate>Fri, 16 Sep 2022 00:00:00 +0000</pubDate>
@@ -273,16 +303,6 @@
       <pubDate>Fri, 03 Jun 2022 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/tags/ipv6/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>Automation</title>
-      <link>https://jgato.github.io/jgato/tags/automation/</link>
-      <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
-      
-      <guid>https://jgato.github.io/jgato/tags/automation/</guid>
       <description></description>
       <content></content>
     </item>

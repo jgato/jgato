@@ -6,17 +6,309 @@
     <description>Recent content in Automation on Jose Gato Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 26 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/automation/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 18 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://jgato.github.io/jgato/tags/automation/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Building Custom Claude Code Skills for Zero Touch Provisioning Operations</title>
+      <link>https://jgato.github.io/jgato/posts/claude-ztp-commands/</link>
+      <pubDate>Sun, 18 Jan 2026 00:00:00 +0000</pubDate>
+      
+      <guid>https://jgato.github.io/jgato/posts/claude-ztp-commands/</guid>
+      <description>&lt;h1 id=&#34;building-custom-claude-code-skills-for-zero-touch-provisioning-operations&#34;&gt;Building Custom Claude Code Skills for Zero Touch Provisioning Operations&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; If you&amp;rsquo;re not familiar with OpenShift, just think &lt;code&gt;oc&lt;/code&gt; = &lt;code&gt;kubectl&lt;/code&gt; in the examples below.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; This is not an official project, and for sure, nothing I would use in production environments. By the moment, just a personal project to learn about using &amp;ldquo;Claude Code&amp;rdquo; for these tasks.&lt;/p&gt;
+&lt;p&gt;Managing multiple OpenShift clusters through RHACM using Zero Touch Provisioning (ZTP) is highly repetitive, especially when deploying and destroying the same clusters frequently for testing new features, bug fixes, or workflow validation. In a nutshell, ZTP uses a Kustomize file (synced with ArgoCD) containing manifests to deploy OpenShift clusters through a hub cluster.&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;building-custom-claude-code-skills-for-zero-touch-provisioning-operations&#34;&gt;Building Custom Claude Code Skills for Zero Touch Provisioning Operations&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; If you&amp;rsquo;re not familiar with OpenShift, just think &lt;code&gt;oc&lt;/code&gt; = &lt;code&gt;kubectl&lt;/code&gt; in the examples below.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; This is not an official project, and for sure, nothing I would use in production environments. By the moment, just a personal project to learn about using &amp;ldquo;Claude Code&amp;rdquo; for these tasks.&lt;/p&gt;
+&lt;p&gt;Managing multiple OpenShift clusters through RHACM using Zero Touch Provisioning (ZTP) is highly repetitive, especially when deploying and destroying the same clusters frequently for testing new features, bug fixes, or workflow validation. In a nutshell, ZTP uses a Kustomize file (synced with ArgoCD) containing manifests to deploy OpenShift clusters through a hub cluster.&lt;/p&gt;
+&lt;p&gt;During a typical week, I perform these steps countless times:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Edit the kustomization file to add a cluster YAML&lt;/li&gt;
+&lt;li&gt;Git commit and push with a descriptive message&lt;/li&gt;
+&lt;li&gt;Refresh and sync the ArgoCD app, then wait for completion&lt;/li&gt;
+&lt;li&gt;Create secrets that shouldn&amp;rsquo;t live in Git repos&lt;/li&gt;
+&lt;li&gt;Monitor until everything is ready&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Redeploying means reversing the process: comment out the kustomization entry, push, sync, wait, then repeat the deployment steps.&lt;/p&gt;
+&lt;p&gt;While I had some scripts for this, I wanted to improve my AI skills by using Claude Code Skills and Commands instead of complex shell scripts full of conditionals and wait loops. The project aims to make my life easier while focusing on learning how to interact with these models effectively.&lt;/p&gt;
+&lt;p&gt;The project is available &lt;a href=&#34;https://github.com/jgato/ztp-cluster-automation/tree/main&#34;&gt;here&lt;/a&gt;, and I welcome feedback.&lt;/p&gt;
+&lt;p&gt;I won&amp;rsquo;t dive into every command detail since the Git repo has documentation and things are actively changing. Instead, I&amp;rsquo;ll walk through some typical workflows.&lt;/p&gt;
+&lt;h2 id=&#34;deploying-a-cluster&#34;&gt;Deploying a Cluster&lt;/h2&gt;
+&lt;p&gt;While my favorite command is &amp;ldquo;redeploy a cluster&amp;rdquo; (the one that inspired this project), I&amp;rsquo;ll demonstrate the simpler &amp;ldquo;deploy a cluster&amp;rdquo; workflow.&lt;/p&gt;
+&lt;p&gt;First, configure your environment by setting your KUBECONFIG and ArgoCD endpoint:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; Command outputs are simplified for readability. The actual execution is longer and requires some initial user interaction.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-console&#34; data-lang=&#34;console&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ /configure_environment 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● I&amp;#39;ll help you configure the environment for ZTP operations.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt; Let me start by checking the current KUBECONFIG status.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● The KUBECONFIG environment variable is not currently set. I need you to provide the path to your kubeconfig file.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● User declined to answer questions
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;❯ KUBECONFIG=~/Servers/EL8000-2/kubeconfig-el8k-hub-2 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt; ⎿  🔍 Checking connectivity to OpenShift cluster...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ✅ Connected to OpenShift cluster
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Excellent! The cluster is reachable with the KUBECONFIG: /home/jgato/Servers/EL8000-2/kubeconfig-el8k-hub-2
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt; Now let me check the available hubs to help you select one.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Perfect! I found the available hubs. Based on your KUBECONFIG path (which contains &amp;#34;hub-2&amp;#34;), I&amp;#39;ll present the hub options:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                                                     
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;● User answered Claude&amp;#39;s questions:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; ⎿  · Which RHACM hub would you like to use for ZTP operations? → hub-2 (Recommended)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Perfect! Environment configuration is complete.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt; Configuration Summary:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; - KUBECONFIG: /home/jgato/Servers/EL8000-2/kubeconfig-el8k-hub-2
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; - Selected Hub: hub-2 (Default hub)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     - ArgoCD Endpoint: openshift-gitops-server-openshift-gitops.example.com
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; - Cluster Status: ✅ Connected and reachable
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;✻ Worked for 33s
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now we are ready to deploy with &lt;code&gt;/deploy_cluster vso6&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;During the process these will be the tasks to do.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-console&#34; data-lang=&#34;console&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Todos · ctrl+t to hide todos
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ☐ Verify cluster manifest exists and check kustomization.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ☐ Prepare cluster pre-requirements (namespace and secrets)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ☐ Add/uncomment cluster entry in kustomization.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ☐ Create git commit for cluster addition
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ☐ Push changes to origin/main
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ☐ Sync ArgoCD clusters application on hub-2
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ☐ Monitor cluster installation until ManagedCluster is available and joined (max 3 hours)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ☐ Extract kubeadmin password
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ☐ Extract and save kubeconfig file
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The only user intervention will happen during &amp;ldquo;prepare cluster pre-requierements&amp;rdquo;. To introduce some credentials. Here we go:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-console&#34; data-lang=&#34;console&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ /deploy_clusters vsno6 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Let me read the cluster manifest to show you a summary.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Read(vsno6.yaml)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ⎿  Read 84 lines
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Cluster Summary for vsno6:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Type: Single Node OpenShift (SNO)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Namespace: vsno6
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - OpenShift Version: 4.18.5
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Status in kustomization.yaml: Currently commented out (line 12: #- vsno6.yaml)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Now I&amp;#39;ll prepare the cluster pre-requirements (namespace and secrets).
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Skill(/prepare_clusters)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ⎿  Successfully loaded skill
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● I&amp;#39;ll prepare the cluster pre-requirements for vsno6. Since we&amp;#39;re in the context of cluster deployment, I&amp;#39;ll proceed with creating the namespace and secrets.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● The namespace vsno6 already exists. Now I&amp;#39;ll run the preparation script to create the required secrets.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Bash(export KUBECONFIG=/home/jgato/Servers/EL8000-2/kubeconfig-el8k-hub-2 &amp;amp;&amp;amp; .claude/commands/scripts/prepare_ztp_cluster_pre_reqs.sh vsno6)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ⎿  vsno6                                         
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     secret/assisted-deployment-pull-secret created
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     Now introduce the credentials for the BMC
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     … +4 lines (ctrl+o to expand)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● The secrets were created successfully. Let me verify both secrets exist in the vsno6 namespace.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Bash(oc --kubeconfig /home/jgato/Servers/EL8000-2/kubeconfig-el8k-hub-2 get secret -n vsno6 assisted-deployment-pull-secret vsno6-bmc-secret)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ⎿  NAME                              TYPE     DATA   AGE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     assisted-deployment-pull-secret   Opaque   1      15s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     vsno6-bmc-secret                  Opaque   2      6s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Cluster preparation completed successfully!
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  The namespace vsno6 now has the required secrets:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ assisted-deployment-pull-secret (created 15s ago)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ vsno6-bmc-secret (created 6s ago)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Now I&amp;#39;ll uncomment the vsno6.yaml entry in kustomization.yaml.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Changes applied to kustomization.yaml:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - vsno5.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  -#- vsno6.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  +- vsno6.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  #- vsno7.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Now I&amp;#39;ll create a git commit and push the changes.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Commit created successfully. Now I&amp;#39;ll push to origin/main.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Push completed successfully. Now I&amp;#39;ll sync the ArgoCD clusters application on hub-2.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Skill(/synch_clusters)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ⎿  Successfully loaded skill
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● I&amp;#39;ll sync the ArgoCD clusters application on hub-2.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Sync Details:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Hub: hub-2 (openshift-gitops-server-openshift-gitops.apps.hub-2.example.com)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Application: clusters
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Prune: No (standard sync without prune)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Let me check if we&amp;#39;re already logged in to the ArgoCD instance.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● We&amp;#39;re already logged in to the ArgoCD instance. Now I&amp;#39;ll refresh and sync the clusters application.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Let me sync the application directly, which will also refresh it.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Bash(argocd app sync clusters --server openshift-gitops-server-openshift-gitops.apps.hub-2.example.com --insecure --grpc-web) 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● ArgoCD Sync Completed Successfully!
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Key results:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ ClusterInstance vsno6 created in namespace vsno6
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ Sync Status: Synced to main (ea48355)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ Phase: Succeeded
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ Duration: 2s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Now I&amp;#39;ll begin monitoring the cluster installation. I&amp;#39;ll check the status every 5 minutes until the ManagedCluster is Available and Joined, with a maximum wait of 3 hours.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Starting installation monitoring at 12:32...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● Skill(visualize-cluster-status)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ⎿  Successfully loaded skill
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;● I&amp;#39;ll check the status of cluster vsno6 using the optimized data collection script.
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The visualization command runs every 5 minutes until the cluster is fully deployed.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-console&#34; data-lang=&#34;console&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;● # 🎯 vsno6 | Status: ✅ INSTALLED | Duration: ~41m (hub-2)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  ## ClusterInstance Status (Primary CR)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  **Created:** 11:31:58Z | **Generation:** 1 (observed: 1) | **Phase:** Deployed
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ ClusterInstanceValidated - Validation succeeded
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ RenderedTemplates - Rendered templates successfully (7 manifests)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ RenderedTemplatesValidated - Rendered templates validation succeeded
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ RenderedTemplatesApplied - Applied site config manifests
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ Provisioned - Provisioning completed
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  ## Core Resources
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  +----------------------+--------+--------------------+----------------------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  | Resource             | Status | State/Info         | Details              |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  +----------------------+--------+--------------------+----------------------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  | 📦 BareMetalHost     | ✅     | provisioned/det.   | Power: Off           |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  | 💿 InfraEnv          | ✅     | Image ready        | Created: 11:31:59Z   |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  | 🚀 AgentClusterInst  | ✅     | adding-hosts       | Cluster is installed |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  | 🎮 ManagedCluster    | ✅     | Available &amp;amp; Joined | Ready                |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  +----------------------+--------+--------------------+----------------------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  ## Agent Details (1 total, 1 approved)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  +---------+--------+-----------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  | ID      | Role   | State     |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  +---------+--------+-----------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  | ...0006 | master | installed |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  +---------+--------+-----------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  **Conditions:** ✅ Validated ✅ Requirements ✅ Completed ✅ Not Failed
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Installation Complete! 🎉
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  The cluster vsno6 has successfully completed installation in approximately 41 minutes:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ ManagedCluster is Available and Joined
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ Agent installed and operational
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ✅ All provisioning steps completed
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Finally, it extracts credentials and shows the final results:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-console&#34; data-lang=&#34;console&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;● Deployment Complete! 🎉
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  The cluster vsno6 has been successfully deployed on hub-2.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Deployment Summary
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Cluster Information:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Name: vsno6
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Type: Single Node OpenShift (SNO)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - OpenShift Version: 4.18.5
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Installation Time: ~41 minutes
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Status: ✅ Available and Joined
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Cluster Access:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Kubeadmin Password: ******************
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Kubeconfig Location: /tmp/kubeconfig-vsno6
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Deployment Steps Completed:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  1. ✅ Verified cluster manifest (vsno6.yaml)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  2. ✅ Created namespace and secrets (pull-secret, BMC credentials)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  3. ✅ Updated kustomization.yaml (uncommmented vsno6.yaml entry)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  4. ✅ Committed and pushed changes to git (commit: ea48355)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  5. ✅ Synced ArgoCD clusters application on hub-2
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  6. ✅ Monitored installation to completion
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  7. ✅ Extracted kubeadmin password
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  8. ✅ Extracted kubeconfig file
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  Final Cluster Status:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - ManagedCluster: Available &amp;amp; Joined
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - Agent: Installed (master role)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - BareMetalHost: Provisioned and detached
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - All conditions: Validated ✅
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The cluster is now ready for use.&lt;/p&gt;
+&lt;p&gt;The redeploy command is much more impressive, but it requires time and gathering lots of logs. Not very readable for the blog, but I invite you to try it and give me some feedback.&lt;/p&gt;
+&lt;h2 id=&#34;key-learnings&#34;&gt;Key Learnings&lt;/h2&gt;
+&lt;p&gt;The most valuable part of this project has been the lessons learned. LLM examples always show the final successful result, but let me be honest about the main challenges I faced:&lt;/p&gt;
+&lt;h3 id=&#34;upfront-user-prompting&#34;&gt;Upfront User Prompting&lt;/h3&gt;
+&lt;p&gt;I needed the model to handle the entire redeployment with error control and retries, but without asking for secrets 90 minutes into execution. I wanted to trigger it and walk away confidently.&lt;/p&gt;
+&lt;p&gt;Getting the model to gather all necessary context upfront and maintain it throughout the process proved challenging. The non-deterministic nature of LLMs made this harder than it sounds.&lt;/p&gt;
+&lt;h3 id=&#34;preventing-unwanted-decision-making&#34;&gt;Preventing Unwanted Decision-Making&lt;/h3&gt;
+&lt;p&gt;ZTP operations are highly repeatable. In a controlled environment where I&amp;rsquo;ve deployed clusters hundreds of times, failures are rare and expected to succeed. I needed the model to follow the task list patiently without making decisions that could break the process.&lt;/p&gt;
+&lt;p&gt;During long redeployments, the model would sometimes try to debug, investigate problems, or even attempt fixes. This wasn&amp;rsquo;t the goal. I don&amp;rsquo;t want debugging or problem-solving during these workflows. If something takes too long, just break and let me investigate when I return.&lt;/p&gt;
+&lt;h3 id=&#34;over-engineering-by-the-model&#34;&gt;Over-Engineering by the Model&lt;/h3&gt;
+&lt;p&gt;The cluster status visualization command was particularly challenging. Even with a clear structure, the model would sometimes improvise its own inspection and show different information. This broke the consistent &amp;ldquo;application experience&amp;rdquo; I wanted.&lt;/p&gt;
+&lt;p&gt;Constraining the model to show only what I specified was painful. After displaying status, it would often investigate potential failures or provide unnecessary details. Sometimes, less is more.&lt;/p&gt;
+&lt;h3 id=&#34;non-deterministic-command-execution&#34;&gt;Non-Deterministic Command Execution&lt;/h3&gt;
+&lt;p&gt;I wanted to use natural language as much as possible. If I had to script everything, I might as well write a complete shell script—that wasn&amp;rsquo;t my goal. However, for some steps, I needed scripts to constrain exactly how actions execute.&lt;/p&gt;
+&lt;p&gt;Otherwise, the model would execute the same command in different ways. For example, getting a secret could be:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;oc --kubeconfig get secret &amp;lt;params&amp;gt;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;oc get secret --kubeconfig &amp;lt;params&amp;gt; &amp;amp;&amp;amp; oc get secret &amp;lt;params&amp;gt;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Various combinations with &lt;code&gt;echo&lt;/code&gt;, &lt;code&gt;cat&lt;/code&gt;, pipes, etc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;While generally smart, this variability becomes a security concern. Claude Code uses permission mechanisms to allow approved commands without user intervention. I spent hours controlling my allow list:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;permissions&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;allow&amp;#34;&lt;/span&gt;: [
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Skill(redeploy_clusters)&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Bash(.claude/commands/scripts/*)&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Bash(.claude/skills/visualize-cluster-status/scripts/*)&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Bash(mkdir -p tmp-*)&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Bash(oc --kubeconfig *)&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ],
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;I wanted to allow operations based on your kubeconfig permissions. This config looked good, but after an hour of deployment, the model might use:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;oc get secret -n vsno6
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Instead of the allowed patterns:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;oc --kubeconfig&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;.... get secret -n vsno6
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# or&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;KUBECONFIG&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;.... oc get secret -n vsno6
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This doesn&amp;rsquo;t match the allow list, triggering permission prompts. I don&amp;rsquo;t want user intervention during automation, but I also don&amp;rsquo;t want an allow list covering every command variation.&lt;/p&gt;
+&lt;p&gt;The non-deterministic nature of models made controlling this extremely challenging. I didn&amp;rsquo;t want to rely entirely on predefined scripts, but finding the right balance was difficult.&lt;/p&gt;
+&lt;h3 id=&#34;the-addictive-nature-of-ai-assisted-development&#34;&gt;The Addictive Nature of AI-Assisted Development&lt;/h3&gt;
+&lt;p&gt;Adding new features becomes surprisingly addictive. The initial implementation is easy and straightforward—getting a working first version takes minutes. Refining it to reliable quality is harder, but you can leverage the model itself to add new steps or make the workflow more robust.&lt;/p&gt;
+&lt;p&gt;This creates an &amp;ldquo;addiction loop&amp;rdquo;: &amp;ldquo;Could I also make it do&amp;hellip;?&amp;rdquo; Why not? A couple of minutes later, you see results. The rapid feedback cycle is compelling.&lt;/p&gt;
+&lt;p&gt;Example: &amp;ldquo;Can I make ArgoCD login use KUBECONFIG instead of opening an interactive web browser?&amp;rdquo; (Currently working on this!)&lt;/p&gt;
+&lt;h3 id=&#34;final-thoughts&#34;&gt;Final Thoughts&lt;/h3&gt;
+&lt;p&gt;This has been fascinating work with impressive results. However, I experienced the classic &amp;ldquo;AI effect&amp;rdquo;: the first successful run felt like magic, but moving from demo to active use revealed challenges—mainly non-deterministic command execution and security control.&lt;/p&gt;
+&lt;p&gt;I still have work to do. Time will tell whether this saves me more time than I spend refining prompts&amp;hellip; or whether some prompts ultimately become scripts again. :)&lt;/p&gt;
+</content>
+    </item>
+    
     <item>
       <title>DCI Openshift App Agent</title>
       <link>https://jgato.github.io/jgato/posts/dci/</link>
       <pubDate>Fri, 26 Nov 2021 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/posts/dci/</guid>
-      <description>DCI Openshift App Agent This DCI Agents helps you to run any kind of test or application in a Openshift existing deployment.
-Where to run it? In you usual provisioner, bastion, or supporting host to manage your Openshift Cluster. During the ramp-up, usually we can use the lab-installer from our plan deployment.
-Requirements for the provisioner:
-Be running the latest stable RHEL release (8.4 or higher) and registered via RHSM</description>
+      <description>&lt;h1 id=&#34;dci-openshift-app-agent&#34;&gt;DCI Openshift App Agent&lt;/h1&gt;
+&lt;p&gt;This DCI Agents helps you to run any kind of test or application in a Openshift existing deployment.&lt;/p&gt;
+&lt;p&gt;Where to run it? In you usual provisioner, bastion, or supporting host to manage your Openshift Cluster. &lt;em&gt;During the ramp-up, usually we can use the lab-installer from our plan deployment&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Requirements for the provisioner:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Be running the latest stable RHEL release (&lt;strong&gt;8.4 or higher&lt;/strong&gt;) and registered via RHSM&lt;/p&gt;</description>
       <content>&lt;h1 id=&#34;dci-openshift-app-agent&#34;&gt;DCI Openshift App Agent&lt;/h1&gt;
 &lt;p&gt;This DCI Agents helps you to run any kind of test or application in a Openshift existing deployment.&lt;/p&gt;
 &lt;p&gt;Where to run it? In you usual provisioner, bastion, or supporting host to manage your Openshift Cluster. &lt;em&gt;During the ramp-up, usually we can use the lab-installer from our plan deployment&lt;/em&gt;.&lt;/p&gt;
@@ -57,7 +349,7 @@ Be running the latest stable RHEL release (8.4 or higher) and registered via RHS
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dnf -y install dci-openshift-app-agent
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;dci-console-and-remote-cis&#34;&gt;DCI Console and remote CIS&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&#34;https://www.distributed-ci.io/&#34;&gt;Visit the DCI Console&lt;/a&gt; to create your new remote CIS that will be used by the agent.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/dci/assets/2021-11-26-13-47-49-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/dci/assets/2021-11-26-13-47-49-image.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Once it is created take your credentials information.&lt;/p&gt;
 &lt;h2 id=&#34;configure-agent-credentials&#34;&gt;Configure Agent credentials&lt;/h2&gt;
 &lt;p&gt;Edit the file &amp;lsquo;/etc/dci-openshift-app-agent/dcirc.sh&amp;rsquo; with your new credentials&lt;/p&gt;
@@ -171,7 +463,7 @@ export DCI_CS_URL
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PLAY RECAP *******************************************************************************************************************
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;jumphost                   : ok&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;70&lt;/span&gt;   changed&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;   unreachable&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;    failed&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;    skipped&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;   rescued&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;    ignored&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is how you see it from the web console&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/dci/assets/2021-11-26-11-51-17-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/dci/assets/2021-11-26-11-51-17-image.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h1 id=&#34;dci-openshift-agent&#34;&gt;DCI Openshift Agent&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;Notice: DCI Openshift Agent is related to install/test/update OCP4 installation, and it is not covered in this tutorial&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;DCI agent for OCP4 will be in charge of automatic CI process over your cluster. DCI, aims to automatically deploy and test RedHat Products (like new versions of OCP). The DCI Openshift Agent is in charge of deploying OCP4.&lt;/p&gt;

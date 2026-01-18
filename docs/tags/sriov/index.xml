@@ -13,7 +13,9 @@
       <pubDate>Fri, 18 Nov 2022 00:00:00 +0000</pubDate>
       
       <guid>https://jgato.github.io/jgato/posts/intel_e810_ztp/</guid>
-      <description>Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning. In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance. The tutorial covers:</description>
+      <description>&lt;h1 id=&#34;configuring-sriov-intel-e810-nic-with-gitops-zero-touch-provisioning&#34;&gt;Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning.&lt;/h1&gt;
+&lt;p&gt;In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance.
+The tutorial covers:&lt;/p&gt;</description>
       <content>&lt;h1 id=&#34;configuring-sriov-intel-e810-nic-with-gitops-zero-touch-provisioning&#34;&gt;Configuring SRIOV Intel E810 NIC with GitOps Zero Touch Provisioning.&lt;/h1&gt;
 &lt;p&gt;In this tutorial, we will see the different steps to use GitOps Zero Touch Provisioning (ZTP), to configure Intel E810 NICs. First of all, we provision the server as a Single Node Openshift. SNO, it is specially designed for Telcos, to deploy their RAN workloads. These servers made use of these special cards, for high network performance.
 The tutorial covers:&lt;/p&gt;
@@ -196,7 +198,7 @@ The tutorial covers:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;annotations&lt;/span&gt;:
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;kubeletconfig.experimental&lt;/span&gt;: |&lt;span style=&#34;color:#e6db74&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;          {&amp;#34;systemReserved&amp;#34;: {&amp;#34;memory&amp;#34;: &amp;#34;4Gi&amp;#34;}}&lt;/span&gt;          
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;          {&amp;#34;systemReserved&amp;#34;: {&amp;#34;memory&amp;#34;: &amp;#34;4Gi&amp;#34;}}&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;sno-perfprofile&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;policyName&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;perfprofile-policy&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
@@ -588,7 +590,7 @@ The tutorial covers:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;          &amp;#34;ranges&amp;#34;: [[{&amp;#34;subnet&amp;#34;: &amp;#34;10.0.30.0/24&amp;#34;}]],
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;          &amp;#34;dataDir&amp;#34;:
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;            &amp;#34;/run/my-orchestrator/container-ipam-state-1&amp;#34;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        }&lt;/span&gt;        
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        }&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;networkNamespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;testpmd&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;resourceName&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;e810_ens4f0&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;spoofChk&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;off&amp;#34;&lt;/span&gt;
@@ -604,7 +606,7 @@ The tutorial covers:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;          &amp;#34;ranges&amp;#34;: [[{&amp;#34;subnet&amp;#34;: &amp;#34;10.0.40.0/24&amp;#34;}]],
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;          &amp;#34;dataDir&amp;#34;:
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;            &amp;#34;/run/my-orchestrator/container-ipam-state-1&amp;#34;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        }&lt;/span&gt;        
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        }&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;networkNamespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;testpmd&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;resourceName&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;e810_ens4f1&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;spoofChk&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;off&amp;#34;&lt;/span&gt;
@@ -638,7 +640,7 @@ The tutorial covers:&lt;/p&gt;
 &lt;p&gt;In this section, we will use a DPDK test application with the configurations created in the previous sections. We will use TRex to generate traffic to a test dpdk (testpmd) application.&lt;/p&gt;
 &lt;p&gt;*We basically re-use the work done by @alosadagrande from &lt;a href=&#34;https://github.com/alosadagrande/openshift-telco/&#34;&gt;here&lt;/a&gt; and this &lt;a href=&#34;https://access.redhat.com/articles/6969629&#34;&gt;Red Hat Article&lt;/a&gt;. *&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Important to notice, this time, I am using an Intel E810 (which is supported with Trex 3.0 used later). Previous articles would be using other SRIOV cards.&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-51-50-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-51-50-image.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;According to the picture, we need 4 different ports. These ports will not be real physical ones, these will be 4 VFS from SRIOV NICs. We have already configured this environment, and the needed VFs and Networks in a section above.&lt;/p&gt;
 &lt;p&gt;Traffic Generator will send packets from VF0 and this will be received by Testpmd VF1. Then Testpmd will forward packets to the VF2, and from there, it will reach back to Trex on the VF3.&lt;/p&gt;
 &lt;p&gt;First of all, lets download the deployments for the TestPMD and the Traffic Generator:&lt;/p&gt;
@@ -782,7 +784,7 @@ The tutorial covers:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;                  &amp;#34;pci-address&amp;#34;: &amp;#34;0000:86:09.2&amp;#34;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;              }
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;          }
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      }]&lt;/span&gt;      
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;      }]&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The Deployment will create a Pod with the tools to use a DPDK test application. This test application will just forward what it receives by its Port 0 to its Port 1. Port 0 and 1 are the VFS 1 and 2 in the figure above.&lt;/p&gt;
 &lt;p&gt;The test application will also collect metrics about the packets received/transmitted.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; oc apply -f manifests/deployment-testpmd-rhel.yaml
@@ -1000,7 +1002,7 @@ The tutorial covers:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;    ip_telco0  = &amp;#39;10.0.0.1&amp;#39;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;    # wild first XL710 mac
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;    mac_telco1 = &amp;#39;50:00:00:00:00:02&amp;#39;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;    ip_telco1 = &amp;#39;10.1.1.1&amp;#39;&lt;/span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;    ip_telco1 = &amp;#39;10.1.1.1&amp;#39;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With everything configured, create the trex deployment:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$&amp;gt; oc -n testpmd apply -f pods/trex.yaml
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;configmap/trex-info-for-config created
@@ -1141,7 +1143,7 @@ So, double-check everything manually.&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;14&lt;/span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;     &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt;       &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;      &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt;    &lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; -------------------------------
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;after some secs you will see something like:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-15-13-36-47-image.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/intel_e810_ztp/assets/2022-11-15-13-36-47-image.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Now, it is time to open a new console to run some packet&amp;rsquo;s simulation:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; oc rsh trex
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sh-5.1#  ./trex-console
@@ -1175,7 +1177,7 @@ So, double-check everything manually.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tui&amp;gt; start -f /opt/tests/testpmd.py -m 1mpps -p0
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What is happening now?&lt;/p&gt;
 &lt;p&gt;The test application is sending packets through Trex Port 0, which is sending the packages to Testpmd Port 0. Then, Testpmd is configured to forward everything to Testpmd Port 1. From there, the packages are received by Trex Port 1.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-31-41-output.gif&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jgato.github.io/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-31-41-output.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd is doing ports forward correctly and the card seems to be working at the expected speed: 25Gb/s.&lt;/p&gt;
 &lt;h1 id=&#34;summary&#34;&gt;Summary&lt;/h1&gt;
 &lt;p&gt;For this tutorial, we have been working with the Intel E810 card. Pretty new card, which would not be compatible yet with all the environments. Using SNO4.10 and TRex 3.0 seems to be working properly. But it is important to notice, here, we only did a packets simulation (testing). All the real capabilities would not be supported.&lt;/p&gt;

@@ -12,9 +12,6 @@
 <link rel="canonical" href="https://jgato.github.io/jgato/posts/intel_e810_ztp/" />
 
 
-  
-
-
 
 
 <link rel="stylesheet" href="https://jgato.github.io/jgato/assets/style.css">
@@ -312,7 +309,7 @@ The tutorial covers:</p>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">metadata</span>:
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">annotations</span>:
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">kubeletconfig.experimental</span>: |<span style="color:#e6db74">
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          {&#34;systemReserved&#34;: {&#34;memory&#34;: &#34;4Gi&#34;}}</span>          
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          {&#34;systemReserved&#34;: {&#34;memory&#34;: &#34;4Gi&#34;}}</span>
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">sno-perfprofile</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">policyName</span>: <span style="color:#ae81ff">perfprofile-policy</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">spec</span>:
@@ -704,7 +701,7 @@ The tutorial covers:</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;ranges&#34;: [[{&#34;subnet&#34;: &#34;10.0.30.0/24&#34;}]],
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;dataDir&#34;:
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            &#34;/run/my-orchestrator/container-ipam-state-1&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        }</span>        
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        }</span>
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">networkNamespace</span>: <span style="color:#ae81ff">testpmd</span>
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">resourceName</span>: <span style="color:#ae81ff">e810_ens4f0</span>
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">spoofChk</span>: <span style="color:#e6db74">&#34;off&#34;</span>
@@ -720,7 +717,7 @@ The tutorial covers:</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;ranges&#34;: [[{&#34;subnet&#34;: &#34;10.0.40.0/24&#34;}]],
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;dataDir&#34;:
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            &#34;/run/my-orchestrator/container-ipam-state-1&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        }</span>        
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        }</span>
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">networkNamespace</span>: <span style="color:#ae81ff">testpmd</span>
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">resourceName</span>: <span style="color:#ae81ff">e810_ens4f1</span>
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">spoofChk</span>: <span style="color:#e6db74">&#34;off&#34;</span>
@@ -754,7 +751,7 @@ The tutorial covers:</p>
 <p>In this section, we will use a DPDK test application with the configurations created in the previous sections. We will use TRex to generate traffic to a test dpdk (testpmd) application.</p>
 <p>*We basically re-use the work done by @alosadagrande from <a href="https://github.com/alosadagrande/openshift-telco/">here</a> and this <a href="https://access.redhat.com/articles/6969629">Red Hat Article</a>. *</p>
 <p><strong>Important to notice, this time, I am using an Intel E810 (which is supported with Trex 3.0 used later). Previous articles would be using other SRIOV cards.</strong></p>
-<p><img src="/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-51-50-image.png"></p>
+<p><img src="/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-51-50-image.png" alt=""></p>
 <p>According to the picture, we need 4 different ports. These ports will not be real physical ones, these will be 4 VFS from SRIOV NICs. We have already configured this environment, and the needed VFs and Networks in a section above.</p>
 <p>Traffic Generator will send packets from VF0 and this will be received by Testpmd VF1. Then Testpmd will forward packets to the VF2, and from there, it will reach back to Trex on the VF3.</p>
 <p>First of all, lets download the deployments for the TestPMD and the Traffic Generator:</p>
@@ -898,7 +895,7 @@ The tutorial covers:</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  &#34;pci-address&#34;: &#34;0000:86:09.2&#34;
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              }
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          }
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      }]</span>      
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      }]</span>
 </span></span></code></pre></div><p>The Deployment will create a Pod with the tools to use a DPDK test application. This test application will just forward what it receives by its Port 0 to its Port 1. Port 0 and 1 are the VFS 1 and 2 in the figure above.</p>
 <p>The test application will also collect metrics about the packets received/transmitted.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc apply -f manifests/deployment-testpmd-rhel.yaml
@@ -1116,7 +1113,7 @@ The tutorial covers:</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    ip_telco0  = &#39;10.0.0.1&#39;
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    # wild first XL710 mac
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    mac_telco1 = &#39;50:00:00:00:00:02&#39;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    ip_telco1 = &#39;10.1.1.1&#39;</span>    
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    ip_telco1 = &#39;10.1.1.1&#39;</span>
 </span></span></code></pre></div><p>With everything configured, create the trex deployment:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$&gt; oc -n testpmd apply -f pods/trex.yaml
 </span></span><span style="display:flex;"><span>configmap/trex-info-for-config created
@@ -1257,7 +1254,7 @@ So, double-check everything manually.</p>
 </span></span><span style="display:flex;"><span> <span style="color:#ae81ff">14</span>        <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">13</span>       <span style="color:#ae81ff">1</span>      <span style="color:#ae81ff">13</span>    <span style="color:#ae81ff">255</span>
 </span></span><span style="display:flex;"><span> -------------------------------
 </span></span></code></pre></div><p>after some secs you will see something like:</p>
-<p><img src="/jgato/posts/intel_e810_ztp/assets/2022-11-15-13-36-47-image.png"></p>
+<p><img src="/jgato/posts/intel_e810_ztp/assets/2022-11-15-13-36-47-image.png" alt=""></p>
 <p>Now, it is time to open a new console to run some packet&rsquo;s simulation:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; oc rsh trex
 </span></span><span style="display:flex;"><span>sh-5.1#  ./trex-console
@@ -1291,7 +1288,7 @@ So, double-check everything manually.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>tui&gt; start -f /opt/tests/testpmd.py -m 1mpps -p0
 </span></span></code></pre></div><p>What is happening now?</p>
 <p>The test application is sending packets through Trex Port 0, which is sending the packages to Testpmd Port 0. Then, Testpmd is configured to forward everything to Testpmd Port 1. From there, the packages are received by Trex Port 1.</p>
-<p><img src="/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-31-41-output.gif"></p>
+<p><img src="/jgato/posts/intel_e810_ztp/assets/2022-11-16-12-31-41-output.gif" alt=""></p>
 <p>You can see how Port 0 out-packets and Port 1 input-packets are mostly the same. Testpmd is doing ports forward correctly and the card seems to be working at the expected speed: 25Gb/s.</p>
 <h1 id="summary">Summary<a href="#summary" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
 <p>For this tutorial, we have been working with the Intel E810 card. Pretty new card, which would not be compatible yet with all the environments. Using SNO4.10 and TRex 3.0 seems to be working properly. But it is important to notice, here, we only did a packets simulation (testing). All the real capabilities would not be supported.</p>
@@ -1346,7 +1343,7 @@ So, double-check everything manually.</p>
   <div class="footer__inner">
     
       <div class="copyright">
-        <span>© 2025 Powered by <a href="http://gohugo.io">Hugo</a></span>
+        <span>© 2026 Powered by <a href="http://gohugo.io">Hugo</a></span>
     
         <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
       </div>
