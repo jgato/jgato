@@ -8,12 +8,17 @@ publishdir = '../docs'
 #########################
 
 theme = "terminal"
-paginate = 5
+
+[pagination]
+  pagerSize = 5
 
 [params]
   # dir name of your main content (default is `content/posts`).
   # the list of set content will show up on your index page (baseurl).
   contentTypeName = "posts"
+
+  # custom CSS files
+  customCSS = ["css/custom.css"]
 
   # ["orange", "blue", "red", "green", "pink"]
   themeColor = "red"
