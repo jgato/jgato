@@ -15,33 +15,32 @@ hideComments = false
 
 # Building Custom Claude Code Skills for Zero Touch Provisioning Operations
 
-*** During the examples you will see a lot of oc commands. If you are not used to Openshift, you can just think that oc=kubectl *** 
+**Note:** If you're not familiar with OpenShift, just think `oc` = `kubectl` in the examples below.
 
-  Managing multiple OpenShift clusters through Red Hat Advanced Cluster Management (RHACM) using Zero Touch Provisioning (ZTP) can repetitive. Specially repetitive when you have to deploy/destroy the same set of clusters very frequently just to test: new feature, a bug fix, new integration task, check deployment workflow, etc. Without going into details on how the ZTP workflow works, I would say a Kustomize file (sync with ArgoCD) that contains a set of manifests with information to deploy an Openshift cluster. The deployment includes ArgoCd sync, and some interactions with the Openshift cluster that acts as "cluster that deployes other clusters".
-  During a week, I cannot remember how many times I do:
-  * Edit kustomization file to add the yaml of a cluster to deploy.
-  * Git commit and push with a clear message.
-  * Refresh and sync the ArgoCD app and wait everything goes oka.
-  * There are some secrets that you dont want to have on the Git repo, so, you run an script or run some `oc create secrets`.
-  * Wait and check everything is oka.
-  
-And of course the other way around, redeploy the cluster means to do the same process the other way around. Starting to uncomment the kustomization file, push, sync, wait. And create it again.
+Managing multiple OpenShift clusters through RHACM using Zero Touch Provisioning (ZTP) is highly repetitive, especially when deploying and destroying the same clusters frequently for testing new features, bug fixes, or workflow validation. In a nutshell, ZTP uses a Kustomize file (synced with ArgoCD) containing manifests to deploy OpenShift clusters through a hub cluster.
 
-Of course we have some scripts, and some automations about this. But in the way of improving my AI skills I decided to use Claude Code Skills and Commands to do it on a more "natural language" way, instead of so much shell scripts with many if-then, if-then, if-then, waits, etc. So, the project is intended to facilitate my life, but, by the moment specially focused on learning on how to interact with these models.
+During a typical week, I perform these steps countless times:
+* Edit the kustomization file to add a cluster YAML
+* Git commit and push with a descriptive message
+* Refresh and sync the ArgoCD app, then wait for completion
+* Create secrets that shouldn't live in Git repos
+* Monitor until everything is ready
 
-The project is [here](https://github.com/jgato/ztp-cluster-automation/tree/main) and I am very welcomed to receive feedback.
+Redeploying means reversing the process: comment out the kustomization entry, push, sync, wait, then repeat the deployment steps.
 
-I've built a comprehensive automation framework that transforms how I handle day-to-day cluster operations, combining GitOps principles with AI-assisted tooling to streamline what used to be manual, error-prone workflows. The automation framework enables comprehensive OpenShift cluster lifecycle management including creation, removal, and redeployment through seamless integration with Git, ArgoCD, and Red Hat Advanced Cluster Management (RHACM).
+While I had some scripts for this, I wanted to improve my AI skills by using Claude Code Skills and Commands instead of complex shell scripts full of conditionals and wait loops. The project aims to make my life easier while focusing on learning how to interact with these models effectively.
 
-I dont do in the details of every command. You have the Git repo documented and ... I am changing many things on this moment. So, whatever I describe on the workflow would be changed. But I can go with some of the usual workflows
+The project is available [here](https://github.com/jgato/ztp-cluster-automation/tree/main), and I welcome feedback.
 
-## Deploying a cluster workflow
+I won't dive into every command detail since the Git repo has documentation and things are actively changing. Instead, I'll walk through some typical workflows.
 
-Even if my favourite command, that started my idea to build the project, is "redeploy a cluster", for demoing it is better to just "deploy a cluster".
+## Deploying a Cluster
 
-The usual workflow should start configuring your environment. That is pretty straight forward about setting your KUBECONFIG and the endpoint to interact with ArgoCD:
+While my favorite command is "redeploy a cluster" (the one that inspired this project), I'll demonstrate the simpler "deploy a cluster" workflow.
 
-(The execution of every command is pretty long. And in the first phase it requires some user intervention. So, these are prettified simplified outputs for the blog):
+First, configure your environment by setting your KUBECONFIG and ArgoCD endpoint:
+
+**Note:** Command outputs are simplified for readability. The actual execution is longer and requires some initial user interaction.
 
  ```console
  ❯ /configure_environment 
@@ -193,43 +192,45 @@ Here we go:
 
 ```
 
-From now on, it will use the visualization command every 5 minutes until the cluster is fully created. I only show you the visualization final status:
+The visualization command runs every 5 minutes until the cluster is fully deployed. The process typically takes 1-3 hours.
 
 ```
 
 ```
 
 
-## Conclusion and learnings
+## Key Learnings
 
-I think the most important part here are, as usual, the learnings. All these examples interacting with LLMs are always shown as the final successful result. But we have to be honest, and humble, and these were my main struggles:
+The most valuable part of this project has been the lessons learned. LLM examples always show the final successful result, but let me be honest about the main challenges I faced:
 
-### prompting the user at the beginning 
+### Upfront User Prompting
 
-I want to make a whole redeployment, with errors control and re-tries. But I dont want the model to ask me to configure the secrets 1 hour and half after invoking the command. I want to trigger it and leave it running, with the confidence that is finished when I am back. 
-The context configuration was pretty tricky about doing everything at starting phase, and instruct the model to keep it using all over the process. Looks easy, but not deterministic nature of the model made it complex.
+I needed the model to handle the entire redeployment with error control and retries, but without asking for secrets 90 minutes into execution. I wanted to trigger it and walk away confidently.
 
-### Model dont take decisions 
+Getting the model to gather all necessary context upfront and maintain it throughout the process proved challenging. The non-deterministic nature of LLMs made this harder than it sounds.
 
-This was something important for me. The model dont take decisions. It has a list of to-do. Some waits, and waits, and be patient. These ZTP operations are usually super repeatable. In a controlled environment, when you have deployed clusters hundreds of times, it will not fail. So, it is expected the process will not fail. Keep to model waiting but not taking decisions, or it would brake the process. 
-Happened, specially during redeployments, that it takes too long for the process. The model tries to debug, and to find out a possible problem, and even worst: try to fix it. It is not the intention of this workflow. Here we dont debug, we dont try to find problems, and of course, we dont want the model try to fix things. Maybe instruct the model, that if is takes too long to break. I will see what happened when I am back.
+### Preventing Unwanted Decision-Making
 
-### Models try to do more work than expected
+ZTP operations are highly repeatable. In a controlled environment where I've deployed clusters hundreds of times, failures are rare and expected to succeed. I needed the model to follow the task list patiently without making decisions that could break the process.
 
-One of the commands that took me more time is the cluster visualization status. It was crazy. Even if I had an structure of what I wanted to visualize, some times the model tries to do their own inspection and show different things. This breaks a kind of "application experience" that you always have the same result and the same visualization of the status. To constrain the model to only visualize what I wanted to show was painful. 
+During long redeployments, the model would sometimes try to debug, investigate problems, or even attempt fixes. This wasn't the goal. I don't want debugging or problem-solving during these workflows. If something takes too long, just break and let me investigate when I return.
 
-This one is also very related to "dont take decisions". After visualize the status, it tried many times to find out more about what could be failing. Or trying to give more details than need it. "Such a smarty-pants model". Not always more is better..
+### Over-Engineering by the Model
 
-### No deterministic commands
+The cluster status visualization command was particularly challenging. Even with a clear structure, the model would sometimes improvise its own inspection and show different information. This broke the consistent "application experience" I wanted.
 
-During the build I have tried to use as much "natural language" as possible. If I have to script too much... I would just do the model to do a super complete, long, and hard to maintain shell script. This was not my objective. But for some steps, I had to use an script for constrain at maximum how to execute some actions. 
+Constraining the model to show only what I specified was painful. After displaying status, it would often investigate potential failures or provide unnecessary details. Sometimes, less is more.
 
-Otherwise, the model always try to solve the command on a different way. For example, to a get a secret it would be done with:
- * `oc --kubeconfig get secret <params>` or,
- * `oc get secret --kubeconfig <params> && oc get secret <params>`
- * or whatever other combination like combining `echo` with a command. Other times, using `cat` and pipes, etc. I guess you understand the point.
- 
-It is not only that makes you lost the control, in general is pretty smart. My point here is security. Claude Code, and other tools, use different mechanisms to allow some approved commands without user intervention. For hours, I tried to have my allow list very controlled. So, I would have things like:
+### Non-Deterministic Command Execution
+
+I wanted to use natural language as much as possible. If I had to script everything, I might as well write a complete shell script—that wasn't my goal. However, for some steps, I needed scripts to constrain exactly how actions execute.
+
+Otherwise, the model would execute the same command in different ways. For example, getting a secret could be:
+* `oc --kubeconfig get secret <params>`
+* `oc get secret --kubeconfig <params> && oc get secret <params>`
+* Various combinations with `echo`, `cat`, pipes, etc.
+
+While generally smart, this variability becomes a security concern. Claude Code uses permission mechanisms to allow approved commands without user intervention. I spent hours controlling my allow list:
 
 ```json
   "permissions": {
@@ -248,32 +249,25 @@ It is not only that makes you lost the control, in general is pretty smart. My p
 
 ```
 
-I wanted to allow whatever is done with your kubeconfig. So, it is up to you have much operations are allowed by your kubeconfig. This config looks good, but after an hour of deploying, maybe the model tries to do:
+I wanted to allow operations based on your kubeconfig permissions. This config looked good, but after an hour of deployment, the model might use:
 
-```
- oc get secret -n vsno6
+```bash
+oc get secret -n vsno6
 ```
 
-Instead of:
-
-```
+Instead of the allowed patterns:
+```bash
 oc --kubeconfig=.... get secret -n vsno6
-```
-
-or:
-```
+# or
 KUBECONFIG=.... oc get secret -n vsno6
 ```
 
+This doesn't match the allow list, triggering permission prompts. I don't want user intervention during automation, but I also don't want an allow list covering every command variation.
 
-This does not match your allow list configuration, and it will ask user for perms. As explained before, I dont want to need user intervention for an automated task. But at the same time, you dont want to have your allow list full of different combinations of commands, or worst, to have to have allow every oc command.
+The non-deterministic nature of models made controlling this extremely challenging. I didn't want to rely entirely on predefined scripts, but finding the right balance was difficult. 
 
-And I would show you so many different combinations, and not only about oc commands. Specially tricky when trying to work with some shell commands. 
+### Final Thoughts
 
-To have all this under control was hard and painful as hell. We know models are not deterministic, but here it is really painful. And I did not want to use predefined scripts for everything. 
+This has been fascinating work with impressive results. However, I experienced the classic "AI effect": the first successful run felt like magic, but moving from demo to active use revealed challenges—mainly non-deterministic command execution and security control.
 
-### Final thoughts
-
-As learning it has been super interesting work. And the results are awesome. But it happened me the same awesome AI effect. The first time I had it running was like magic. Then, when you try to use it more actively and not playing with a demo, the problems start to raise. In general, the not deterministic results of the commands and having security under control. 
-
-I still have a lot of work to do. Lets see how much time this save me, and how much time I have to spend refining the different prompts. Or maybe changing prompts for scripts ;) 
+I still have work to do. Time will tell whether this saves me more time than I spend refining prompts... or whether some prompts ultimately become scripts again. :) 
