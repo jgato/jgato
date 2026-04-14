@@ -52,7 +52,13 @@ An hcp cluster is created with hcp cli
 
 ## Install the hub usual operators
 
-ODF is not needed, because it is exported from the management cluster.
+Install:
+ * ACM/MCE
+ * Openshift GitOps
+ * TALM
+ * Metallb
+ODF is not needed, because it is exported from the management cluster. Neither the local-storage operator
+
 
 ## Enabling the baremetal operator
 
