@@ -21,7 +21,7 @@ So, the architecture will be:
                       │
                       ▼
           ┌──────────────────────────────┐
-          │      HCP Compact Cluster     │
+          │      Hosted Compact Cluster  │
           └────┬──────────┬──────────┬───┘
                │          │          │
                ▼          ▼          ▼
@@ -33,7 +33,52 @@ So, the architecture will be:
  
  The regular compact management cluster it is just a our usual Telco Hub + Openshift Virtualization + Metallb
  
-# create the HCP Compact
+# Configure the Management Cluster
+
+Management cluster is composed by the usual hub operators:
+ * ACM/MCE
+ * local storage operator
+ * ODF
+ * Openshift Gitops
+ * TALM
+In addition for this case:
+ * Openshift Virtualization
+ * Metallb
+ 
+How to configure all these operators (hub) is not covered in this tutorial.
+
+In addition I created a Metallb IPAddressPool that will be used by the hosted clusters created by HCP.
+
+```
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: metallb
+  namespace: metallb-system
+spec:
+  addresses:
+    - 10.6.77.100-10.6.77.120
+    - '2620:0052:0009:164d:0000:0000:0000:1111 - 2620:0052:0009:164d:0000:0000:0000:ffff'
+  autoAssign: true
+  avoidBuggyIPs: false
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2advertisement
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - metallb
+
+```
+
+Becareful with the ranges to avoid automatic assigements with IPs already in use. This is why I use ranges that I am sure I am not using.
+
+Releted to HCP, configure the management cluster as explained [here](https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/hosted_control_planes/deploying-hosted-control-planes#hcp-virt-prereqs_hcp-deploy-virt).
+
+# Create the Hosted Compact Cluster
 
 ## Using HCP cli
 
@@ -41,14 +86,73 @@ From the management cluster, download the [HCP cli](https://docs.redhat.com/en/d
 An hcp cluster is created with hcp cli
 
 ```
-> hcp create cluster kubevirt   --name hcp-2   --node-pool-replicas 3   
+> hcp create cluster kubevirt   --name hcp-3   --node-pool-replicas 3   
 	\--pull-secret /home/jgato/.config/containers/auth.json   
 	\--memory 16Gi   --cores 8   --etcd-storage-class=ocs-storagecluster-cephfs   
 	\--arch amd64   --release-image quay.io/openshift-release-dev/ocp-release:4.21.0-multi
+	\--enable-cluster-capabilities baremetal
+	\--cluster-cidr 10.132.0.0/14 
+	\--cluster-cidr fd03::/48
+	\--service-cidr 172.31.0.0/16 
+	\--service-cidr fd04::/112
+
 ```
+
+Dual stack is working correctly:
+
+> curl https://[2620:52:9:164d::]:6443/readyz -k
+ok
+
+> curl https://10.6.77.102:6443/readyz -k
+ok
+
+and the network is properly  configured:
+
+```yaml
+> oc get network cluster -o yaml
+apiVersion: config.openshift.io/v1
+kind: Network
+metadata:
+  annotations:
+    include.release.openshift.io/ibm-cloud-managed: "true"
+    include.release.openshift.io/self-managed-high-availability: "true"
+    release.openshift.io/create-only: "true"
+  creationTimestamp: "2026-04-17T10:15:36Z"
+  generation: 2
+  labels:
+    hypershift.openshift.io/managed: "true"
+  name: cluster
+  ownerReferences:
+  - apiVersion: config.openshift.io/v1
+    kind: ClusterVersion
+    name: version
+    uid: 086d7308-0a85-40a3-95fe-4668d4b76e1d
+  resourceVersion: "1630"
+  uid: e310b368-e55d-4d80-b61a-6afd9427e9f9
+spec:
+  clusterNetwork:
+  - cidr: 10.132.0.0/14
+    hostPrefix: 23
+  - cidr: fd00::/48
+    hostPrefix: 64
+  networkDiagnostics:
+    mode: ""
+    sourcePlacement: {}
+    targetPlacement: {}
+  networkType: OVNKubernetes
+  serviceNetwork:
+  - 172.31.0.0/16
+  - fd00:fd::/112
+
+```
+
+Even if the management and hosted cluster are correctly configured with dual-stack, the IPv6 address of the hosted cluster will not work. More details on the bug [here](https://redhat.atlassian.net/browse/OCPBUGS-84303).
 
 ## Using Manifests
 
+[ToDo]
+
+# Configure Hosted Cluster
 
 ## Install the hub usual operators
 
@@ -60,30 +164,11 @@ Install:
 ODF is not needed, because it is exported from the management cluster. Neither the local-storage operator
 
 
-## Enabling the baremetal operator
+## Configuring the baremetal operator
 
+Create different services to make metal3 (from hcp-3) containers externally accessible.
 
-By default the HCP hosted cluster is created with BMO disabled:
-
-Edit:
-```
-oc edit clusterversions.config.openshift.io version 
-```
-
-to enable Baremetal capability.
-
-It should be enabled when creating the HCP (to try next time).
-
-when enabled:
-
-```
-> oc -n openshift-machine-api get pod
-NAME                                                        READY   STATUS    RESTARTS   AGE
-cluster-baremetal-operator-hostedcluster-5669fc4f78-jgwqk   1/1     Running   0          5m41s
-
-```
-
-Then, in the hosted cluster create:
+In the hosted cluster create:
 
 ```
 apiVersion: v1
@@ -95,6 +180,10 @@ spec:
   type: NodePort
   selector:
     baremetal.openshift.io/cluster-baremetal-operator: metal3-state
+  ipFamilies:   
+  - IPv4                                  
+  - IPv6                                  
+  ipFamilyPolicy: PreferDualStack
   ports:
   - name: http
     protocol: TCP
@@ -114,7 +203,7 @@ spec:
 ```
 
 
-In a Hosted Control Plane setup, Ironic runs inside a guest cluster (hcp-2), not on a node directly reachable by baremetal servers. So there has to be some indirection — a LoadBalancer or NodePort — to bridge the physical server network to the pod network.
+In a Hosted Control Plane setup, Ironic runs inside a guest cluster (hcp-3), not on a node directly reachable by baremetal servers. So there has to be some indirection — a LoadBalancer or NodePort — to bridge the physical server network to the pod network.
 Therefore, in the management cluster create LoadBalancer: (configure the nodepool and create it in the NS of the hosted cluster):
 
 ```
@@ -122,9 +211,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: lbsvc
-  namespace: clusters-hcp-2
+  namespace: clusters-hcp-3
 spec:
   type: LoadBalancer
+  ipFamilies:   
+    - IPv4                                  
+    - IPv6                                  
+  ipFamilyPolicy: PreferDualStack 
   allocateLoadBalancerNodePorts: false
   ports:
   - name: http
@@ -140,9 +233,10 @@ spec:
     port: 6385
     targetPort: 30703
   selector:
-    hypershift.openshift.io/nodepool-name: hcp-2
+    hypershift.openshift.io/nodepool-name: hcp-3
 
 ```
+
 
 In the hosted cluster the Provisioning:
 
@@ -154,15 +248,18 @@ metadata:
 spec:
   provisioningNetwork: Disabled
   externalIPs:
-  - 10.6.77.102
+  - 10.6.77.104
+  - 2620:52:9:164d::1112
   watchAllNamespaces: true  
 ```
 
 Use the external IP from the created lbsvc (LoadBalancer, from the management cluster)
-```
-> oc -n clusters-hcp-2 get svc lbsvc
-NAME    TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
-lbsvc   LoadBalancer   172.30.182.160   10.6.77.102   6180/TCP,6183/TCP,6385/TCP   156m
+
+```bash
+> oc -n clusters-hcp-3 get svc lbsvc
+NAME    TYPE           CLUSTER-IP      EXTERNAL-IP                        PORT(S)                      AGE
+lbsvc   LoadBalancer   172.30.145.99   10.6.77.104,2620:52:9:164d::1112   6180/TCP,6183/TCP,6385/TCP   21s
+
 
 ```
 
@@ -174,7 +271,7 @@ Graphically, this is what we are trying to do:
     MANAGEMENT CLUSTER (hub-2)
    ┌─────────────────────────────────────────────────────────────────┐
    │                                                                 │
-   │   namespace: clusters-hcp-2                                     │
+   │   namespace: clusters-hcp-3                                     │
    │  ┌──────────────────────────────────────────────────────────┐   │
    │  │                                                          │   │
    │  │   lbsvc (LoadBalancer)                                   │   │
@@ -182,11 +279,11 @@ Graphically, this is what we are trying to do:
    │  │   ports: 6180 → 30701 / 6183 → 30702 / 6385 → 30703     │   │
    │  │                                                          │   │
    │  └───────────────────────┬──────────────────────────────────┘   │
-   │                          │ selector: nodepool hcp-2             │
+   │                          │ selector: nodepool hcp-3             │
    └──────────────────────────┼──────────────────────────────────────┘
-                              │ routes to NodePorts on hcp-2 workers
+                              │ routes to NodePorts on hcp-3 workers
                               ▼
-    HOSTED CLUSTER (hcp-2) — worker nodes
+    HOSTED CLUSTER (hcp-3) — worker nodes
    ┌─────────────────────────────────────────────────────────────────┐
    │                                                                 │
    │   namespace: openshift-machine-api                              │
@@ -274,7 +371,7 @@ NAME                                   PROVISIONER       RECLAIMPOLICY   VOLUMEB
 kubevirt-csi-infra-default (default)   csi.kubevirt.io   Delete          Immediate           true                   27h
 ```
 
-So, the object's bucket storage is created in the management cluster, and accessed "remotely" from the hosted cluster. The hosted cluster (hcp-2) lives inside the management cluster, as it was another cluster. So, it access the management cluster "remotely".
+So, the object's bucket storage is created in the management cluster, and accessed "remotely" from the hosted cluster. The hosted cluster (hcp-3) lives inside the management cluster, as it was another cluster. So, it access the management cluster "remotely".
 
 ```
 > cat <<EOF | oc apply -f -
@@ -282,10 +379,10 @@ So, the object's bucket storage is created in the management cluster, and access
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: thanos-hcp-2
+  name: thanos-hcp-3
   namespace: open-cluster-management-observability
 spec:
-  bucketName: observability-hcp-2
+  bucketName: observability-hcp-3
   storageClassName: openshift-storage.noobaa.io
 
 EOF
@@ -294,7 +391,7 @@ EOF
 In order to get the S3 bucket credentials inspect the content of the secret called thanos within the namespace open-cluster-management-observability.
 
 ```
-> oc -n open-cluster-management-observability get secret thanos-hcp-2 -o yaml
+> oc -n open-cluster-management-observability get secret thanos-hcp-3 -o yaml
 apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: dFBMak9.....WUY=
@@ -308,14 +405,14 @@ metadata:
     app: noobaa
     bucket-provisioner: openshift-storage.noobaa.io-obc
     noobaa-domain: openshift-storage.noobaa.io
-  name: thanos-hcp-2
+  name: thanos-hcp-3
   namespace: open-cluster-management-observability
   ownerReferences:
   - apiVersion: objectbucket.io/v1alpha1
     blockOwnerDeletion: true
     controller: true
     kind: ObjectBucketClaim
-    name: thanos-hcp-2
+    name: thanos-hcp-3
     uid: 40ff696c-f859-4b6f-8239-5403603480b4
   resourceVersion: "152678738"
   uid: 0f47584f-c1c6-4f8b-be5f-4752fc85cef0
@@ -325,7 +422,7 @@ type: Opaque
 
 Notice: they key/access are base64 encoded. When using them in the secret, decode first.
 
-To access externally (hcp-2) we have to the s3 external route:
+To access externally (hcp-3) we have to the s3 external route:
 
 
 ```
@@ -354,7 +451,7 @@ stringData:
   thanos.yaml: |
     type: s3
     config:
-      bucket:  "observability-hcp-2"
+      bucket:  "observability-hcp-3"
       endpoint: "s3-openshift-storage.apps.hub-2.el8k.se-lab.eng.rdu2.dc.redhat.com:443"
       insecure: false
       http_config:
@@ -409,3 +506,11 @@ EOF
 The MCO Dashboard:
 
 ![](assets/hosted_control_planes_hubs_20260414170739782.png)
+
+# ZTP GitOps
+
+This tutorial is not intended to explain on how to use ZTP/GitOps to deploy new spoke clusters. In this case, using the hosted cluster that is also a hub.
+
+I have tested working correctly the following:
+ * Hosted Hub IPv4 and spoke IPv4
+ * Hosted Hub dual-stack and
