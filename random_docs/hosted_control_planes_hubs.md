@@ -43,7 +43,9 @@ Management cluster is composed by the usual hub operators:
  * TALM
 In addition for this case:
  * Openshift Virtualization
+	 - Create the HyperConverged CR
  * Metallb
+	 - Create the Metallb CR
  
 How to configure all these operators (hub) is not covered in this tutorial.
 
@@ -86,15 +88,17 @@ From the management cluster, download the [HCP cli](https://docs.redhat.com/en/d
 An hcp cluster is created with hcp cli
 
 ```
-> hcp create cluster kubevirt   --name hcp-3   --node-pool-replicas 3   
-	\--pull-secret /home/jgato/.config/containers/auth.json   
-	\--memory 16Gi   --cores 8   --etcd-storage-class=ocs-storagecluster-cephfs   
-	\--arch amd64   --release-image quay.io/openshift-release-dev/ocp-release:4.21.0-multi
-	\--enable-cluster-capabilities baremetal
-	\--cluster-cidr 10.132.0.0/14 
-	\--cluster-cidr fd03::/48
-	\--service-cidr 172.31.0.0/16 
-	\--service-cidr fd04::/112
+> hcp create cluster kubevirt   --name hcp-3   --node-pool-replicas 3 \
+	--pull-secret /home/jgato/.config/containers/auth.json \
+	--memory 16Gi   \
+	--cores 8   \
+	--etcd-storage-class=ocs-storagecluster-cephfs \
+	--arch amd64   --release-image quay.io/openshift-release-dev/ocp-release:4.21.0-multi \
+	--enable-cluster-capabilities baremetal \
+	--cluster-cidr 10.132.0.0/14 \
+	--cluster-cidr fd03::/48 \
+	--service-cidr 172.31.0.0/16 \
+	--service-cidr fd04::/112
 
 ```
 
